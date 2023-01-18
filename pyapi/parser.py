@@ -1,4 +1,3 @@
-import json
 import keyword
 from xml.sax import handler
 from xml.sax.expatreader import ExpatParser

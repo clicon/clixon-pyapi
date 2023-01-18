@@ -37,9 +37,9 @@ def send(sock, data):
     if type(data) != bytes:
         data = str.encode(data)
 
-    frame = struct.pack("!II", datalen + HDRLEN, opid)
+    frame = struct.pack("!II", datalen + HDRLEN + 1, opid)
 
-    sock.sendall(frame + data)
+    sock.sendall(frame + data + b"\0")
 
     return datalen + HDRLEN
 

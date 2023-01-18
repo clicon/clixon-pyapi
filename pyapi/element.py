@@ -12,6 +12,9 @@ class Element(object):
         self._cdata = ""
         self._origname = origname
 
+    def is_root(self, boolean):
+        self._is_root = boolean
+
     def get_name(self):
         return self._name
 
