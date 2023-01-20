@@ -1,11 +1,22 @@
-from pyapi.client import connect, read, send
+import socket
+import struct
+
+from enum import Enum
 from pyapi.parser import Element, parse_string
+
+
+class RPCTypes(Enum):
+    GET_CONFIG = 0
+    EDIT_CONFIG = 1
+    COMMIT = 2
 
 
 class Clixon():
     def __init__(self, sockpath):
+        self.__hdrlen = 8
         self.__sockpath = sockpath
-        self.__socket = connect(self.__sockpath)
+
+        self.__connect()
 
     def __enter__(self):
         self.root = self.rpc_config_get()
@@ -14,36 +25,92 @@ class Clixon():
 
     def __exit__(self, *args):
         self.rpc_config_set(self.root)
+        self.rpc_commit()
+
+    def __connect(self):
+        self.__socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.__socket.connect(self.__sockpath)
+
+    def __send(self, data):
+        """
+        Send data over socket. Will pack the data to fit Clixons
+        dataframe which is used to communicate over the UNIX socket.
+
+        struct clicon_msg {
+            uint32_t    op_len;     /* length of message. network byte order.*/
+            uint32_t    op_id;      /* session-id. network byte order. */
+            char        op_body[0]; /* rest of message, actual data */
+        };
+
+        op_len is the length of the NETCONF message + the size of the header
+        (8 bytes) defined as HDRLEN above.
+
+        """
+        datalen = len(data)
+        opid = 42
+
+        if type(data) != bytes:
+            data = str.encode(data)
+
+        frame = struct.pack("!II", datalen + self.__hdrlen + 1, opid)
+
+        self.__socket.sendall(frame + data + b"\0")
+
+    def __read(self):
+        """
+        Read from the socket. Will pick up the header first and figure out
+        the number of bytes of NETCONF message to read from the socket.
+        """
+        data = self.__socket.recv(self.__hdrlen)
+        datalen, _ = struct.unpack("!II", data)
+
+        data = self.__socket.recv(datalen)
+        data = data.decode()[:-1]
+
+        return data
 
     def __get_rpc_header(self, rpc_type, user):
-        root = Element("root", {})
-        root.add_element("rpc", attributes={"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-                                            "username": user, "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0", "message-id": 42})
+        attributes = {
+            "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+            "username": user,
+            "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+            "message-id": 42
+        }
 
-        if rpc_type == "get_config":
+        root = Element("root", {})
+        root.add_element("rpc", attributes=attributes)
+
+        if rpc_type == RPCTypes.GET_CONFIG:
             root.rpc.add_element("get_config", origname="get-config")
-        elif rpc_type == "edit_config":
+        elif rpc_type == RPCTypes.EDIT_CONFIG:
             root.rpc.add_element("edit_config", origname="edit-config")
+        elif rpc_type == RPCTypes.COMMIT:
+            root.rpc.add_element("commit")
         else:
             raise ValueError("Unknown rpc_type")
 
         return root
 
     def rpc_config_get(self, user="root"):
-        root = self.__get_rpc_header("get_config", user)
+        attributes = {
+            "nc:type": "xpath",
+            "nc:select": "/"
+        }
+
+        root = self.__get_rpc_header(RPCTypes.GET_CONFIG, user)
         root.rpc.get_config.add_element("source")
         root.rpc.get_config.source.add_element("candidate")
-        root.rpc.get_config.add_element("nc_filter", origname="nc:filter",
-                                        attributes={
-                                            "nc:type": "xpath", "nc:select": "/"})
-        send(self.__socket, root.dumps())
-        data = read(self.__socket)
+        root.rpc.get_config.add_element(
+            "nc_filter", origname="nc:filter", attributes=attributes)
+        self.__send(root.dumps())
+        data = self.__read()
 
         root = parse_string(data)
+
         return root.rpc_reply.data
 
     def rpc_config_set(self, config, user="root"):
-        root = self.__get_rpc_header("edit_config", user)
+        root = self.__get_rpc_header(RPCTypes.EDIT_CONFIG, user)
         root.rpc.edit_config.add_element("target")
         root.rpc.edit_config.target.add_element("candidate")
         root.rpc.edit_config.add_element(
@@ -54,10 +121,30 @@ class Clixon():
         for node in config.get_elements():
             root.rpc.edit_config.config.add_child(node)
 
-        send(self.__socket, root.dumps())
+        self.__send(root.dumps())
+
+    def rpc_commit(self, user="root"):
+        root = self.__get_rpc_header(RPCTypes.COMMIT, user)
+
+        self.__send(root.dumps())
+        data = self.__read()
+
+        root = parse_string(data)
+        return root.rpc_reply
 
 
 def rpc(sockpath):
+    """
+    The whole idea with this decorator is to do something like this:
+
+    @rpc(sockpath)
+    def test(root):
+        print(root.dumps())
+
+    root is the whole configuration three and is written back to
+    Clixon when one exits the function.
+
+    """
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath) as root:
