@@ -1,5 +1,6 @@
 import socket
 import struct
+import select
 
 from enum import Enum
 from pyapi.parser import Element, parse_string
@@ -12,11 +13,13 @@ class RPCTypes(Enum):
 
 
 class Clixon():
-    def __init__(self, sockpath):
+    def __init__(self, sockpath, notification=False):
         self.__hdrlen = 8
         self.__sockpath = sockpath
-
         self.__connect()
+
+        if notification:
+            pass
 
     def __enter__(self):
         self.root = self.rpc_config_get()
@@ -61,11 +64,17 @@ class Clixon():
         Read from the socket. Will pick up the header first and figure out
         the number of bytes of NETCONF message to read from the socket.
         """
-        data = self.__socket.recv(self.__hdrlen)
-        datalen, _ = struct.unpack("!II", data)
+        data = ""
 
-        data = self.__socket.recv(datalen)
-        data = data.decode()[:-1]
+        readable, writable, exceptional = select.select(
+            [self.__socket], [], [])
+
+        for read in readable:
+            recv = read.recv(self.__hdrlen)
+            datalen, _ = struct.unpack("!II", recv)
+
+            recv = read.recv(datalen)
+            data += recv.decode()[:-1]
 
         return data
 
@@ -86,8 +95,6 @@ class Clixon():
             root.rpc.add_element("edit_config", origname="edit-config")
         elif rpc_type == RPCTypes.COMMIT:
             root.rpc.add_element("commit")
-        else:
-            raise ValueError("Unknown rpc_type")
 
         return root
 
@@ -115,13 +122,14 @@ class Clixon():
         root.rpc.edit_config.target.add_element("candidate")
         root.rpc.edit_config.add_element(
             "default_operation", origname="default-operation")
-        root.rpc.edit_config.default_operation.set_cdata("none")
+        root.rpc.edit_config.default_operation.set_cdata("replace")
         root.rpc.edit_config.add_element("config")
 
         for node in config.get_elements():
             root.rpc.edit_config.config.add_child(node)
 
         self.__send(root.dumps())
+        self.rpc_commit()
 
     def rpc_commit(self, user="root"):
         root = self.__get_rpc_header(RPCTypes.COMMIT, user)
@@ -131,6 +139,23 @@ class Clixon():
 
         root = parse_string(data)
         return root.rpc_reply
+
+    def rpc_subscription_create(self):
+        attributes = {
+            "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
+        }
+
+        root = self.__get_rpc_header("", "root")
+        root.add_element("create_subscription",
+                         origname="create-subscripton", attributes=attributes)
+        root.create_subscription.add_element("stream")
+        root.create_subscription.stream.set_cdata("controller")
+        root.create_subscription.add_element("filter", attributes={
+            "type": "xpath",
+            "select": ""
+        })
+
+        return root
 
 
 def rpc(sockpath):
@@ -148,6 +173,15 @@ def rpc(sockpath):
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath) as root:
+                return func(root)
+        return wrapper
+    return decorator
+
+
+def notification(sockpath):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            with Clixon(sockpath, notification=True) as root:
                 return func(root)
         return wrapper
     return decorator
