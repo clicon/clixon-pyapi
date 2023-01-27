@@ -9,7 +9,7 @@ class Element(object):
         self._attributes = attributes
         self._children = []
         self._is_root = False
-        self._cdata = ""
+        self.cdata = ""
         self._origname = origname
 
     def is_root(self, boolean):
@@ -43,10 +43,10 @@ class Element(object):
         self._children.append(element)
 
     def add_cdata(self, cdata):
-        self._cdata = self._cdata + cdata
+        self.cdata = self.cdata + cdata
 
     def set_cdata(self, cdata):
-        self._cdata = cdata
+        self.cdata = cdata
 
     def get_attribute(self, key):
         return self._attributes.get(key)
@@ -71,7 +71,7 @@ class Element(object):
             return self._children
 
     def get_cdata(self):
-        return self._cdata
+        return self.cdata
 
     def get_attributes_str(self):
         attr_string = ""
@@ -159,7 +159,7 @@ class Element(object):
     __nonzero__ = __bool__
 
     def __eq__(self, val):
-        return self._cdata == val
+        return self.cdata == val
 
     def __dir__(self):
         childrennames = [x._name for x in self._children]
