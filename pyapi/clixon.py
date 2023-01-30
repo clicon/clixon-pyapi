@@ -1,8 +1,8 @@
-import asyncio
+import sys
 import os
 from enum import Enum
 from pyapi.parser import Element, parse_string
-from pyapi.client import read, send, create_socket, dataq
+from pyapi.client import read, send, create_socket
 
 
 class RPCTypes(Enum):
@@ -11,7 +11,7 @@ class RPCTypes(Enum):
     COMMIT = 2
 
 
-async def rpc_config_get(loop, socket, user="root"):
+def rpc_config_get(socket, user="root"):
     attributes = {
         "nc:type": "xpath",
         "nc:select": "/"
@@ -23,15 +23,14 @@ async def rpc_config_get(loop, socket, user="root"):
     root.rpc.get_config.add_element(
         "nc_filter", origname="nc:filter", attributes=attributes)
 
-    await send(loop, socket, root.dumps())
-    await read(loop, socket, [])
-
-    root = dataq.get()
+    send(socket, root.dumps())
+    data = read(socket)
+    root = parse_string(data.rstrip())
 
     return root.rpc_reply.data
 
 
-async def rpc_config_set(config, loop, socket, user="root"):
+def rpc_config_set(config, socket, user="root"):
     root = get_rpc_header(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.add_element("target")
     root.rpc.edit_config.target.add_element("candidate")
@@ -43,16 +42,16 @@ async def rpc_config_set(config, loop, socket, user="root"):
     for node in config.get_elements():
         root.rpc.edit_config.config.add_child(node)
 
-    await send(loop, socket, root.dumps())
-    await rpc_commit(loop, socket)
+    send(socket, root.dumps())
+    rpc_commit(socket)
 
 
-async def rpc_commit(loop, socket, user="root"):
+def rpc_commit(socket, user="root"):
     root = get_rpc_header(RPCTypes.COMMIT, user)
 
-    send(loop, socket, root.dumps())
-    await read(loop, socket, [])
-    root = dataq.get()
+    send(socket, root.dumps())
+    data = read(socket)
+    root = parse_string(data)
 
     return root.rpc_reply
 
@@ -106,16 +105,15 @@ class Clixon():
             raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__socket = create_socket(sockpath)
-        self.__loop = asyncio.get_event_loop()
 
     def __enter__(self):
-        self.__root = asyncio.run(rpc_config_get(self.__loop, self.__socket))
+        self.__root = rpc_config_get(self.__socket)
 
         return self.__root
 
-    def __exit__(self):
-        rpc_config_set(self.__root, self.__loop, self.__socket)
-        rpc_commit(self.__loop, self.__socket)
+    def __exit__(self, *args):
+        rpc_config_set(self.__root, self.__socket)
+        rpc_commit(self.__socket)
 
 
 def rpc(sockpath=None):

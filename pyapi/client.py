@@ -1,15 +1,14 @@
-import asyncio
+import select
 import struct
 import socket
-import queue
+
 from log import get_logger
 
 logger = get_logger()
-dataq = queue.Queue()
 hdrlen = 8
 
 
-async def run_modules(modules):
+def run_modules(modules):
     logger.debug(f"Modules: {modules}")
     for module in modules:
         module.setup()
@@ -23,29 +22,44 @@ def create_socket(sockpath):
     return sock
 
 
-async def read(loop, sock, modules):
+def read(sock):
+    data = ""
+    hdrlen = 8
+    datalen = 0
+    logger.debug("Waiting for select")
+
+    readable, writable, exceptional = select.select(
+        [sock], [], [])
+
+    for read in readable:
+        recv = read.recv(hdrlen)
+        datalen, opid = struct.unpack("!II", recv)
+
+        logger.debug(f"Reading {datalen} bytes from select with ID {opid}")
+
+        recv = read.recv(datalen - hdrlen)
+        data += recv.decode()
+
+    datalen = len(data)
+
+    logger.debug(f"Got {datalen} pieces of data")
+
+    return data[:-1]
+
+
+async def readloop(loop, sock, modules):
+    logger.debug("Starting read loop")
     while True:
-        recvdata = await loop.sock_recv(sock, hdrlen)
-        datalen, _ = struct.unpack("!II", recvdata)
-
-        recvdata = await loop.sock_recv(sock, datalen)
-        data = recvdata.strip()
-
-        recvlen = len(data)
-
-        logger.debug(f"Recevied {recvlen} pieces of data")
-        logger.debug(data)
-
-        if b"<notification" in data:
-            if b"<services-commit" in data:
+        data = read(sock)
+        if "<notification" in data:
+            if "<services-commit" in data:
                 logger.debug("Received service notify")
-                await run_modules(modules)
+                run_modules(modules)
         else:
-            logger.debug("Data put in queue")
-            dataq.put(data)
+            logger.debug(f"Got data: {data}")
 
 
-async def send(loop, sock, data):
+def send(sock, data):
     datalen = len(data)
     opid = 42
 
@@ -53,9 +67,11 @@ async def send(loop, sock, data):
         data = str.encode(data)
 
     frame = struct.pack("!II", datalen + hdrlen + 1, opid)
-
-    await loop.sock_sendall(sock, frame + data + b"\0")
-
+    sock.send(frame + data + b"\0")
     sent = len(frame)
 
     logger.debug(f"Sent {sent} pieces of data")
+
+
+async def asend(loop, sock, data):
+    send(sock, data)
