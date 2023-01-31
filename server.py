@@ -2,16 +2,14 @@ import flock
 import fcntl
 import time
 import asyncio
-import importlib
 import getopt
 import sys
-import os
 import logging
 
 from pyapi.clixon import rpc_subscription_create
 from pyapi.client import create_socket, readloop, send
-
-from log import get_logger
+from pyapi.modules import load_modules, notify
+from pyapi.log import get_logger
 
 logger = get_logger()
 lockfd = None
@@ -24,40 +22,13 @@ def usage(err=""):
         print(f"{name}: {err}")
         print("")
     print(f"{name} -f<module1,module2> -s<path> -d -p<pidfile>")
-    print("  -f       Module filter, comma separate list of modules")
-    print("  -d       Debug")
+    print("  -f       Comma separate list of modules to exclude")
+    print("  -d       Enable verbose debug logging")
     print("  -s       Clixon socket path")
     print("  -p       Pidfile for Python server")
+    print("  -h       This!")
 
     sys.exit(0)
-
-
-def find_modules():
-    modules = []
-    for root, dirs, files in os.walk("./modules/"):
-        for module in files:
-            if not module.endswith(".py"):
-                logger.debug(f"Skipping file: {module}")
-                continue
-            logger.debug(f"Added module {module}")
-            modules.append(module[:-3])
-
-    return modules
-
-
-def load_modules(modulefilter):
-    loaded_modules = []
-    filtered = modulefilter.split(",")
-    for modulefile in find_modules():
-        if modulefile in filtered:
-            logger.debug(f"Skipping module: {modulefile}")
-            continue
-
-        logger.debug(f"Importing module modules.{modulefile}")
-        module = importlib.import_module("modules." + modulefile)
-        loaded_modules.append(module)
-
-    return loaded_modules
 
 
 async def main(sockpath, modulefilter):
@@ -74,8 +45,9 @@ async def main(sockpath, modulefilter):
     loop = asyncio.get_event_loop()
     send(sock, enable_notify.dumps())
 
-    tasks = asyncio.gather(readloop(loop, sock, modules))
+    tasks = asyncio.gather(readloop(loop, sock, modules), notify())
     await asyncio.wait_for(tasks, timeout=None)
+
 
 if __name__ == "__main__":
     sockpath = "/usr/local/var/controller.sock"
@@ -97,12 +69,15 @@ if __name__ == "__main__":
     for opt, arg in opts:
         if opt == "-d":
             logger.setLevel(logging.DEBUG)
-        if opt == "-s":
+        elif opt == "-s":
             sockpath = arg
-        if opt == "-f":
+        elif opt == "-f":
             modulefilter = arg
-        if opt == "-p":
+        elif opt == "-p":
             pidfile = arg
+        else:
+            print(opt)
+            usage()
 
     try:
         asyncio.run(main(sockpath, modulefilter))

@@ -116,7 +116,7 @@ class Clixon():
         rpc_commit(self.__socket)
 
 
-def rpc(sockpath=None):
+def rpc(sockpath="/usr/local/var/controller.sock"):
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath) as root:

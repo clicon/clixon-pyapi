@@ -1,6 +1,7 @@
 from pyapi.clixon import rpc
 
 
-@rpc("/usr/local/var/controller.sock")
+@rpc()
 def setup(root):
-    root.services.vrf.service_name.set_cdata("XXX")
+    kaka
+#    root.services.vrf.service_name.set_cdata("XXX")

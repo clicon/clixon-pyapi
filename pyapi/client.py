@@ -1,17 +1,11 @@
 import select
 import struct
 import socket
-
-from log import get_logger
+from pyapi.modules import run_modules
+from pyapi.log import get_logger
 
 logger = get_logger()
 hdrlen = 8
-
-
-def run_modules(modules):
-    logger.debug(f"Modules: {modules}")
-    for module in modules:
-        module.setup()
 
 
 def create_socket(sockpath):
