@@ -41,7 +41,7 @@ def read(sock):
     return data[:-1]
 
 
-async def readloop(loop, sock, modules):
+def readloop(sock, modules):
     logger.debug("Starting read loop")
     while True:
         data = read(sock)
@@ -65,7 +65,3 @@ def send(sock, data):
     sent = len(frame)
 
     logger.debug(f"Sent {sent} pieces of data")
-
-
-async def asend(loop, sock, data):
-    send(sock, data)

@@ -1,8 +1,10 @@
-import sys
 import os
 from enum import Enum
 from pyapi.parser import Element, parse_string
 from pyapi.client import read, send, create_socket
+from pyapi.log import get_logger
+
+logger = get_logger()
 
 
 class RPCTypes(Enum):
@@ -120,6 +122,6 @@ def rpc(sockpath="/usr/local/var/controller.sock"):
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath) as root:
-                return func(root)
+                return func(root, logger)
         return wrapper
     return decorator

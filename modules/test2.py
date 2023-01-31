@@ -1,6 +1,6 @@
 from pyapi.clixon import rpc
 
 
-@rpc("/usr/local/var/controller.sock")
-def setup(root):
-    print("Test2, got tree")
+@rpc()
+def setup(root, log):
+    log.info("Test2, got tree")

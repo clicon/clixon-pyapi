@@ -1,4 +1,3 @@
-import time
 import traceback
 import importlib
 from pyapi.log import get_logger
@@ -22,7 +21,7 @@ def find_modules():
     modules = []
     for root, dirs, files in os.walk(modulespath):
         for module in files:
-            if not module.endswith(".py"):
+            if not module.endswith(".py") and not module.startswith("#"):
                 logger.debug(f"Skipping file: {module}")
                 continue
             logger.debug(f"Added module {module}")
@@ -40,13 +39,11 @@ def load_modules(modulefilter):
             continue
 
         logger.debug(f"Importing module modules.{modulefile}")
-        module = importlib.import_module("modules." + modulefile)
+
+        try:
+            module = importlib.import_module("modules." + modulefile)
+        except ModuleNotFoundError:
+            logger.debug(f"Module {modulefile} do not exist, skipping")
         loaded_modules.append(module)
 
     return loaded_modules
-
-
-async def notify():
-    while True:
-        logger.debug("Notify!")
-        time.sleep(2)

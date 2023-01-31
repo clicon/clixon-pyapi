@@ -1,14 +1,14 @@
 import flock
 import fcntl
 import time
-import asyncio
 import getopt
 import sys
 import logging
+import threading
 
 from pyapi.clixon import rpc_subscription_create
 from pyapi.client import create_socket, readloop, send
-from pyapi.modules import load_modules, notify
+from pyapi.modules import load_modules
 from pyapi.log import get_logger
 
 logger = get_logger()
@@ -31,7 +31,7 @@ def usage(err=""):
     sys.exit(0)
 
 
-async def main(sockpath, modulefilter):
+def main(sockpath, modulefilter):
     logger.debug(f"Socket path: {sockpath}")
 
     modules = load_modules(modulefilter)
@@ -42,11 +42,17 @@ async def main(sockpath, modulefilter):
 
     sock = create_socket(sockpath)
     enable_notify = rpc_subscription_create()
-    loop = asyncio.get_event_loop()
     send(sock, enable_notify.dumps())
 
-    tasks = asyncio.gather(readloop(loop, sock, modules), notify())
-    await asyncio.wait_for(tasks, timeout=None)
+    threads = []
+
+    threads.append(threading.Thread(target=readloop, args=(sock, modules)))
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
 
 
 if __name__ == "__main__":
@@ -80,7 +86,7 @@ if __name__ == "__main__":
             usage()
 
     try:
-        asyncio.run(main(sockpath, modulefilter))
+        main(sockpath, modulefilter)
     except KeyboardInterrupt:
         fcntl.lockf(lockfd, fcntl.LOCK_UN)
 
