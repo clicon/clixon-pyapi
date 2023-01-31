@@ -36,7 +36,7 @@ def read(sock):
 
     datalen = len(data)
 
-    logger.debug(f"Got {datalen} pieces of data")
+    logger.debug(f"Got {datalen} bytes of data: {data}")
 
     return data[:-1]
 
@@ -64,4 +64,4 @@ def send(sock, data):
     sock.send(frame + data + b"\0")
     sent = len(frame)
 
-    logger.debug(f"Sent {sent} pieces of data")
+    logger.debug(f"Sent {sent} bytes of data: {str(data)}")

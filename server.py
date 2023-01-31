@@ -45,7 +45,6 @@ def main(sockpath, modulefilter):
     send(sock, enable_notify.dumps())
 
     threads = []
-
     threads.append(threading.Thread(target=readloop, args=(sock, modules)))
 
     for thread in threads:

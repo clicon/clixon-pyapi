@@ -6,7 +6,7 @@ import xmltodict
 class Element(object):
     def __init__(self, name, attributes, origname=""):
         self._name = name
-        self._attributes = attributes
+        self.attributes = attributes
         self._children = []
         self._is_root = False
         self.cdata = ""

@@ -44,8 +44,7 @@ def rpc_config_set(config, socket, user="root"):
     for node in config.get_elements():
         root.rpc.edit_config.config.add_child(node)
 
-    send(socket, root.dumps())
-    rpc_commit(socket)
+    return root
 
 
 def rpc_commit(socket, user="root"):
@@ -102,19 +101,26 @@ def rpc_subscription_create():
 
 
 class Clixon():
-    def __init__(self, sockpath):
+    def __init__(self, sockpath="/usr/local/var/controller.sock"):
         if sockpath == "" or not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__socket = create_socket(sockpath)
-
-    def __enter__(self):
         self.__root = rpc_config_get(self.__socket)
 
+    def __enter__(self):
         return self.__root
 
     def __exit__(self, *args):
-        rpc_config_set(self.__root, self.__socket)
+        config = rpc_config_set(self.__root, self.__socket)
+        send(self.__socket, config.dumps())
+        rpc_commit(self.__socket)
+
+    def get_root(self):
+        return self.__root
+
+    def set_root(self, root):
+        send(self.__socket, root.dumps())
         rpc_commit(self.__socket)
 
 

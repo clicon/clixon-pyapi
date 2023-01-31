@@ -1,7 +1,9 @@
-import traceback
-import importlib
-from pyapi.log import get_logger
 import os
+import importlib
+import threading
+import traceback
+
+from pyapi.log import get_logger
 
 logger = get_logger()
 modulespath = "./modules/"
@@ -9,9 +11,13 @@ modulespath = "./modules/"
 
 def run_modules(modules):
     logger.debug(f"Modules: {modules}")
+    threads = []
+
     for module in modules:
         try:
-            module.setup()
+            thread = threading.Thread(target=module.setup, args=())
+            thread.start()
+            threads.append(thread)
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())
@@ -26,6 +32,7 @@ def find_modules():
                 continue
             logger.debug(f"Added module {module}")
             modules.append(module[:-3])
+    modules.reverse()
 
     return modules
 
