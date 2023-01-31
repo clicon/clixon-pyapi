@@ -49,20 +49,20 @@ class Element(object):
         self.cdata = cdata
 
     def get_attribute(self, key):
-        return self._attributes.get(key)
+        return self.attributes.get(key)
 
     def set_attributes(self, attributes):
-        self._attributes = attributes
+        self.attributes = attributes
 
     def add_attributes(self, attributes):
         if type(attributes) != dict:
             raise AttributeError("add_attribute argument should be dict")
 
         for key in attributes.keys():
-            self._attributes[key] = attributes[key]
+            self.attributes[key] = attributes[key]
 
     def get_attributes(self):
-        return self._attributes
+        return self.attributes
 
     def get_elements(self, name=None):
         if name:
@@ -75,9 +75,9 @@ class Element(object):
 
     def get_attributes_str(self):
         attr_string = ""
-        if self._attributes and self._attributes != {}:
-            for key in self._attributes.keys():
-                value = self._attributes[key]
+        if self.attributes and self.attributes != {}:
+            for key in self.attributes.keys():
+                value = self.attributes[key]
                 attr_string += f" {key}=\"{value}\""
         return attr_string
 
