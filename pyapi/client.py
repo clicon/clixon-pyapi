@@ -9,6 +9,8 @@ hdrlen = 8
 
 
 def create_socket(sockpath):
+    logger.debug(f"Connecting to socket: {sockpath}")
+
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect(sockpath)
@@ -29,14 +31,10 @@ def read(sock):
         recv = read.recv(hdrlen)
         datalen, opid = struct.unpack("!II", recv)
 
-        logger.debug(f"Reading {datalen} bytes from select with ID {opid}")
-
         recv = read.recv(datalen - hdrlen)
         data += recv.decode()
 
-    datalen = len(data)
-
-    logger.debug(f"Got {datalen} bytes of data: {data}")
+        logger.debug(f"Read: {datalen} bytes of data, opid={opid}: " + data)
 
     return data[:-1]
 
@@ -44,13 +42,16 @@ def read(sock):
 def readloop(sock, modules):
     logger.debug("Starting read loop")
     while True:
-        data = read(sock)
+        try:
+            data = read(sock)
+        except struct.error as e:
+            logger.error(f"Reader loop got an exception: {e}")
+            return
+
         if "<notification" in data:
             if "<services-commit" in data:
                 logger.debug("Received service notify")
                 run_modules(modules)
-        else:
-            logger.debug(f"Got data: {data}")
 
 
 def send(sock, data):
@@ -61,7 +62,9 @@ def send(sock, data):
         data = str.encode(data)
 
     frame = struct.pack("!II", datalen + hdrlen + 1, opid)
-    sock.send(frame + data + b"\0")
-    sent = len(frame)
+    framelen = len(frame)
 
-    logger.debug(f"Sent {sent} bytes of data: {str(data)}")
+    sock.send(frame + data + b"\0")
+    sent = framelen + len(data) + 1
+
+    logger.debug(f"Send: {sent} bytes of data: " + data.decode())

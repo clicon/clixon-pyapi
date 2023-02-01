@@ -141,17 +141,9 @@ class Element(object):
         return self.get_cdata().strip()
 
     def __repr__(self):
-        name = self.get_name()
         cdata = self.get_cdata().strip()
-        attribs = self.get_attributes_str()
-        outstr = f"name={name}"
 
-        if cdata != "":
-            outstr += f", cdata={cdata}"
-        if attribs != "":
-            outstr += f", attributes={attribs}"
-
-        return outstr
+        return cdata
 
     def __bool__(self):
         return self._is_root or self._name is not None

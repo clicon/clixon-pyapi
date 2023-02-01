@@ -1,9 +1,14 @@
 from pyapi.clixon import rpc
-from time import sleep
 
 
 @rpc()
 def setup(root, log):
-    log.info("Sleeping")
-    sleep(5)
-    log.info("Good morning")
+    services = root.services
+
+    serivce_name = root.services.service.name
+
+    if serivce_name == "vrf":
+        for device in root.devices.device:
+            log.info(
+                f"Setting descriptio on {device.addr} to {services.vrf.service_id}")
+            device.description = services.vrf.service_id
