@@ -17,13 +17,6 @@ class Handler(handler.ContentHandler):
         self.elements = []
 
     def startElement(self, name, attributes):
-        name = name.replace("-", "_")
-        name = name.replace(".", "_")
-        name = name.replace(":", "_")
-
-        if keyword.iskeyword(name):
-            name += "_"
-
         attrs = dict()
         for k, v in attributes.items():
             attrs[k] = v
@@ -31,9 +24,9 @@ class Handler(handler.ContentHandler):
         element = Element(name, attrs)
 
         if len(self.elements) > 0:
-            self.elements[-1].add_child(element)
+            self.elements[-1].add(element)
         else:
-            self.root.add_child(element)
+            self.root.add(element)
         self.elements.append(element)
 
     def endElement(self, name):

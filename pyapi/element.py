@@ -9,12 +9,12 @@ class Element(object):
         self._children = []
         self._is_root = False
         self.cdata = ""
-
         self._origname = name
 
-        name = name.replace("-", "_")
-        name = name.replace(".", "_")
-        name = name.replace(":", "_")
+        if name:
+            name = name.replace("-", "_")
+            name = name.replace(".", "_")
+            name = name.replace(":", "_")
 
         self._name = name
 
@@ -26,7 +26,7 @@ class Element(object):
             return self._name
         return self._origname
 
-    def create(self, name, attributes={}, origname="", cdata="",
+    def create(self, name, attributes={}, cdata="",
                element=None):
         if not element:
             element = Element(name, attributes)
@@ -36,10 +36,10 @@ class Element(object):
     def add(self, element):
         self._children.append(element)
 
-    def delelete(self, name):
+    def delete(self, name):
         index = 0
         for child in self._children:
-            if child._name == name:
+            if child._origname == name:
                 del self._children[index]
             index += 1
 
@@ -89,8 +89,8 @@ class Element(object):
         for child in self.get_elements():
             name = child.get_origname()
             cdata = child.get_cdata().strip()
-            attr_string = ""
 
+            attr_string = ""
             attr_string = child.get_attributes_str()
 
             if child.get_elements() != [] or child.get_cdata() != "":
