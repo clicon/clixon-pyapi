@@ -17,8 +17,6 @@ class Handler(handler.ContentHandler):
         self.elements = []
 
     def startElement(self, name, attributes):
-        origname = name
-
         name = name.replace("-", "_")
         name = name.replace(".", "_")
         name = name.replace(":", "_")
@@ -30,7 +28,7 @@ class Handler(handler.ContentHandler):
         for k, v in attributes.items():
             attrs[k] = v
 
-        element = Element(name, attrs, origname)
+        element = Element(name, attrs)
 
         if len(self.elements) > 0:
             self.elements[-1].add_child(element)

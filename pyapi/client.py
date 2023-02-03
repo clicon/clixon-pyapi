@@ -1,6 +1,9 @@
+from pyapi.element import Element
+from pyapi.netconf import rpc_subscription_create
 import select
 import socket
 import struct
+import time
 
 from pyapi.log import get_logger
 from pyapi.modules import run_modules
@@ -31,32 +34,51 @@ def read(sock):
     for read in readable:
         recv = read.recv(hdrlen)
         datalen, opid = struct.unpack("!II", recv)
-
         recv = read.recv(datalen - hdrlen)
-        data += recv.decode()
 
-        logger.debug(f"Read: {datalen} bytes of data, opid={opid}: " + data)
+        logger.debug("Read:")
+        logger.debug(f"  len={datalen}")
+        logger.debug(f"  opid={opid}")
+        logger.debug(f"  data={recv}")
+
+        data += recv.decode()
 
     return data[:-1]
 
 
-def readloop(sock, modules):
+def readloop(sockpath, modules):
     logger.debug("Starting read loop")
     while True:
-        try:
-            data = read(sock)
-        except struct.error as e:
-            logger.error(f"Reader loop got an exception: {e}")
-            return
+        logger.debug("Creating socket and enables notify")
 
-        if "<notification" in data:
-            if "<services-commit" in data:
-                logger.debug("Received service notify")
-                run_modules(modules)
+        try:
+            sock = create_socket(sockpath)
+        except FileNotFoundError as e:
+            logger.error(f"Could not connect to socket: {e}")
+            time.sleep(3)
+            continue
+
+        enable_notify = rpc_subscription_create()
+        send(sock, enable_notify)
+
+        while True:
+            try:
+                data = read(sock)
+            except struct.error as e:
+                logger.error(f"Reader loop got an exception: {e}")
+                break
+
+            if "<notification" in data:
+                if "<services-commit" in data:
+                    logger.debug("Received service notify")
+                    run_modules(modules)
 
 
 def send(sock, data):
     opid = 42
+
+    if type(data) == Element:
+        data = data.dumps()
 
     if not data.endswith("\0"):
         data += "\0"
@@ -69,4 +91,7 @@ def send(sock, data):
 
     sock.send(frame + data)
 
-    logger.debug(f"Send: {framelen} bytes of data: " + data.decode())
+    logger.debug("Send:")
+    logger.debug(f"  len={framelen}")
+    logger.debug(f"  opid={opid}")
+    logger.debug(f"  data={data}")
