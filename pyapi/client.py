@@ -1,8 +1,9 @@
 import select
-import struct
 import socket
-from pyapi.modules import run_modules
+import struct
+
 from pyapi.log import get_logger
+from pyapi.modules import run_modules
 
 logger = get_logger()
 hdrlen = 8
@@ -67,6 +68,5 @@ def send(sock, data):
     frame = struct.pack("!II", framelen, opid)
 
     sock.send(frame + data)
-    sent = framelen + len(data)
 
-    logger.debug(f"Send: {sent} bytes of data: " + data.decode())
+    logger.debug(f"Send: {framelen} bytes of data: " + data.decode())
