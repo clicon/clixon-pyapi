@@ -6,8 +6,6 @@ xmlstr_2 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><
 
 
 def test_to_obj_and_back():
-    # Convert XML to Python objects and back to XML again. In the end we should
-    # have an XML string identical to the one we used from the beginning.
     root = parse_string(xmlstr_1)
 
     assert root.dumps() == xmlstr_1
@@ -16,12 +14,12 @@ def test_to_obj_and_back():
 def test_add_node():
     root = parse_string(xmlstr_1)
     root.rpc_reply.create(
-        "foo_bar", {"xmlns": "foo:bar:test:1"}, cname="test data")
+        "foo-bar", {"xmlns": "foo:bar:test:1"}, cdata="test data")
 
 
 def test_del_node():
     root = parse_string(xmlstr_2)
-    root.rpc_reply.delete("foo_bar")
+    root.rpc_reply.delete("foo-bar")
 
     assert root.dumps() == xmlstr_1
 

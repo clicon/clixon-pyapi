@@ -14,15 +14,15 @@ class Clixon():
             raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__socket = create_socket(sockpath)
-        self.__root = rpc_config_get(self.__socket)
+        self.__root = rpc_config_get()
 
     def __enter__(self):
         return self.__root
 
     def __exit__(self, *args):
-        config = rpc_config_set(self.__root, self.__socket)
+        config = rpc_config_set(self.__root)
         send(self.__socket, config.dumps())
-        commit = rpc_commit(self.__socket)
+        commit = rpc_commit()
         send(self.__socket, commit)
 
     def get_root(self):
@@ -30,7 +30,7 @@ class Clixon():
 
     def set_root(self, root):
         send(self.__socket, root.dumps())
-        commit = rpc_commit(self.__socket)
+        commit = rpc_commit()
         send(self.__socket, commit)
 
 

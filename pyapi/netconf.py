@@ -8,7 +8,7 @@ class RPCTypes(Enum):
     COMMIT = 2
 
 
-def rpc_config_get(socket, user="root"):
+def rpc_config_get(user="root"):
     attributes = {
         "nc:type": "xpath",
         "nc:select": "/"
@@ -22,7 +22,7 @@ def rpc_config_get(socket, user="root"):
     return root
 
 
-def rpc_config_set(config, socket, user="root"):
+def rpc_config_set(config, user="root"):
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create("candidate")
@@ -36,7 +36,7 @@ def rpc_config_set(config, socket, user="root"):
     return root
 
 
-def rpc_commit(socket, user="root"):
+def rpc_commit(user="root"):
     return rpc_header_get(RPCTypes.COMMIT, user)
 
 
