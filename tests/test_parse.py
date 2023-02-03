@@ -15,13 +15,13 @@ def test_to_obj_and_back():
 
 def test_add_node():
     root = parse_string(xmlstr_1)
-    root.rpc_reply.add_element(
-        "foo_bar", {"xmlns": "foo:bar:test:1"}, "foo-bar", "test data")
+    root.rpc_reply.create(
+        "foo_bar", {"xmlns": "foo:bar:test:1"}, cname="test data")
 
 
 def test_del_node():
     root = parse_string(xmlstr_2)
-    root.rpc_reply.del_element("foo_bar")
+    root.rpc_reply.delete("foo_bar")
 
     assert root.dumps() == xmlstr_1
 

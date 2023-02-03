@@ -4,43 +4,44 @@ import xmltodict
 
 
 class Element(object):
-    def __init__(self, name, attributes, origname=""):
-        self._name = name
+    def __init__(self, name, attributes):
         self.attributes = attributes
         self._children = []
         self._is_root = False
         self.cdata = ""
-        self._origname = origname
+
+        self._origname = name
+
+        name = name.replace("-", "_")
+        name = name.replace(".", "_")
+        name = name.replace(":", "_")
+
+        self._name = name
 
     def is_root(self, boolean):
         self._is_root = boolean
 
-    def get_name(self):
-        return self._name
-
     def get_origname(self):
         if self._origname == "":
             return self._name
-
         return self._origname
 
-    def add_element(self, name, attributes={}, origname="", cdata="",
-                    element=None):
+    def create(self, name, attributes={}, origname="", cdata="",
+               element=None):
         if not element:
-            element = Element(name, attributes, origname)
+            element = Element(name, attributes)
             element.set_cdata(cdata)
+        self._children.append(element)
 
-        self.add_child(element)
+    def add(self, element):
+        self._children.append(element)
 
-    def del_element(self, name):
+    def delelete(self, name):
         index = 0
         for child in self._children:
             if child._name == name:
                 del self._children[index]
             index += 1
-
-    def add_child(self, element):
-        self._children.append(element)
 
     def add_cdata(self, cdata):
         self.cdata = self.cdata + cdata
@@ -48,8 +49,14 @@ class Element(object):
     def set_cdata(self, cdata):
         self.cdata = cdata
 
+    def get_cdata(self):
+        return self.cdata
+
     def get_attribute(self, key):
         return self.attributes.get(key)
+
+    def get_attributes(self):
+        return self.attributes
 
     def set_attributes(self, attributes):
         self.attributes = attributes
@@ -61,17 +68,11 @@ class Element(object):
         for key in attributes.keys():
             self.attributes[key] = attributes[key]
 
-    def get_attributes(self):
-        return self.attributes
-
     def get_elements(self, name=None):
         if name:
             return [e for e in self._children if e.name == name]
         else:
             return self._children
-
-    def get_cdata(self):
-        return self.cdata
 
     def get_attributes_str(self):
         attr_string = ""

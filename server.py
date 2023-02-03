@@ -5,8 +5,7 @@ import fcntl
 import sys
 import threading
 
-from pyapi.clixon import rpc_subscription_create
-from pyapi.client import create_socket, readloop, send
+from pyapi.client import readloop
 from pyapi.modules import load_modules
 from pyapi.log import get_logger
 from pyapi.args import parse_args
@@ -24,20 +23,16 @@ def main():
         logger.error("Another server is already running.")
         sys.exit(1)
 
+    modules = load_modules(modulefilter)
+
+    if modules == []:
+        logger.error("No loadable modules found.")
+        sys.exit(0)
+
+    threads = []
+    threads.append(threading.Thread(target=readloop, args=(sockpath, modules)))
+
     try:
-        modules = load_modules(modulefilter)
-
-        if modules == []:
-            logger.error("No loadable modules found.")
-            sys.exit(0)
-
-        sock = create_socket(sockpath)
-        enable_notify = rpc_subscription_create()
-        send(sock, enable_notify.dumps())
-
-        threads = []
-        threads.append(threading.Thread(target=readloop, args=(sock, modules)))
-
         for thread in threads:
             thread.daemon = True
             thread.start()
