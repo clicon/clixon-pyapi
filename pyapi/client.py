@@ -55,16 +55,18 @@ def readloop(sock, modules):
 
 
 def send(sock, data):
-    datalen = len(data)
     opid = 42
+
+    if not data.endswith("\0"):
+        data += "\0"
 
     if type(data) != bytes:
         data = str.encode(data)
 
-    frame = struct.pack("!II", datalen + hdrlen + 1, opid)
-    framelen = len(frame)
+    framelen = hdrlen + len(data)
+    frame = struct.pack("!II", framelen, opid)
 
-    sock.send(frame + data + b"\0")
-    sent = framelen + len(data) + 1
+    sock.send(frame + data)
+    sent = framelen + len(data)
 
     logger.debug(f"Send: {sent} bytes of data: " + data.decode())

@@ -16,10 +16,15 @@ lockfd = None
 
 
 def main():
+    sockpath, modulepath, modulefilter, pidfile = parse_args()
     try:
-        sockpath, modulepath, modulefilter, pidfile = parse_args()
         lockfd = open(pidfile, "w")
         fcntl.lockf(lockfd, flock.LOCK_EX | flock.LOCK_NB)
+    except IOError:
+        logger.error("Another server is already running.")
+        sys.exit(1)
+
+    try:
         modules = load_modules(modulefilter)
 
         if modules == []:
@@ -39,15 +44,14 @@ def main():
 
         while True:
             time.sleep(5)
-    except IOError:
-        logger.error("Another instance of the server is already running!")
-        sys.exit(0)
     except KeyboardInterrupt:
         fcntl.lockf(lockfd, fcntl.LOCK_UN)
         os.remove(pidfile)
 
         logger.info("Goodbye!")
         sys.exit(0)
+    except IOError as e:
+        logger.error(f"IO error: {e}")
     except Exception as e:
         logger.error(e)
 
