@@ -1,7 +1,8 @@
-from pyapi.log import get_logger
-import sys
 import getopt
 import logging
+import sys
+
+from pyapi.log import get_logger
 
 
 def usage(err=""):

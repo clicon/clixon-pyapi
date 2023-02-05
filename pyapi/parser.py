@@ -1,4 +1,3 @@
-import keyword
 from xml.sax import handler
 from xml.sax.expatreader import ExpatParser
 
@@ -33,7 +32,7 @@ class Handler(handler.ContentHandler):
         self.elements.pop()
 
     def characters(self, cdata):
-        self.elements[-1].add_cdata(cdata)
+        self.elements[-1].cdata = cdata
 
 
 def parse_string(xmlstr):

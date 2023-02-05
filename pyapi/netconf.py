@@ -1,4 +1,5 @@
 from enum import Enum
+
 from pyapi.parser import Element
 
 
@@ -27,7 +28,7 @@ def rpc_config_set(config, user="root"):
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create("candidate")
     root.rpc.edit_config.create("default-operation")
-    root.rpc.edit_config.default_operation.set_cdata("replace")
+    root.rpc.edit_config.default_operation.cdata = "replace"
     root.rpc.edit_config.create("config")
 
     for node in config.get_elements():
@@ -75,7 +76,7 @@ def rpc_subscription_create():
     root = rpc_header_get("", "root", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
-    root.rpc.create_subscription.stream.set_cdata("controller")
+    root.rpc.create_subscription.stream.cdata = "controller"
     root.rpc.create_subscription.create(
         "filter", {"type": "xpath", "select": ""})
 
