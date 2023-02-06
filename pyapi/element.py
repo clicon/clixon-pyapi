@@ -4,11 +4,11 @@ import xmltodict
 
 
 class Element(object):
-    def __init__(self, name, attributes):
+    def __init__(self, name, attributes={}, cdata=""):
         self.attributes = attributes
         self._children = []
         self._is_root = False
-        self.cdata = ""
+        self.cdata = cdata
         self._origname = name
 
         if name:

@@ -26,7 +26,7 @@ class Clixon():
 
     def __exit__(self, *args):
         config = rpc_config_set(self.__root)
-        send(self.__socket, config.dumps())
+        send(self.__socket, config)
         commit = rpc_commit()
         send(self.__socket, commit)
 
@@ -34,7 +34,7 @@ class Clixon():
         return self.__root
 
     def set_root(self, root):
-        send(self.__socket, root.dumps())
+        send(self.__socket, root)
         commit = rpc_commit()
         send(self.__socket, commit)
 
