@@ -6,7 +6,7 @@ import time
 from pyapi.element import Element
 from pyapi.log import get_logger
 from pyapi.modules import run_modules
-from pyapi.netconf import rpc_subscription_create
+from pyapi.netconf import rpc_error_get, rpc_subscription_create
 
 logger = get_logger()
 hdrlen = 8
@@ -43,8 +43,11 @@ def read(sock):
         logger.debug(f"  data={recv}")
 
         data += recv.decode()
+        data = data[:-1]
 
-    return data[:-1]
+    rpc_error_get(data)
+
+    return data
 
 
 def readloop(sockpath, modules):

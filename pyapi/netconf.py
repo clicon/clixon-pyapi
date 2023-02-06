@@ -1,12 +1,17 @@
 from enum import Enum
 
-from pyapi.parser import Element
+from pyapi.element import Element
+from pyapi.parser import parse_string
 
 
 class RPCTypes(Enum):
     GET_CONFIG = 0
     EDIT_CONFIG = 1
     COMMIT = 2
+
+
+class RPCError(Exception):
+    pass
 
 
 def rpc_config_get(user="root"):
@@ -81,3 +86,11 @@ def rpc_subscription_create():
         "filter", {"type": "xpath", "select": ""})
 
     return root
+
+
+def rpc_error_get(xmlstr):
+    root = parse_string(xmlstr)
+    try:
+        raise RPCError(root.rpc_reply.rpc_error.error_message)
+    except AttributeError:
+        return None
