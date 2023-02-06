@@ -1,4 +1,4 @@
-from pyapi.clixon import rpc
+from clixon.clixon import rpc
 
 
 @rpc()

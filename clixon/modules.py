@@ -49,8 +49,9 @@ def load_modules(modulefilter):
 
         try:
             module = importlib.import_module("modules." + modulefile)
-        except ModuleNotFoundError:
-            logger.debug(f"Module {modulefile} do not exist, skipping")
-        loaded_modules.append(module)
+        except Exception as e:
+            logger.debug(f"Failed to load module {modulefile}: {e}")
+        else:
+            loaded_modules.append(module)
 
     return loaded_modules
