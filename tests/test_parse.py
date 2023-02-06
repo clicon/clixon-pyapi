@@ -24,9 +24,19 @@ def test_del_node():
     assert root.dumps() == xmlstr_1
 
 
-def test_repr():
+def test_repr_0():
     root = parse_string(xmlstr_1)
 
     assert root.rpc_reply.data.table.parameter[0].name.cdata == "name1"
+
+
+def test_repr_1():
+    root = parse_string(xmlstr_1)
+
     assert root.rpc_reply.data.table.parameter[1].name.cdata == "name2"
+
+
+def test_repr_2():
+    root = parse_string(xmlstr_1)
+
     assert root.rpc_reply.data.table.parameter[2].name.cdata == "name3"
