@@ -1,8 +1,10 @@
 import os
-from pyapi.client import send, create_socket
-from pyapi.log import get_logger
+
 from pyapi.args import parse_args
-from pyapi.netconf import rpc_config_get, rpc_config_set, rpc_commit
+from pyapi.client import create_socket, read, send
+from pyapi.log import get_logger
+from pyapi.netconf import rpc_commit, rpc_config_get, rpc_config_set
+from pyapi.parser import parse_string
 
 logger = get_logger()
 sockpath, _, _, _ = parse_args()
@@ -14,7 +16,10 @@ class Clixon():
             raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__socket = create_socket(sockpath)
-        self.__root = rpc_config_get()
+        send(self.__socket, rpc_config_get())
+        data = read(self.__socket)
+
+        self.__root = parse_string(data).rpc_reply.data
 
     def __enter__(self):
         return self.__root
