@@ -1,5 +1,5 @@
-from pyapi import netconf
-from pyapi.element import Element
+from clixon import netconf
+from clixon.element import Element
 
 
 def test_rpc_config_set():

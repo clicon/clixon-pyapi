@@ -1,7 +1,7 @@
 from xml.sax import handler
 from xml.sax.expatreader import ExpatParser
 
-from pyapi.element import Element
+from clixon.element import Element
 
 try:
     from StringIO import StringIO

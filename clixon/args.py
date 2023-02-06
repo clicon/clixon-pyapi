@@ -2,7 +2,7 @@ import getopt
 import logging
 import sys
 
-from pyapi.log import get_logger
+from clixon.log import get_logger
 
 
 def usage(err=""):

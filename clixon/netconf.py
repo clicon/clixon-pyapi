@@ -1,7 +1,7 @@
 from enum import Enum
 
-from pyapi.element import Element
-from pyapi.parser import parse_string
+from clixon.element import Element
+from clixon.parser import parse_string
 
 
 class RPCTypes(Enum):

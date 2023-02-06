@@ -3,10 +3,10 @@ import socket
 import struct
 import time
 
-from pyapi.element import Element
-from pyapi.log import get_logger
-from pyapi.modules import run_modules
-from pyapi.netconf import rpc_error_get, rpc_subscription_create
+from clixon.element import Element
+from clixon.log import get_logger
+from clixon.modules import run_modules
+from clixon.netconf import rpc_error_get, rpc_subscription_create
 
 logger = get_logger()
 hdrlen = 8

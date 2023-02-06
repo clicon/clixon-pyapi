@@ -1,10 +1,10 @@
 import os
 
-from pyapi.args import parse_args
-from pyapi.client import create_socket, read, send
-from pyapi.log import get_logger
-from pyapi.netconf import rpc_commit, rpc_config_get, rpc_config_set
-from pyapi.parser import parse_string
+from clixon.args import parse_args
+from clixon.client import create_socket, read, send
+from clixon.log import get_logger
+from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
+from clixon.parser import parse_string
 
 logger = get_logger()
 sockpath, _, _, _ = parse_args()

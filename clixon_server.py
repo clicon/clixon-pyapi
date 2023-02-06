@@ -1,14 +1,15 @@
-import os
-import time
-import flock
 import fcntl
+import os
 import sys
 import threading
+import time
 
-from pyapi.client import readloop
-from pyapi.modules import load_modules
-from pyapi.log import get_logger
-from pyapi.args import parse_args
+import flock
+
+from clixon.args import parse_args
+from clixon.client import readloop
+from clixon.log import get_logger
+from clixon.modules import load_modules
 
 logger = get_logger()
 lockfd = None

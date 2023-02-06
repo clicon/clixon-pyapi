@@ -1,9 +1,9 @@
-import os
 import importlib
+import os
 import threading
 import traceback
 
-from pyapi.log import get_logger
+from clixon.log import get_logger
 
 logger = get_logger()
 modulespath = "./modules/"
