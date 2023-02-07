@@ -68,7 +68,7 @@ def readloop(sockpath, modules):
         while True:
             try:
                 data = read(sock)
-            except struct.error as e:
+            except Exception as e:
                 logger.error(f"Reader loop got an exception: {e}")
                 break
 
