@@ -7,7 +7,7 @@ from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
 from clixon.parser import parse_string
 
 logger = get_logger()
-sockpath, _, _, _ = parse_args()
+sockpath, _, _, _, _ = parse_args()
 
 
 class Clixon():

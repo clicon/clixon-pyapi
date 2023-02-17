@@ -57,7 +57,7 @@ def readloop(sockpath, modules):
 
         try:
             sock = create_socket(sockpath)
-        except FileNotFoundError as e:
+        except Exception as e:
             logger.error(f"Could not connect to socket: {e}")
             time.sleep(3)
             continue

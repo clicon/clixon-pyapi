@@ -5,7 +5,7 @@ import os
 import sys
 import threading
 import time
-
+from daemonize import Daemonize
 import flock
 
 from clixon.args import parse_args
@@ -15,17 +15,9 @@ from clixon.modules import load_modules
 
 logger = get_logger()
 lockfd = None
-
+sockpath, modulepath, modulefilter, pidfile, foreground = parse_args()
 
 def main():
-    sockpath, modulepath, modulefilter, pidfile = parse_args()
-    try:
-        lockfd = open(pidfile, "w")
-        fcntl.lockf(lockfd, flock.LOCK_EX | flock.LOCK_NB)
-    except IOError:
-        logger.error("Another server is already running.")
-        sys.exit(1)
-
     modules = load_modules(modulefilter)
 
     if modules == []:
@@ -43,11 +35,7 @@ def main():
         while True:
             time.sleep(5)
     except KeyboardInterrupt:
-        fcntl.lockf(lockfd, fcntl.LOCK_UN)
-        os.remove(pidfile)
-
         logger.info("Goodbye!")
-        sys.exit(0)
     except IOError as e:
         logger.error(f"IO error: {e}")
     except Exception as e:
@@ -55,4 +43,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main, logger=logger,
+                       foreground=foreground,
+                       verbose=True,
+                       chdir=os.getcwd())
+    daemon.start()

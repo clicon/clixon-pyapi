@@ -1,8 +1,12 @@
 import getopt
 import logging
 import sys
+import os
+import signal
 
 from clixon.log import get_logger
+
+logger = get_logger()
 
 
 def usage(err=""):
@@ -17,22 +21,29 @@ def usage(err=""):
     print("  -d       Enable verbose debug logging")
     print("  -s       Clixon socket path")
     print("  -p       Pidfile for Python server")
+    print("  -F       Run in foreground")
     print("  -h       This!")
 
     sys.exit(0)
 
-
-logger = get_logger()
-
+def kill(pidfile):
+    try:
+        with open(pidfile) as fd:
+            pid = int(fd.read())
+            logger.info(f"Killing daemon with pid {pid}")
+            os.kill(pid, signal.SIGTERM)
+    except Exception as e:
+        logger.error("Failed to kill daemon")
 
 def parse_args():
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_pyserver.pid"
     modulepath = "./modules/"
     modulefilter = ""
+    foreground = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ds:f:p:m:")
+        opts, args = getopt.getopt(sys.argv[1:], "ds:f:p:m:Fz")
     except getopt.GetoptError as e:
         usage(err=e)
 
@@ -47,8 +58,12 @@ def parse_args():
             pidfile = arg
         elif opt == "-m":
             modulepath = arg
+        elif opt == "-F":
+            foreground = True
+        elif opt == "-z":
+            kill(pidfile)
         else:
             print(opt)
             usage()
 
-    return sockpath, modulepath, modulefilter, pidfile
+    return sockpath, modulepath, modulefilter, pidfile, foreground
