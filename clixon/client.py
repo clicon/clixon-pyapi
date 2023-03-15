@@ -70,6 +70,7 @@ def readloop(sockpath, modules):
                 data = read(sock)
             except Exception as e:
                 logger.error(f"Reader loop got an exception: {e}")
+                time.sleep(3)
                 break
 
             if "<notification" in data:
