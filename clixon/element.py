@@ -68,7 +68,7 @@ class Element(object):
 
         for child in self.get_elements():
             name = child.origname()
-            cdata = child.cdata.strip()
+            cdata = child.cdata
 
             attr_string = ""
             attr_string = child.get_attributes_str()
@@ -95,7 +95,7 @@ class Element(object):
         return json_data
 
     def __getitem__(self, key):
-        return self.get_attribute(key)
+        return self.get_attributes(key=key)
 
     def __getattr__(self, key):
         matching_children = [x for x in self._children if x._name == key]
