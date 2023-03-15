@@ -28,12 +28,12 @@ def rpc_config_get(user="root"):
     return root
 
 
-def rpc_config_set(config, user="root"):
+def rpc_config_set(config, user="root", device=False):
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create("candidate")
     root.rpc.edit_config.create("default-operation")
-    root.rpc.edit_config.default_operation.cdata = "replace"
+    root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
     for node in config.get_elements():

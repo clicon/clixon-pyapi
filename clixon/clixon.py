@@ -27,12 +27,15 @@ class Clixon():
         return self.__root
 
     def __exit__(self, *args):
-        config = rpc_config_set(self.__root)
-        send(self.__socket, config)
-        read(self.__socket)
+        for device in self.__root.devices.device:
+            config = rpc_config_set(device, device=True)
+            config.rpc.edit_config.config.add(self.__root.services)
 
-        if self.__commit:
-            self.commit()
+            send(self.__socket, config)
+            read(self.__socket)
+
+            if self.__commit:
+                self.commit()
 
     def commit(self):
         commit = rpc_commit()
