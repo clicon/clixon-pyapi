@@ -3,7 +3,7 @@ from clixon.element import Element
 
 
 def test_rpc_config_set():
-    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><edit-config><target><candidate/></target><default-operation>replace</default-operation><config/></edit-config></rpc>"""
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><edit-config><target><candidate/></target><default-operation>none</default-operation><config/></edit-config></rpc>"""
 
     config = Element("config", {})
     root = netconf.rpc_config_set(config)
@@ -30,7 +30,7 @@ def test_rpc_commit():
 
 
 def test_rpc_subscription_create():
-    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><create-subscription xmlns="urn:ietf:params:xml:ns:netmod:notification"><stream>controller</stream><filter type="xpath" select=""/></create-subscription></rpc>"""
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><create-subscription xmlns="urn:ietf:params:xml:ns:netmod:notification"><stream>services-commit</stream><filter type="xpath" select=""/></create-subscription></rpc>"""
 
     root = netconf.rpc_subscription_create()
     xmlout = root.dumps()

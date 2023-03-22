@@ -27,9 +27,11 @@ class Clixon():
         return self.__root
 
     def __exit__(self, *args):
-        for device in self.__root.devices.device:
+        for device in self.__root.devices.get_elements():
             config = rpc_config_set(device, device=True)
-            config.rpc.edit_config.config.add(self.__root.services)
+
+            if self.__root.get_elements("services") != []:
+                config.rpc.edit_config.config.add(self.__root.services)
 
             send(self.__socket, config)
             read(self.__socket)

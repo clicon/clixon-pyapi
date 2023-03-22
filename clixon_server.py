@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-
-import fcntl
 import os
 import sys
 import threading
 import time
 from daemonize import Daemonize
-import flock
 
 from clixon.args import parse_args
 from clixon.client import readloop
@@ -16,6 +13,7 @@ from clixon.modules import load_modules
 logger = get_logger()
 lockfd = None
 sockpath, modulepath, modulefilter, pidfile, foreground = parse_args()
+
 
 def main():
     modules = load_modules(modulefilter)
@@ -43,7 +41,8 @@ def main():
 
 
 if __name__ == "__main__":
-    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main, logger=logger,
+    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
+                       logger=logger,
                        foreground=foreground,
                        verbose=True,
                        chdir=os.getcwd())

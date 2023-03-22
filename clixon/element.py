@@ -50,7 +50,7 @@ class Element(object):
 
     def get_elements(self, name=None):
         if name:
-            return [e for e in self._children if e.name == name]
+            return [e for e in self._children if e._name == name]
         else:
             return self._children
 

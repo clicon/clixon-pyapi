@@ -62,8 +62,18 @@ def readloop(sockpath, modules):
             time.sleep(3)
             continue
 
-        enable_notify = rpc_subscription_create()
-        send(sock, enable_notify)
+        logger.info("Enable service subscriptions")
+        enable_service_notify = rpc_subscription_create()
+        send(sock, enable_service_notify)
+        read(sock)
+
+        logger.info("Enable transaction subscriptions")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
+        send(sock, enable_transaction_notify)
+        read(sock)
+
+        logger.info("Listening for notifications...")
 
         while True:
             try:

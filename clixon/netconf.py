@@ -36,8 +36,10 @@ def rpc_config_set(config, user="root", device=False):
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
-    for node in config.get_elements():
-        root.rpc.edit_config.config.add(node)
+    if device:
+        root.rpc.edit_config.config.create(
+            "devices", attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.edit_config.config.devices.add(config)
 
     return root
 
@@ -68,7 +70,7 @@ def rpc_header_get(rpc_type, user, attributes=None):
     return root
 
 
-def rpc_subscription_create():
+def rpc_subscription_create(stream="services-commit"):
     attributes = {
         "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
     }
@@ -81,7 +83,7 @@ def rpc_subscription_create():
     root = rpc_header_get("", "root", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
-    root.rpc.create_subscription.stream.cdata = "controller"
+    root.rpc.create_subscription.stream.cdata = stream
     root.rpc.create_subscription.create(
         "filter", {"type": "xpath", "select": ""})
 

@@ -31,7 +31,7 @@ def find_modules():
             if not module.endswith(".py") or [x for x in forbidden if x in module]:
                 logger.debug(f"Skipping file: {module}")
                 continue
-            logger.debug(f"Added module {module}")
+            logger.info(f"Added module {module}")
             modules.append(module[:-3])
     modules.reverse()
 
@@ -46,12 +46,12 @@ def load_modules(modulefilter):
             logger.debug(f"Skipping module: {modulefile}")
             continue
 
-        logger.debug(f"Importing module modules.{modulefile}")
+        logger.info(f"Importing module modules.{modulefile}")
 
         try:
             module = importlib.import_module("modules." + modulefile)
         except Exception as e:
-            logger.debug(f"Failed to load module {modulefile}: {e}")
+            logger.info(f"Failed to load module {modulefile}: {e}")
         else:
             loaded_modules.append(module)
 
