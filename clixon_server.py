@@ -12,7 +12,7 @@ from clixon.modules import load_modules
 
 logger = get_logger()
 lockfd = None
-sockpath, modulepath, modulefilter, pidfile, foreground = parse_args()
+sockpath, modulepath, modulefilter, pidfile, foreground, pp = parse_args()
 
 
 def main():
@@ -23,7 +23,8 @@ def main():
         sys.exit(0)
 
     threads = []
-    threads.append(threading.Thread(target=readloop, args=(sockpath, modules)))
+    threads.append(threading.Thread(
+        target=readloop, args=(sockpath, modules, pp)))
 
     try:
         for thread in threads:

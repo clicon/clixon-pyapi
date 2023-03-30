@@ -22,9 +22,11 @@ def usage(err=""):
     print("  -s       Clixon socket path")
     print("  -p       Pidfile for Python server")
     print("  -F       Run in foreground")
+    print("  -P       Prettyprint XML")
     print("  -h       This!")
 
     sys.exit(0)
+
 
 def kill(pidfile):
     try:
@@ -35,15 +37,17 @@ def kill(pidfile):
     except Exception as e:
         logger.error("Failed to kill daemon")
 
+
 def parse_args():
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_pyserver.pid"
     modulepath = "./modules/"
     modulefilter = ""
     foreground = False
+    pp = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ds:f:p:m:Fz")
+        opts, args = getopt.getopt(sys.argv[1:], "ds:f:p:m:FzP")
     except getopt.GetoptError as e:
         usage(err=e)
 
@@ -62,8 +66,10 @@ def parse_args():
             foreground = True
         elif opt == "-z":
             kill(pidfile)
+        elif opt == "-P":
+            pp = True
         else:
             print(opt)
             usage()
 
-    return sockpath, modulepath, modulefilter, pidfile, foreground
+    return sockpath, modulepath, modulefilter, pidfile, foreground, pp

@@ -37,9 +37,14 @@ def rpc_config_set(config, user="root", device=False):
     root.rpc.edit_config.create("config")
 
     if device:
+        root.rpc.edit_config.config.delete("services")
         root.rpc.edit_config.config.create(
             "devices", attributes={"xmlns": "http://clicon.org/controller"})
         root.rpc.edit_config.config.devices.add(config)
+        root.rpc.edit_config.config.devices.attributes["nc:operation"] = "replace"
+    else:
+        for node in config.get_elements():
+            root.rpc.edit_config.config.add(node)
 
     return root
 
@@ -92,7 +97,23 @@ def rpc_subscription_create(stream="services-commit"):
 
 def rpc_error_get(xmlstr):
     root = parse_string(xmlstr)
-    try:
-        raise RPCError(root.rpc_reply.rpc_error.error_message)
-    except AttributeError:
-        return None
+
+    if "error-message" in xmlstr:
+        try:
+            raise RPCError(root.rpc_reply.rpc_error.error_message.cdata)
+        except AttributeError:
+            return None
+    elif "error-path" in xmlstr:
+        try:
+            message = root.rpc_reply.rpc_error.error_app_tag.cdata + \
+                ": " + root.rpc_reply.rpc_error.error_path.cdata
+            raise RPCError(message)
+        except AttributeError:
+            return None
+    elif "non-unique" in xmlstr:
+        try:
+            message = root.rpc_reply.rpc_error.error_app_tag.cdata + \
+                ": " + root.rpc_reply.rpc_error.error_info.non_unique.cdata
+            raise RPCError(message)
+        except AttributeError:
+            return None

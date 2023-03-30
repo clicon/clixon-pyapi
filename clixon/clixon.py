@@ -7,7 +7,7 @@ from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
 from clixon.parser import parse_string
 
 logger = get_logger()
-sockpath, _, _, _, _ = parse_args()
+sockpath, _, _, _, _, pp = parse_args()
 
 
 class Clixon():
@@ -18,8 +18,8 @@ class Clixon():
         self.__socket = create_socket(sockpath)
         self.__commit = commit
 
-        send(self.__socket, rpc_config_get())
-        data = read(self.__socket)
+        send(self.__socket, rpc_config_get(), pp)
+        data = read(self.__socket, pp)
 
         self.__root = parse_string(data).rpc_reply.data
 
@@ -30,26 +30,26 @@ class Clixon():
         for device in self.__root.devices.get_elements():
             config = rpc_config_set(device, device=True)
 
-            if self.__root.get_elements("services") != []:
-                config.rpc.edit_config.config.add(self.__root.services)
+            # if self.__root.get_elements("services") != []:
+            #    config.rpc.edit_config.config.add(self.__root.services)
 
-            send(self.__socket, config)
-            read(self.__socket)
+            send(self.__socket, config, pp)
+            read(self.__socket, pp)
 
             if self.__commit:
                 self.commit()
 
     def commit(self):
         commit = rpc_commit()
-        send(self.__socket, commit)
-        read(self.__socket)
+        send(self.__socket, commit, pp)
+        read(self.__socket, pp)
 
     def get_root(self):
         return self.__root
 
     def set_root(self, root):
-        send(self.__socket, root)
-        read(self.__socket)
+        send(self.__socket, root, pp)
+        read(self.__socket, pp)
 
         if self.__commit:
             self.commit()

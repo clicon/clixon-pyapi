@@ -7,6 +7,7 @@ from clixon.element import Element
 from clixon.log import get_logger
 from clixon.modules import run_modules
 from clixon.netconf import rpc_error_get, rpc_subscription_create
+from clixon.parser import dump_string
 
 logger = get_logger()
 hdrlen = 8
@@ -22,7 +23,7 @@ def create_socket(sockpath):
     return sock
 
 
-def read(sock):
+def read(sock, pp=False):
     data = ""
     hdrlen = 8
     datalen = 0
@@ -40,7 +41,7 @@ def read(sock):
         logger.debug("Read:")
         logger.debug(f"  len={datalen}")
         logger.debug(f"  opid={opid}")
-        logger.debug(f"  data={recv}")
+        logger.debug("  data=" + dump_string(recv, pp=pp))
 
         data += recv.decode()
         data = data[:-1]
@@ -50,7 +51,7 @@ def read(sock):
     return data
 
 
-def readloop(sockpath, modules):
+def readloop(sockpath, modules, pp=False):
     logger.debug("Starting read loop")
     while True:
         logger.debug("Creating socket and enables notify")
@@ -64,20 +65,20 @@ def readloop(sockpath, modules):
 
         logger.info("Enable service subscriptions")
         enable_service_notify = rpc_subscription_create()
-        send(sock, enable_service_notify)
-        read(sock)
+        send(sock, enable_service_notify, pp)
+        read(sock, pp)
 
         logger.info("Enable transaction subscriptions")
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
-        send(sock, enable_transaction_notify)
-        read(sock)
+        send(sock, enable_transaction_notify, pp)
+        read(sock, pp)
 
         logger.info("Listening for notifications...")
 
         while True:
             try:
-                data = read(sock)
+                data = read(sock, pp)
             except Exception as e:
                 logger.error(f"Reader loop got an exception: {e}")
                 time.sleep(3)
@@ -87,9 +88,11 @@ def readloop(sockpath, modules):
                 if "<services-commit" in data:
                     logger.debug("Received service notify")
                     run_modules(modules)
+            else:
+                print(data)
 
 
-def send(sock, data):
+def send(sock, data, pp=False):
     opid = 42
 
     if type(data) == Element:
@@ -109,4 +112,4 @@ def send(sock, data):
     logger.debug("Send:")
     logger.debug(f"  len={framelen}")
     logger.debug(f"  opid={opid}")
-    logger.debug(f"  data={data}")
+    logger.debug("  data=" + dump_string(data, pp=pp))

@@ -1,6 +1,6 @@
 from xml.sax import handler
 from xml.sax.expatreader import ExpatParser
-
+from xml.dom import minidom
 from clixon.element import Element
 
 try:
@@ -42,3 +42,13 @@ def parse_string(xmlstr):
     parser.parse(StringIO(xmlstr))
 
     return sax_handler.root
+
+
+def dump_string(xmlstr, pp=False):
+    outstr = str(xmlstr.decode())[:-1]
+
+    if pp:
+        dom = minidom.parseString(outstr)
+        outstr = "\n" + dom.toprettyxml()
+
+    return outstr
