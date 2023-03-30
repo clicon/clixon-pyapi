@@ -41,7 +41,7 @@ def rpc_config_set(config, user="root", device=False):
         root.rpc.edit_config.config.create(
             "devices", attributes={"xmlns": "http://clicon.org/controller"})
         root.rpc.edit_config.config.devices.add(config)
-        root.rpc.edit_config.config.devices.attributes["nc:operation"] = "replace"
+        root.rpc.edit_config.config.devices.device.attributes["nc:operation"] = "replace"
     else:
         for node in config.get_elements():
             root.rpc.edit_config.config.add(node)
