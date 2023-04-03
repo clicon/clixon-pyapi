@@ -3,6 +3,7 @@ import os
 import sys
 import threading
 import time
+
 from daemonize import Daemonize
 
 from clixon.args import parse_args
@@ -12,11 +13,11 @@ from clixon.modules import load_modules
 
 logger = get_logger()
 lockfd = None
-sockpath, modulepath, modulefilter, pidfile, foreground, pp = parse_args()
+sockpath, modulespath, modulefilter, pidfile, foreground, pp = parse_args()
 
 
 def main():
-    modules = load_modules(modulefilter)
+    modules = load_modules(modulespath, modulefilter)
 
     if modules == []:
         logger.error("No loadable modules found.")
