@@ -11,7 +11,8 @@ sockpath, _, _, _, _, pp = parse_args()
 
 
 class Clixon():
-    def __init__(self, sockpath="/usr/local/var/controller.sock", commit=True):
+    def __init__(self, sockpath="/usr/local/var/controller.sock",
+                 commit=False):
         if sockpath == "" or not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
 
@@ -55,7 +56,7 @@ class Clixon():
             self.commit()
 
 
-def rpc(sockpath=sockpath, commit=True):
+def rpc(sockpath=sockpath, commit=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:

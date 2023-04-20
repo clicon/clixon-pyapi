@@ -6,8 +6,8 @@ import time
 from clixon.element import Element
 from clixon.log import get_logger
 from clixon.modules import run_modules
-from clixon.netconf import rpc_error_get, rpc_subscription_create
-from clixon.parser import dump_string
+from clixon.netconf import rpc_error_get, rpc_subscription_create, rpc_header_get, RPCTypes
+from clixon.parser import dump_string, parse_string
 
 logger = get_logger()
 hdrlen = 8
@@ -87,7 +87,25 @@ def readloop(sockpath, modules, pp=False):
             if "<notification" in data:
                 if "<services-commit" in data:
                     logger.debug("Received service notify")
+
+                    reply = parse_string(data)
+                    notification = reply.notification
+
+                    tid = str(notification.services_commit.tid.cdata)
+                    rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
+                    rpc.rpc.transaction_actions_done.create("tid", cdata=tid)
+
+                    for child in notification.services_commit.get_elements():
+                        if child.get_name() == "service":
+                            rpc.rpc.transaction_actions_done.create(
+                                "service", cdata=str(child.cdata))
+
                     run_modules(modules)
+
+                    logger.info("All modules done, finishing transaction")
+
+                    send(sock, rpc, pp)
+
             else:
                 print(data)
 

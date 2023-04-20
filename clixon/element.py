@@ -33,11 +33,23 @@ class Element(object):
             element.cdata = cdata
         self._children.append(element)
 
+    def rename(self, name, origname):
+        self._name = name
+        self._origname = origname
+
+    def get_name(self):
+        return self._name
+
     def add(self, element):
         self._children.append(element)
 
     def delete(self, name):
         index = 0
+
+        if name == "*":
+            self._children = []
+            return
+
         for child in self._children:
             if child._origname == name:
                 del self._children[index]

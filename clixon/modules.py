@@ -1,7 +1,6 @@
 import importlib.util
 import os
 import sys
-import threading
 import traceback
 
 from clixon.log import get_logger
@@ -11,13 +10,10 @@ logger = get_logger()
 
 def run_modules(modules):
     logger.debug(f"Modules: {modules}")
-    threads = []
 
     for module in modules:
         try:
-            thread = threading.Thread(target=module.setup, args=())
-            thread.start()
-            threads.append(thread)
+            module.setup()
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())

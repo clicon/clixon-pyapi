@@ -8,6 +8,7 @@ class RPCTypes(Enum):
     GET_CONFIG = 0
     EDIT_CONFIG = 1
     COMMIT = 2
+    TRANSACTION_DONE = 3
 
 
 class RPCError(Exception):
@@ -31,7 +32,8 @@ def rpc_config_get(user="root"):
 def rpc_config_set(config, user="root", device=False):
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
-    root.rpc.edit_config.target.create("candidate")
+    root.rpc.edit_config.target.create(
+        "actions", attributes={"xmlns": "http://clicon.org/controller"})
     root.rpc.edit_config.create("default-operation")
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
@@ -41,7 +43,7 @@ def rpc_config_set(config, user="root", device=False):
         root.rpc.edit_config.config.create(
             "devices", attributes={"xmlns": "http://clicon.org/controller"})
         root.rpc.edit_config.config.devices.add(config)
-        root.rpc.edit_config.config.devices.device.attributes["nc:operation"] = "replace"
+#        root.rpc.edit_config.config.devices.device.attributes["nc:operation"] = "merge"
     else:
         for node in config.get_elements():
             root.rpc.edit_config.config.add(node)
@@ -71,6 +73,9 @@ def rpc_header_get(rpc_type, user, attributes=None):
         root.rpc.create("edit-config")
     elif rpc_type == RPCTypes.COMMIT:
         root.rpc.create("commit")
+    elif rpc_type == RPCTypes.TRANSACTION_DONE:
+        root.rpc.create("transaction-actions-done",
+                        attributes={"xmlns": "http://clicon.org/controller"})
 
     return root
 
@@ -114,6 +119,13 @@ def rpc_error_get(xmlstr):
         try:
             message = root.rpc_reply.rpc_error.error_app_tag.cdata + \
                 ": " + root.rpc_reply.rpc_error.error_info.non_unique.cdata
+            raise RPCError(message)
+        except AttributeError:
+            return None
+    elif "rpc-error" in xmlstr:
+        try:
+            message = root.rpc_reply.rpc_error.error_tag.cdata + \
+                ": " + root.rpc_reply.rpc_error.error_message.cdata
             raise RPCError(message)
         except AttributeError:
             return None
