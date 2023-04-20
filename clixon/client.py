@@ -5,7 +5,7 @@ import time
 
 from clixon.element import Element
 from clixon.log import get_logger
-from clixon.modules import run_modules
+from clixon.modules import run_modules, ModuleError
 from clixon.netconf import rpc_error_get, rpc_subscription_create, rpc_header_get, RPCTypes
 from clixon.parser import dump_string, parse_string
 
@@ -90,19 +90,33 @@ def readloop(sockpath, modules, pp=False):
 
                     reply = parse_string(data)
                     notification = reply.notification
-
                     tid = str(notification.services_commit.tid.cdata)
-                    rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
-                    rpc.rpc.transaction_actions_done.create("tid", cdata=tid)
 
-                    for child in notification.services_commit.get_elements():
-                        if child.get_name() == "service":
-                            rpc.rpc.transaction_actions_done.create(
-                                "service", cdata=str(child.cdata))
+                    try:
+                        run_modules(modules)
+                    except Exception as e:
+                        logger.error("Catched an module exception")
 
-                    run_modules(modules)
+                        rpc = rpc_header_get(
+                            RPCTypes.TRANSACTION_ERROR, "root")
+                        rpc.rpc.transaction_error.create(
+                            "tid", cdata=tid)
+                        rpc.rpc.transaction_error.create(
+                            "origin", cdata="pyapi")
+                        rpc.rpc.transaction_error.create(
+                            "reason", cdata=str(e))
 
-                    logger.info("All modules done, finishing transaction")
+                    else:
+                        logger.info("All modules done, finishing transaction")
+
+                        rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
+                        rpc.rpc.transaction_actions_done.create(
+                            "tid", cdata=tid)
+
+                        for child in notification.services_commit.get_elements():
+                            if child.get_name() == "service":
+                                rpc.rpc.transaction_actions_done.create(
+                                    "service", cdata=str(child.cdata))
 
                     send(sock, rpc, pp)
 

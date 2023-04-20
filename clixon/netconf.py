@@ -9,6 +9,7 @@ class RPCTypes(Enum):
     EDIT_CONFIG = 1
     COMMIT = 2
     TRANSACTION_DONE = 3
+    TRANSACTION_ERROR = 4
 
 
 class RPCError(Exception):
@@ -75,6 +76,9 @@ def rpc_header_get(rpc_type, user, attributes=None):
         root.rpc.create("commit")
     elif rpc_type == RPCTypes.TRANSACTION_DONE:
         root.rpc.create("transaction-actions-done",
+                        attributes={"xmlns": "http://clicon.org/controller"})
+    elif rpc_type == RPCTypes.TRANSACTION_ERROR:
+        root.rpc.create("transaction-error",
                         attributes={"xmlns": "http://clicon.org/controller"})
 
     return root

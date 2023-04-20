@@ -8,6 +8,10 @@ from clixon.log import get_logger
 logger = get_logger()
 
 
+class ModuleError(Exception):
+    pass
+
+
 def run_modules(modules):
     logger.debug(f"Modules: {modules}")
 
@@ -17,6 +21,8 @@ def run_modules(modules):
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())
+
+            raise (ModuleError(e))
 
 
 def find_modules(modulespath):
