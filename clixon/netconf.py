@@ -24,7 +24,8 @@ def rpc_config_get(user="root"):
 
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
     root.rpc.get_config.create("source")
-    root.rpc.get_config.source.create("candidate")
+    root.rpc.get_config.source.create(
+        "actions", attributes={"xmlns": "http://clicon.org/controller"})
     root.rpc.get_config.create("nc:filter", attributes=attributes)
 
     return root
