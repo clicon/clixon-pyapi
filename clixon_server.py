@@ -34,18 +34,20 @@ def main():
 
         while True:
             time.sleep(5)
-    except KeyboardInterrupt:
-        logger.info("Goodbye!")
     except IOError as e:
         logger.error(f"IO error: {e}")
     except Exception as e:
         logger.error(e)
-
+    except KeyboardInterrupt:
+        logger.info("\nGoodbye.")
 
 if __name__ == "__main__":
-    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
-                       logger=logger,
-                       foreground=foreground,
-                       verbose=True,
-                       chdir=os.getcwd())
-    daemon.start()
+    if foreground:
+        main()
+    else:
+        daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
+                           logger=logger,
+                           foreground=foreground,
+                           verbose=True,
+                           chdir=os.getcwd())
+        daemon.start()
