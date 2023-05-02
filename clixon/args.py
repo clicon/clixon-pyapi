@@ -72,4 +72,8 @@ def parse_args():
             print(opt)
             usage()
 
+    if not os.path.exists(modulepath):
+        logger.error(f"Module path {modulepath} does not exist")
+        sys.exit(1)
+
     return sockpath, modulepath, modulefilter, pidfile, foreground, pp
