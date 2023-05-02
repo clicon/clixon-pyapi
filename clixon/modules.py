@@ -43,6 +43,10 @@ def find_modules(modulespath):
 def load_modules(modulespath, modulefilter):
     loaded_modules = []
     filtered = modulefilter.split(",")
+
+    if not modulespath.endswith("/"):
+        modulespath = modulespath + "/"
+
     for modulefile in find_modules(modulespath):
         if modulefile in filtered:
             logger.debug(f"Skipping module: {modulefile}")
