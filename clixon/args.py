@@ -57,10 +57,14 @@ def parse_args():
         elif opt == "-s":
             sockpath = arg
         elif opt == "-f":
+            if opt == "" or opt == "-f":
+                usage(err="No module filter specified")
             modulefilter = arg
         elif opt == "-p":
             pidfile = arg
         elif opt == "-m":
+            if not os.path.exists(arg):
+                usage(err=f"Module path {arg} does not exist")
             modulepath = arg
         elif opt == "-F":
             foreground = True
@@ -71,9 +75,5 @@ def parse_args():
         else:
             print(opt)
             usage()
-
-    if not os.path.exists(modulepath):
-        logger.error(f"Module path {modulepath} does not exist")
-        sys.exit(1)
 
     return sockpath, modulepath, modulefilter, pidfile, foreground, pp

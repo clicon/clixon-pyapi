@@ -42,12 +42,9 @@ def main():
         logger.info("\nGoodbye.")
 
 if __name__ == "__main__":
-    if foreground:
-        main()
-    else:
-        daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
-                           logger=logger,
-                           foreground=foreground,
-                           verbose=True,
-                           chdir=os.getcwd())
-        daemon.start()
+    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
+                       logger=logger,
+                       foreground=foreground,
+                       verbose=True,
+                       chdir=os.getcwd())
+    daemon.start()
