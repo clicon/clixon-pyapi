@@ -1,10 +1,16 @@
 import json
+from typing import Optional
 
 import xmltodict
 
 
 class Element(object):
-    def __init__(self, name, attributes={}, cdata=""):
+    def __init__(self, name: str, attributes: Optional[dict] = {},
+                 cdata: Optional[str] = "") -> None:
+        """
+        Create a new element.
+        """
+
         self.attributes = attributes
         self._children = []
         self._is_root = False
@@ -18,32 +24,61 @@ class Element(object):
 
         self._name = name
 
-    def is_root(self, boolean):
+    def is_root(self, boolean: bool) -> None:
+        """
+        Set the element as root.
+        """
+
         self._is_root = boolean
 
-    def origname(self):
+    def origname(self) -> str:
+        """
+        Return the original name of the element.
+        """
+
         if self._origname == "":
             return self._name
         return self._origname
 
-    def create(self, name, attributes={}, cdata="",
-               element=None):
+    def create(self, name: str, attributes: Optional[dict] = {},
+               cdata: Optional[str] = "",
+               element: Optional[object] = None) -> None:
+        """
+        Create a new element.
+        """
+
         if not element:
             element = Element(name, attributes)
             element.cdata = cdata
         self._children.append(element)
 
-    def rename(self, name, origname):
+    def rename(self, name: str, origname: str) -> None:
+        """
+        Rename the element.
+        """
+
         self._name = name
         self._origname = origname
 
-    def get_name(self):
+    def get_name(self) -> str:
+        """
+        Return the name of the element.
+        """
+
         return self._name
 
-    def add(self, element):
+    def add(self, element: object) -> None:
+        """
+        Add an element to the children of the element.
+        """
+
         self._children.append(element)
 
-    def delete(self, name):
+    def delete(self, name: str) -> None:
+        """
+        Delete an element from the children of the element.
+        """
+
         index = 0
 
         if name == "*":
@@ -55,18 +90,30 @@ class Element(object):
                 del self._children[index]
             index += 1
 
-    def get_attributes(self, key=None):
+    def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
+        """
+        Return the attributes of the element.
+        """
+
         if key:
             return self.attributes.get(key)
         return self.attributes
 
-    def get_elements(self, name=None):
+    def get_elements(self, name: Optional[str] = None) -> list:
+        """
+        Return the children of the element.
+        """
+
         if name:
             return [e for e in self._children if e._name == name]
         else:
             return self._children
 
-    def get_attributes_str(self):
+    def get_attributes_str(self) -> str:
+        """
+        Return the attributes of the element as a string.
+        """
+
         attr_string = ""
         if self.attributes and self.attributes != {}:
             for key in self.attributes.keys():
@@ -74,7 +121,11 @@ class Element(object):
                 attr_string += f" {key}=\"{value}\""
         return attr_string
 
-    def dumps(self):
+    def dumps(self) -> str:
+        """
+        Return the XML string of the element and its children.
+        """
+
         xmlstr = ""
         attr_string = ""
 
@@ -100,16 +151,28 @@ class Element(object):
 
         return xmlstr
 
-    def dumpj(self):
+    def dumpj(self) -> str:
+        """
+        Return the JSON string of the element and its children.
+        """
+
         data_dict = xmltodict.parse(self.dumps())
         json_data = json.dumps(data_dict)
 
         return json_data
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Optional[dict]:
+        """
+        Return the attributes of the element.
+        """
+
         return self.get_attributes(key=key)
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> Optional[dict]:
+        """
+        Return the attributes of the element.
+        """
+
         matching_children = [x for x in self._children if x._name == key]
         if matching_children:
             if len(matching_children) == 1:
@@ -122,36 +185,40 @@ class Element(object):
             raise AttributeError(
                 "'%s' has no attribute '%s'" % (self._name, key))
 
-    def __hasattribute__(self, name):
+    def __hasattribute__(self, name: str) -> bool:
+        """
+        Return True if the element has the attribute.
+        """
+
         if name in self.__dict__:
             return True
         return any(x._name == name for x in self._children)
 
-    def __iter__(self):
+    def __iter__(self) -> object:
         yield self
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.cdata.strip()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         cdata = self.cdata.strip()
 
         return cdata
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self._is_root or self._name is not None
 
     __nonzero__ = __bool__
 
-    def __eq__(self, val):
+    def __eq__(self, val) -> bool:
         return self.cdata == val
 
-    def __dir__(self):
+    def __dir__(self) -> list:
         childrennames = [x._name for x in self._children]
         return childrennames
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._children)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         return key in dir(self)

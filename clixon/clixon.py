@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from clixon.args import parse_args
 from clixon.client import create_socket, read, send
@@ -8,11 +9,16 @@ from clixon.parser import parse_string
 
 logger = get_logger()
 sockpath, _, _, _, _, pp = parse_args()
+default_sockpath = "/usr/local/var/controller.sock"
 
 
 class Clixon():
-    def __init__(self, sockpath="/usr/local/var/controller.sock",
-                 commit=False):
+    def __init__(self, sockpath: Optional[str] = default_sockpath,
+                 commit: Optional[bool] = False) -> None:
+        """
+        Create a Clixon object.
+        """
+
         if sockpath == "" or not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
 
@@ -24,10 +30,18 @@ class Clixon():
 
         self.__root = parse_string(data).rpc_reply.data
 
-    def __enter__(self):
+    def __enter__(self) -> object:
+        """
+        Return the root object.
+        """
+
         return self.__root
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: object) -> None:
+        """
+        Send the final config and commit.
+        """
+
         for device in self.__root.devices.get_elements():
             config = rpc_config_set(device, device=True)
 
@@ -40,15 +54,27 @@ class Clixon():
             if self.__commit:
                 self.commit()
 
-    def commit(self):
+    def commit(self) -> None:
+        """
+        Commit the configuration.
+        """
+
         commit = rpc_commit()
         send(self.__socket, commit, pp)
         read(self.__socket, pp)
 
-    def get_root(self):
+    def get_root(self) -> object:
+        """
+        Return the root object.
+        """
+
         return self.__root
 
-    def set_root(self, root):
+    def set_root(self, root: object) -> None:
+        """
+        Set the root object.
+        """
+
         send(self.__socket, root, pp)
         read(self.__socket, pp)
 
@@ -56,7 +82,12 @@ class Clixon():
             self.commit()
 
 
-def rpc(sockpath=sockpath, commit=False):
+def rpc(sockpath: Optional[str] = sockpath,
+        commit: Optional[bool] = False) -> object:
+    """
+    Decorator to create a Clixon object.
+    """
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List, Optional
 
 from clixon.element import Element
 from clixon.parser import parse_string
@@ -16,7 +17,11 @@ class RPCError(Exception):
     pass
 
 
-def rpc_config_get(user="root"):
+def rpc_config_get(user: Optional[str] = "root") -> Element:
+    """
+    Create a get-config RPC element.
+    """
+
     attributes = {
         "nc:type": "xpath",
         "nc:select": "/"
@@ -31,7 +36,12 @@ def rpc_config_get(user="root"):
     return root
 
 
-def rpc_config_set(config, user="root", device=False):
+def rpc_config_set(config: Element, user: Optional[str] = "root",
+                   device: Optional[bool] = False) -> Element:
+    """
+    Create a RPC config set element.
+    """
+
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create(
@@ -45,7 +55,6 @@ def rpc_config_set(config, user="root", device=False):
         root.rpc.edit_config.config.create(
             "devices", attributes={"xmlns": "http://clicon.org/controller"})
         root.rpc.edit_config.config.devices.add(config)
-#        root.rpc.edit_config.config.devices.device.attributes["nc:operation"] = "merge"
     else:
         for node in config.get_elements():
             root.rpc.edit_config.config.add(node)
@@ -53,11 +62,19 @@ def rpc_config_set(config, user="root", device=False):
     return root
 
 
-def rpc_commit(user="root"):
+def rpc_commit(user: Optional[str] = "root") -> Element:
+    """
+    Create a RPC commit element.
+    """
+
     return rpc_header_get(RPCTypes.COMMIT, user)
 
 
 def rpc_header_get(rpc_type, user, attributes=None):
+    """
+    Create a RPC header element.
+    """
+
     if attributes is None:
         attributes = {
             "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
@@ -85,7 +102,11 @@ def rpc_header_get(rpc_type, user, attributes=None):
     return root
 
 
-def rpc_subscription_create(stream="services-commit"):
+def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Element:
+    """
+    Create a RPC subscription element.
+    """
+
     attributes = {
         "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
     }
@@ -105,7 +126,11 @@ def rpc_subscription_create(stream="services-commit"):
     return root
 
 
-def rpc_error_get(xmlstr):
+def rpc_error_get(xmlstr: str) -> None:
+    """
+    Parse the XML string and raise an exception if an error is found.
+    """
+
     root = parse_string(xmlstr)
 
     if "error-message" in xmlstr:
