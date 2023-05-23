@@ -16,7 +16,11 @@ lockfd = None
 sockpath, modulespath, modulefilter, pidfile, foreground, pp = parse_args()
 
 
-def main():
+def main() -> None:
+    """
+    Main function for clixon_server.
+    """
+
     modules = load_modules(modulespath, modulefilter)
 
     if modules == []:
@@ -40,6 +44,7 @@ def main():
         logger.error(e)
     except KeyboardInterrupt:
         logger.info("\nGoodbye.")
+
 
 if __name__ == "__main__":
     daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
