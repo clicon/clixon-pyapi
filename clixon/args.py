@@ -1,16 +1,21 @@
 import clixon.parser as parser
 import getopt
 import logging
-import sys
 import os
 import signal
+import sys
+from typing import Optional
 
 from clixon.log import get_logger
 
 logger = get_logger()
 
 
-def usage(err=""):
+def usage(err: Optional[str] = "") -> None:
+    """
+    Print usage and exit.
+    """
+
     name = sys.argv[0]
 
     if err != "":
@@ -30,17 +35,25 @@ def usage(err=""):
     sys.exit(0)
 
 
-def kill(pidfile):
+def kill(pidfile: str) -> None:
+    """
+    Kill daemon.
+    """
+
     try:
         with open(pidfile) as fd:
             pid = int(fd.read())
             logger.info(f"Killing daemon with pid {pid}")
             os.kill(pid, signal.SIGTERM)
-    except Exception:
-        logger.error("Failed to kill daemon")
+    except Exception as e:
+        logger.error(f"Failed to kill daemon: {e}")
 
 
-def parse_config(configfile):
+def parse_config(configfile: str) -> tuple:
+    """
+    Parse configuration file.
+    """
+
     config = parser.parse_file(configfile)
 
     try:
@@ -59,7 +72,11 @@ def parse_config(configfile):
     return sockpath, modulepath, modulefilter, pidfile
 
 
-def parse_args():
+def parse_args() -> tuple:
+    """
+    Parse command line arguments.
+    """
+
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_pyserver.pid"
     modulepath = "./modules/"

@@ -2,6 +2,7 @@ import importlib.util
 import os
 import sys
 import traceback
+from typing import List, Optional
 
 from clixon.log import get_logger
 
@@ -12,7 +13,11 @@ class ModuleError(Exception):
     pass
 
 
-def run_modules(modules):
+def run_modules(modules: List) -> Optional[Exception]:
+    """
+    Run all modules in the list.
+    """
+
     logger.debug(f"Modules: {modules}")
 
     for module in modules:
@@ -25,7 +30,11 @@ def run_modules(modules):
             raise (ModuleError(e))
 
 
-def find_modules(modulespath):
+def find_modules(modulespath: str) -> List[str]:
+    """
+    Find all modules in the modulespath.
+    """
+
     modules = []
     forbidden = ["#", "~"]
     for root, dirs, files in os.walk(modulespath):
@@ -40,7 +49,11 @@ def find_modules(modulespath):
     return modules
 
 
-def load_modules(modulespath, modulefilter):
+def load_modules(modulespath: str, modulefilter: str) -> List:
+    """
+    Load all modules in the modulespath.
+    """
+
     loaded_modules = []
     filtered = modulefilter.split(",")
 

@@ -1,0 +1,21 @@
+name: Clixon PyAPI CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install packages
+      run: sudo apt install -y python3-pip
+    - name: Clone PyAPI
+      run: (git clone https://github.com/clicon/clixon-pyapi.git && cd clixon-pyapi && pip3 install -r requirements.txt)
+    - name: Run tests
+      run: (cd clixon-pyapi && pytest -v)

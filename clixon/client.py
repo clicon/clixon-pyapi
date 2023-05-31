@@ -2,18 +2,24 @@ import select
 import socket
 import struct
 import time
+from typing import Optional
 
 from clixon.element import Element
 from clixon.log import get_logger
-from clixon.modules import run_modules, ModuleError
-from clixon.netconf import rpc_error_get, rpc_subscription_create, rpc_header_get, RPCTypes
+from clixon.modules import run_modules
+from clixon.netconf import (RPCTypes, rpc_error_get, rpc_header_get,
+                            rpc_subscription_create)
 from clixon.parser import dump_string, parse_string
 
 logger = get_logger()
 hdrlen = 8
 
 
-def create_socket(sockpath):
+def create_socket(sockpath: str) -> socket.socket:
+    """
+    Create a socket and connect to the socket path.
+    """
+
     logger.debug(f"Connecting to socket: {sockpath}")
 
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -23,7 +29,11 @@ def create_socket(sockpath):
     return sock
 
 
-def read(sock, pp=False):
+def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
+    """
+    Read from the socket and return the data.
+    """
+
     data = ""
     hdrlen = 8
     datalen = 0
@@ -51,7 +61,11 @@ def read(sock, pp=False):
     return data
 
 
-def readloop(sockpath, modules, pp=False):
+def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
+    """
+    Read loop for the client.
+    """
+
     logger.debug("Starting read loop")
     while True:
         logger.debug("Creating socket and enables notify")
@@ -124,7 +138,11 @@ def readloop(sockpath, modules, pp=False):
                 print(data)
 
 
-def send(sock, data, pp=False):
+def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
+    """
+    Send data to the socket.
+    """
+
     opid = 42
 
     if type(data) == Element:

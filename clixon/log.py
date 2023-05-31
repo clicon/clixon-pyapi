@@ -1,7 +1,11 @@
 import logging
 
 
-def get_logger():
+def get_logger() -> logging.Logger:
+    """
+    Get logger for the application.
+    """
+
     logger = logging.getLogger('pyserver')
     if not logger.handlers:
         formatter = logging.Formatter(
