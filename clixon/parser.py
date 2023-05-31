@@ -35,6 +35,15 @@ class Handler(handler.ContentHandler):
         self.elements[-1].cdata = cdata
 
 
+def parse_file(filename):
+    parser = ExpatParser()
+    sax_handler = Handler()
+    parser.setContentHandler(sax_handler)
+    parser.parse(filename)
+
+    return sax_handler.root
+
+
 def parse_string(xmlstr):
     parser = ExpatParser()
     sax_handler = Handler()

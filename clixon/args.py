@@ -1,3 +1,4 @@
+import clixon.parser as parser
 import getopt
 import logging
 import sys
@@ -16,8 +17,9 @@ def usage(err=""):
         print(f"{name}: {err}")
         print("")
     print(f"{name} -f<module1,module2> -s<path> -d -p<pidfile>")
+    print("  -f       Clixon controller configuration file")
     print("  -m       Modules path")
-    print("  -f       Comma separate list of modules to exclude")
+    print("  -e       Comma separate list of modules to exclude")
     print("  -d       Enable verbose debug logging")
     print("  -s       Clixon socket path")
     print("  -p       Pidfile for Python server")
@@ -34,8 +36,27 @@ def kill(pidfile):
             pid = int(fd.read())
             logger.info(f"Killing daemon with pid {pid}")
             os.kill(pid, signal.SIGTERM)
-    except Exception as e:
+    except Exception:
         logger.error("Failed to kill daemon")
+
+
+def parse_config(configfile):
+    config = parser.parse_file(configfile)
+
+    try:
+        pyconfig = config.clixon_config.PYAPI
+        clixon_config = config.clixon_config
+
+        sockpath = clixon_config.CLICON_SOCK.cdata
+        modulepath = pyconfig.PYAPI_MODULES.cdata
+        modulefilter = pyconfig.PYAPI_MODULE_FILTER.cdata
+        pidfile = pyconfig.PYAPI_PIDFILE.cdata
+    except AttributeError as e:
+        print(f"Could not parse confiuguration file: {e}")
+
+        sys.exit(1)
+
+    return sockpath, modulepath, modulefilter, pidfile
 
 
 def parse_args():
@@ -45,18 +66,23 @@ def parse_args():
     modulefilter = ""
     foreground = False
     pp = False
+    configfile = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ds:f:p:m:FzP")
+        opts, args = getopt.getopt(sys.argv[1:], "ds:e:p:m:FzPf:")
     except getopt.GetoptError as e:
         usage(err=e)
 
     for opt, arg in opts:
-        if opt == "-d":
+        if opt == "-f":
+            if not os.path.exists(arg):
+                usage(err=f"Configuration file {arg} does not exist")
+            configfile = arg
+        elif opt == "-d":
             logger.setLevel(logging.DEBUG)
         elif opt == "-s":
             sockpath = arg
-        elif opt == "-f":
+        elif opt == "-e":
             if opt == "" or opt == "-f":
                 usage(err="No module filter specified")
             modulefilter = arg
@@ -75,5 +101,8 @@ def parse_args():
         else:
             print(opt)
             usage()
+
+    if configfile:
+        sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
 
     return sockpath, modulepath, modulefilter, pidfile, foreground, pp
