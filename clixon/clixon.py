@@ -44,10 +44,6 @@ class Clixon():
 
         for device in self.__root.devices.get_elements():
             config = rpc_config_set(device, device=True)
-
-            # if self.__root.get_elements("services") != []:
-            #    config.rpc.edit_config.config.add(self.__root.services)
-
             send(self.__socket, config, pp)
             read(self.__socket, pp)
 
