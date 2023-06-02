@@ -53,6 +53,19 @@ class Handler(handler.ContentHandler):
         self.elements[-1].cdata = cdata
 
 
+def parse_file(filename: str) -> Element:
+    """
+    Parse an XML file and return the root element.
+    """
+
+    parser = ExpatParser()
+    sax_handler = Handler()
+    parser.setContentHandler(sax_handler)
+    parser.parse(filename)
+
+    return sax_handler.root
+
+
 def parse_string(xmlstr: str):
     """
     Parse an XML string and return the root element.
