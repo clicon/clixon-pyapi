@@ -57,13 +57,12 @@ def parse_config(configfile: str) -> tuple:
     config = parser.parse_file(configfile)
 
     try:
-        pyconfig = config.clixon_config.PYAPI
-        clixon_config = config.clixon_config
+        config = config.clixon_config
 
-        sockpath = clixon_config.CLICON_SOCK.cdata
-        modulepath = pyconfig.PYAPI_MODULES.cdata
-        modulefilter = pyconfig.PYAPI_MODULE_FILTER.cdata
-        pidfile = pyconfig.PYAPI_PIDFILE.cdata
+        sockpath = config.CLICON_SOCK.cdata
+        modulepath = config.CONTROLLER_PYAPI_MODULE_PATH.cdata
+        modulefilter = config.CONTROLLER_PYAPI_MODULE_FILTER.cdata
+        pidfile = config.CONTROLLER_PYAPI_PIDFILE.cdata
     except AttributeError as e:
         print(f"Could not parse confiuguration file: {e}")
 
