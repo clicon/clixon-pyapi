@@ -70,7 +70,8 @@ def rpc_commit(user: Optional[str] = "root") -> Element:
     return rpc_header_get(RPCTypes.COMMIT, user)
 
 
-def rpc_header_get(rpc_type, user, attributes=None):
+def rpc_header_get(rpc_type: object, user: str,
+                   attributes: Optional[dict] = None) -> Element:
     """
     Create a RPC header element.
     """
