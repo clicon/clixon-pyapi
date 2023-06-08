@@ -5,8 +5,10 @@ import traceback
 from typing import List, Optional
 
 from clixon.log import get_logger
+from clixon.args import parse_args
 
-logger = get_logger()
+_, _, _, _, _, _, log = parse_args()
+logger = get_logger(log)
 
 
 class ModuleError(Exception):

@@ -2,6 +2,7 @@ import select
 import socket
 import struct
 import time
+import traceback
 from typing import Optional
 
 from clixon.element import Element
@@ -10,8 +11,10 @@ from clixon.modules import run_modules
 from clixon.netconf import (RPCTypes, rpc_error_get, rpc_header_get,
                             rpc_subscription_create)
 from clixon.parser import dump_string, parse_string
+from clixon.args import parse_args
 
-logger = get_logger()
+_, _, _, _, _, _, log = parse_args()
+logger = get_logger(log)
 hdrlen = 8
 
 
@@ -110,6 +113,8 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                         run_modules(modules)
                     except Exception as e:
                         logger.error("Catched an module exception")
+
+                        traceback.print_exc()
 
                         rpc = rpc_header_get(
                             RPCTypes.TRANSACTION_ERROR, "root")

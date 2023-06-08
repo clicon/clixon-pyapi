@@ -8,7 +8,7 @@ from typing import Optional
 
 from clixon.log import get_logger
 
-logger = get_logger()
+logger = None
 
 
 def usage(err: Optional[str] = "") -> None:
@@ -30,6 +30,7 @@ def usage(err: Optional[str] = "") -> None:
     print("  -p       Pidfile for Python server")
     print("  -F       Run in foreground")
     print("  -P       Prettyprint XML")
+    print("  -l       <s|o> Log on (s)yslog, std(o)ut")
     print("  -h       This!")
 
     sys.exit(0)
@@ -75,6 +76,7 @@ def parse_args() -> tuple:
     """
     Parse command line arguments.
     """
+    global logger
 
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_pyserver.pid"
@@ -83,9 +85,11 @@ def parse_args() -> tuple:
     foreground = False
     pp = False
     configfile = None
+    log = "s"
+    debug = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ds:e:p:m:FzPf:")
+        opts, args = getopt.getopt(sys.argv[1:], "ds:e:p:m:FzPf:l:")
     except getopt.GetoptError as e:
         usage(err=e)
 
@@ -95,7 +99,7 @@ def parse_args() -> tuple:
                 usage(err=f"Configuration file {arg} does not exist")
             configfile = arg
         elif opt == "-d":
-            logger.setLevel(logging.DEBUG)
+            debug = True
         elif opt == "-s":
             sockpath = arg
         elif opt == "-e":
@@ -114,6 +118,10 @@ def parse_args() -> tuple:
             kill(pidfile)
         elif opt == "-P":
             pp = True
+        elif opt == "-l":
+            if arg not in ["s", "e", "o"]:
+                usage(err=f"Invalid logging option {arg}")
+            log = arg
         else:
             print(opt)
             usage()
@@ -121,4 +129,9 @@ def parse_args() -> tuple:
     if configfile:
         sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
 
-    return sockpath, modulepath, modulefilter, pidfile, foreground, pp
+    logger = get_logger(log)
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    return sockpath, modulepath, modulefilter, pidfile, foreground, pp, log

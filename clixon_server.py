@@ -11,9 +11,9 @@ from clixon.client import readloop
 from clixon.log import get_logger
 from clixon.modules import load_modules
 
-logger = get_logger()
+sockpath, modulespath, modulefilter, pidfile, foreground, pp, log = parse_args()
+logger = get_logger(output=log)
 lockfd = None
-sockpath, modulespath, modulefilter, pidfile, foreground, pp = parse_args()
 
 
 def main() -> None:
@@ -47,6 +47,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
     daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
                        logger=logger,
                        foreground=foreground,
