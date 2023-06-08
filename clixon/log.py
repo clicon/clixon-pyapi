@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import SysLogHandler
 from typing import Optional
+import os
 
 
 def get_logger(output: Optional[str] = "s") -> logging.Logger:
@@ -14,7 +15,10 @@ def get_logger(output: Optional[str] = "s") -> logging.Logger:
             '[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
 
         if output == "s":
-            handler = SysLogHandler(address='/dev/log')
+            if os.path.exists("/dev/log"):
+                handler = SysLogHandler(address='/dev/log')
+            else:
+                handler = SysLogHandler()
         else:
             handler = logging.StreamHandler()
 
