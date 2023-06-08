@@ -1,5 +1,6 @@
-from clixon.parser import parse_file
 import pytest
+from clixon.args import parse_config
+from clixon.parser import parse_file
 
 config_xml = """
 <clixon-config xmlns="http://clicon.org/config">
@@ -56,20 +57,16 @@ config_xml = """
      </rule>
      <!-- there are many more arista/openconfig top-level modules -->
   </autocli>
-  <PYAPI>
-    <PYAPI_MODULES>modules path</PYAPI_MODULES>
-    <PYAPI_MODULE_FILTER>filter</PYAPI_MODULE_FILTER>
-    <PYAPI_PIDFILE>pidfile</PYAPI_PIDFILE>
-  </PYAPI>
+  <CONTROLLER_PYAPI_MODULE_FILTER>filter</CONTROLLER_PYAPI_MODULE_FILTER>
+  <CONTROLLER_PYAPI_MODULE_PATH>modules path</CONTROLLER_PYAPI_MODULE_PATH>
+  <CONTROLLER_PYAPI_PIDFILE>pidfile</CONTROLLER_PYAPI_PIDFILE>
 </clixon-config>
 """
 
 invalid_config_xml = """
 <clixon-config xmlns="http://clicon.org/config">
     <CLICON_CONFIGFILE>/usr/local/etc/controller.xml</CLICON_CONFIGFILE>
-<PYAPI>
-    <PYAPI_MODULES>modules path</PYAPI_MODULES>
-</PYAPI>
+    <CONTROLLER_PYAPI_MODULE_PATH>modules path</CONTROLLER_PYAPI_MODULE_PATH>
 </clixon-config>
 """
 
@@ -79,13 +76,12 @@ def test_parse_config():
         fd.write(config_xml)
 
     config = parse_file("/tmp/config.xml")
-    pyconfig = config.clixon_config.PYAPI
     clixon_config = config.clixon_config
 
     sockpath = clixon_config.CLICON_SOCK.cdata
-    modulepath = pyconfig.PYAPI_MODULES.cdata
-    modulefilter = pyconfig.PYAPI_MODULE_FILTER.cdata
-    pidfile = pyconfig.PYAPI_PIDFILE.cdata
+    modulepath = clixon_config.CONTROLLER_PYAPI_MODULE_PATH.cdata
+    modulefilter = clixon_config.CONTROLLER_PYAPI_MODULE_FILTER.cdata
+    pidfile = clixon_config.CONTROLLER_PYAPI_PIDFILE.cdata
 
     assert sockpath == "/usr/local/var/controller.sock"
     assert modulepath == "modules path"
@@ -100,10 +96,27 @@ def test_parse_invalid_config():
     config = parse_file("/tmp/config.xml")
 
     with pytest.raises(AttributeError):
-        pyconfig = config.clixon_config.PYAPI
         clixon_config = config.clixon_config
 
         sockpath = clixon_config.CLICON_SOCK.cdata
-        modulepath = pyconfig.PYAPI_MODULES.cdata
-        modulefilter = pyconfig.PYAPI_MODULE_FILTER.cdata
-        pidfile = pyconfig.PYAPI_PIDFILE.cdata
+        modulepath = clixon_config.CONTROLLER_PYAPI_MODULE_PATH.cdata
+        modulefilter = clixon_config.CONTROLLER_PYAPI_MODULE_FILTER.cdata
+        pidfile = clixon_config.CONTROLLER_PYAPI_PIDFILE.cdata
+
+        assert sockpath == "/usr/local/var/controller.sock"
+        assert modulepath == "modules path"
+        assert modulefilter == "filter"
+        assert pidfile == "pidfile"
+
+
+def test_args_parse_config():
+    with open("/tmp/config.xml", "w") as fd:
+        fd.write(config_xml)
+
+    sockpath, modulepath, modulefilter, pidfile = parse_config(
+        "/tmp/config.xml")
+
+    assert sockpath == "/usr/local/var/controller.sock"
+    assert modulepath == "modules path"
+    assert modulefilter == "filter"
+    assert pidfile == "pidfile"
