@@ -1,6 +1,0 @@
-version: '3.7'
-services:
-  clixon:
-    build: .
-    volumes:
-      - ./example:/usr/local/var/example/
