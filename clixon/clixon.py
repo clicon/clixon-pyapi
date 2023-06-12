@@ -14,7 +14,8 @@ default_sockpath = "/usr/local/var/controller.sock"
 
 class Clixon():
     def __init__(self, sockpath: Optional[str] = default_sockpath,
-                 commit: Optional[bool] = False) -> None:
+                 commit: Optional[bool] = False,
+                 source: Optional[str] = "actions") -> None:
         """
         Create a Clixon object.
         """
@@ -25,7 +26,7 @@ class Clixon():
         self.__socket = create_socket(sockpath)
         self.__commit = commit
 
-        send(self.__socket, rpc_config_get(), pp)
+        send(self.__socket, rpc_config_get(source), pp)
         data = read(self.__socket, pp)
 
         self.__root = parse_string(data).rpc_reply.data

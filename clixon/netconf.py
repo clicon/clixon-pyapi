@@ -17,7 +17,8 @@ class RPCError(Exception):
     pass
 
 
-def rpc_config_get(user: Optional[str] = "root") -> Element:
+def rpc_config_get(user: Optional[str] = "root",
+                   source: Optional[str] = "actions") -> Element:
     """
     Create a get-config RPC element.
     """
@@ -30,7 +31,7 @@ def rpc_config_get(user: Optional[str] = "root") -> Element:
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(
-        "actions", attributes={"xmlns": "http://clicon.org/controller"})
+        source, attributes={"xmlns": "http://clicon.org/controller"})
     root.rpc.get_config.create("nc:filter", attributes=attributes)
 
     return root
