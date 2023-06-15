@@ -32,7 +32,7 @@ def run_modules(modules: List, service_name: str,
 
         try:
             logger.info(f"Running module {module}")
-            module.setup()
+            module.setup(instance=instance)
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())

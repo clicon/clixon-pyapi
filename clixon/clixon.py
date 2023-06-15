@@ -88,6 +88,6 @@ def rpc(sockpath: Optional[str] = sockpath,
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:
-                return func(root, logger)
+                return func(root, logger, **kwargs)
         return wrapper
     return decorator
