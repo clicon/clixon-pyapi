@@ -3,12 +3,12 @@ from typing import Optional
 
 from clixon.args import parse_args
 from clixon.client import create_socket, read, send
-from clixon.log import get_logger
 from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
 from clixon.parser import parse_string
+from clixon.args import get_logger
 
-sockpath, _, _, _, _, pp, log = parse_args()
-logger = get_logger(log)
+sockpath, _, _, _, _, pp, _, _ = parse_args()
+logger = get_logger()
 default_sockpath = "/usr/local/var/controller.sock"
 
 

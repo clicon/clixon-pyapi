@@ -4,32 +4,40 @@ import sys
 import traceback
 from typing import List, Optional
 
-from clixon.log import get_logger
-from clixon.args import parse_args
+from clixon.args import get_logger
 
-_, _, _, _, _, _, log = parse_args()
-logger = get_logger(log)
+logger = get_logger()
 
 
 class ModuleError(Exception):
     pass
 
 
-def run_modules(modules: List) -> Optional[Exception]:
+def run_modules(modules: List, service_name: str,
+                instance: str) -> Optional[Exception]:
     """
     Run all modules in the list.
     """
-
     logger.debug(f"Modules: {modules}")
 
+    if modules == []:
+        logger.info("No modules found.")
+        return
+
     for module in modules:
+        if module.SERVICE != service_name:
+            logger.debug(
+                f"Skipping module {module} for service {service_name}")
+            continue
+
         try:
+            logger.info(f"Running module {module}")
             module.setup()
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())
 
-            raise (ModuleError(e))
+            raise ModuleError(e)
 
 
 def find_modules(modulespath: str) -> List[str]:
@@ -47,6 +55,8 @@ def find_modules(modulespath: str) -> List[str]:
             logger.info(f"Added module {module}")
             modules.append(root + module)
     modules.reverse()
+
+    logger.info("Modules found: " + str(modules))
 
     return modules
 
@@ -82,4 +92,4 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
         else:
             loaded_modules.append(module)
 
-        return loaded_modules
+    return loaded_modules

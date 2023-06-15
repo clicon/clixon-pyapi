@@ -3,19 +3,20 @@ import socket
 import struct
 import time
 import traceback
+import re
 from typing import Optional
 
 from clixon.element import Element
-from clixon.log import get_logger
 from clixon.modules import run_modules
 from clixon.netconf import (RPCTypes, rpc_error_get, rpc_header_get,
                             rpc_subscription_create)
 from clixon.parser import dump_string, parse_string
-from clixon.args import parse_args
+from clixon.args import get_logger
 
-_, _, _, _, _, _, log = parse_args()
-logger = get_logger(log)
+logger = get_logger()
 hdrlen = 8
+
+print(logger)
 
 
 def create_socket(sockpath: str) -> socket.socket:
@@ -105,42 +106,51 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                 if "<services-commit" in data:
                     logger.debug("Received service notify")
 
+                    error = False
+
+                    rpc = None
                     reply = parse_string(data)
                     notification = reply.notification
                     tid = str(notification.services_commit.tid.cdata)
 
-                    try:
-                        run_modules(modules)
-                    except Exception as e:
-                        logger.error("Catched an module exception")
+                    for service in notification.services_commit.service:
+                        match = re.match(
+                            r"(\w+)\[service-name='(\w+)'\]", service.cdata)
 
-                        traceback.print_exc()
+                        try:
+                            service_name = match.group(1)
+                            instance = match.group(2)
 
-                        rpc = rpc_header_get(
-                            RPCTypes.TRANSACTION_ERROR, "root")
-                        rpc.rpc.transaction_error.create(
-                            "tid", cdata=tid)
-                        rpc.rpc.transaction_error.create(
-                            "origin", cdata="pyapi")
-                        rpc.rpc.transaction_error.create(
-                            "reason", cdata=str(e))
+                            run_modules(modules, service_name, instance)
+                        except Exception as e:
+                            error = True
+                            logger.error("Catched an module exception")
 
-                    else:
-                        logger.info("All modules done, finishing transaction")
+                            traceback.print_exc()
 
-                        rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
-                        rpc.rpc.transaction_actions_done.create(
-                            "tid", cdata=tid)
+                            rpc = rpc_header_get(
+                                RPCTypes.TRANSACTION_ERROR, "root")
+                            rpc.rpc.transaction_error.create(
+                                "tid", cdata=tid)
+                            rpc.rpc.transaction_error.create(
+                                "origin", cdata="pyapi")
+                            rpc.rpc.transaction_error.create(
+                                "reason", cdata=str(e))
 
-                        for child in notification.services_commit.get_elements():
-                            if child.get_name() == "service":
+                            break
+
+                        else:
+                            logger.debug(f"Service {service_name} done")
+                            if not rpc:
+                                rpc = rpc_header_get(
+                                    RPCTypes.TRANSACTION_DONE, "root")
                                 rpc.rpc.transaction_actions_done.create(
-                                    "service", cdata=str(child.cdata))
+                                    "tid", cdata=tid)
+
+                            rpc.rpc.transaction_actions_done.create(
+                                "service", cdata=service_name)
 
                     send(sock, rpc, pp)
-
-            else:
-                print(data)
 
 
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:

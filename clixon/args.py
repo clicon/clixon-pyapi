@@ -6,9 +6,15 @@ import signal
 import sys
 from typing import Optional
 
-from clixon.log import get_logger
+from clixon.log import get_log_factory
 
-logger = None
+
+def get_logger():
+    sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug = parse_args()
+
+    logger = get_log_factory(log, debug)
+
+    return logger
 
 
 def usage(err: Optional[str] = "") -> None:
@@ -129,9 +135,4 @@ def parse_args() -> tuple:
     if configfile:
         sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
 
-    logger = get_logger(log)
-
-    if debug:
-        logger.setLevel(logging.DEBUG)
-
-    return sockpath, modulepath, modulefilter, pidfile, foreground, pp, log
+    return sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug

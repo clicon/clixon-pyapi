@@ -4,7 +4,8 @@ from typing import Optional
 import os
 
 
-def get_logger(output: Optional[str] = "s") -> logging.Logger:
+def get_log_factory(output: Optional[str] = "s",
+                    debug: Optional[bool] = False) -> logging.Logger:
     """
     Get logger for the application.
     """
@@ -25,6 +26,9 @@ def get_logger(output: Optional[str] = "s") -> logging.Logger:
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-    logger.setLevel(logging.INFO)
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     return logger

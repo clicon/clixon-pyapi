@@ -6,13 +6,12 @@ import time
 
 from daemonize import Daemonize
 
-from clixon.args import parse_args
+from clixon.args import parse_args, get_logger
 from clixon.client import readloop
-from clixon.log import get_logger
 from clixon.modules import load_modules
 
-sockpath, modulespath, modulefilter, pidfile, foreground, pp, log = parse_args()
-logger = get_logger(output=log)
+sockpath, modulespath, modulefilter, pidfile, foreground, pp, _, _ = parse_args()
+logger = get_logger()
 lockfd = None
 
 
@@ -32,6 +31,7 @@ def main() -> None:
         target=readloop, args=(sockpath, modules, pp)))
 
     try:
+        logger.debug("Starting threads.")
         for thread in threads:
             thread.daemon = True
             thread.start()
@@ -47,7 +47,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-
     daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
                        logger=logger,
                        foreground=foreground,
