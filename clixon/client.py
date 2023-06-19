@@ -102,64 +102,69 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                 time.sleep(3)
                 break
 
-            if "<notification" in data:
-                if "<services-commit" in data:
-                    logger.debug("Received service notify")
+            if "<notification" not in data:
+                continue
 
-                    error = False
+            if "<services-commit" not in data:
+                continue
 
-                    rpc = None
-                    reply = parse_string(data)
-                    notification = reply.notification
-                    tid = str(notification.services_commit.tid.cdata)
+            logger.debug("Received service notify")
+
+            error = False
+
+            reply = parse_string(data)
+            notification = reply.notification
+            tid = str(notification.services_commit.tid.cdata)
+
+            rpc = rpc_header_get(
+                RPCTypes.TRANSACTION_DONE, "root")
+            rpc.rpc.transaction_actions_done.create(
+                "tid", cdata=tid)
+
+            try:
+                services = notification.services_commit.service
+            except AttributeError:
+                services = None
+
+            if services:
+                for service in services:
+                    match = re.match(
+                        r"(\w+)\[service-name='(\w+)'\]", service.cdata)
 
                     try:
-                        services = notification.services_commit.service
-                    except AttributeError:
-                        services = None
+                        service_name = match.group(1)
+                        instance = match.group(2)
 
-                    rpc = rpc_header_get(
-                        RPCTypes.TRANSACTION_DONE, "root")
-                    rpc.rpc.transaction_actions_done.create(
-                        "tid", cdata=tid)
+                        run_modules(modules, service_name, instance)
+                    except Exception as e:
+                        logger.error("Catched an module exception")
 
-                    if services:
-                        for service in services:
-                            match = re.match(
-                                r"(\w+)\[service-name='(\w+)'\]", service.cdata)
+                        traceback.print_exc()
 
-                            try:
-                                service_name = match.group(1)
-                                instance = match.group(2)
+                        rpc = rpc_header_get(
+                            RPCTypes.TRANSACTION_ERROR, "root")
+                        rpc.rpc.transaction_error.create(
+                            "tid", cdata=tid)
+                        rpc.rpc.transaction_error.create(
+                            "origin", cdata="pyapi")
+                        rpc.rpc.transaction_error.create(
+                            "reason", cdata=str(e))
 
-                                run_modules(modules, service_name, instance)
-                            except Exception as e:
-                                logger.error("Catched an module exception")
+                        error = True
 
-                                traceback.print_exc()
-
-                                rpc = rpc_header_get(
-                                    RPCTypes.TRANSACTION_ERROR, "root")
-                                rpc.rpc.transaction_error.create(
-                                    "tid", cdata=tid)
-                                rpc.rpc.transaction_error.create(
-                                    "origin", cdata="pyapi")
-                                rpc.rpc.transaction_error.create(
-                                    "reason", cdata=str(e))
-
-                                break
-
-                            else:
-                                logger.debug(f"Service {service_name} done")
-                                rpc.rpc.transaction_actions_done.create(
-                                    "service", cdata=service_name)
+                        break
 
                     else:
-                        logger.debug(
-                            "No services in commit, running all services")
-                        run_modules(modules, None, None)
+                        logger.debug(f"Service {service_name} done")
+                        rpc.rpc.transaction_actions_done.create(
+                            "service", cdata=service_name)
 
-                send(sock, rpc, pp)
+            else:
+                logger.debug(
+                    "No services in commit, running all services")
+                run_modules(modules, None, None)
+
+            send(sock, rpc, pp)
 
 
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
