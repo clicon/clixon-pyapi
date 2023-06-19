@@ -154,7 +154,12 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                                 rpc.rpc.transaction_actions_done.create(
                                     "service", cdata=service_name)
 
-                    send(sock, rpc, pp)
+                    else:
+                        logger.debug(
+                            "No services in commit, running all services")
+                        run_modules(modules, None, None)
+
+                send(sock, rpc, pp)
 
 
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:

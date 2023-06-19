@@ -25,10 +25,11 @@ def run_modules(modules: List, service_name: str,
         return
 
     for module in modules:
-        if module.SERVICE != service_name:
-            logger.debug(
-                f"Skipping module {module} for service {service_name}")
-            continue
+        if service_name:
+            if module.SERVICE != service_name:
+                logger.debug(
+                    f"Skipping module {module} for service {service_name}")
+                continue
 
         try:
             logger.info(f"Running module {module}")
