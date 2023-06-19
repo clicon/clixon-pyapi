@@ -113,42 +113,46 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                     notification = reply.notification
                     tid = str(notification.services_commit.tid.cdata)
 
-                    for service in notification.services_commit.service:
-                        match = re.match(
-                            r"(\w+)\[service-name='(\w+)'\]", service.cdata)
+                    try:
+                        services = notification.services_commit.service
+                    except AttributeError:
+                        services = None
 
-                        try:
-                            service_name = match.group(1)
-                            instance = match.group(2)
+                    rpc = rpc_header_get(
+                        RPCTypes.TRANSACTION_DONE, "root")
+                    rpc.rpc.transaction_actions_done.create(
+                        "tid", cdata=tid)
 
-                            run_modules(modules, service_name, instance)
-                        except Exception as e:
-                            error = True
-                            logger.error("Catched an module exception")
+                    if services:
+                        for service in services:
+                            match = re.match(
+                                r"(\w+)\[service-name='(\w+)'\]", service.cdata)
 
-                            traceback.print_exc()
+                            try:
+                                service_name = match.group(1)
+                                instance = match.group(2)
 
-                            rpc = rpc_header_get(
-                                RPCTypes.TRANSACTION_ERROR, "root")
-                            rpc.rpc.transaction_error.create(
-                                "tid", cdata=tid)
-                            rpc.rpc.transaction_error.create(
-                                "origin", cdata="pyapi")
-                            rpc.rpc.transaction_error.create(
-                                "reason", cdata=str(e))
+                                run_modules(modules, service_name, instance)
+                            except Exception as e:
+                                logger.error("Catched an module exception")
 
-                            break
+                                traceback.print_exc()
 
-                        else:
-                            logger.debug(f"Service {service_name} done")
-                            if not rpc:
                                 rpc = rpc_header_get(
-                                    RPCTypes.TRANSACTION_DONE, "root")
-                                rpc.rpc.transaction_actions_done.create(
+                                    RPCTypes.TRANSACTION_ERROR, "root")
+                                rpc.rpc.transaction_error.create(
                                     "tid", cdata=tid)
+                                rpc.rpc.transaction_error.create(
+                                    "origin", cdata="pyapi")
+                                rpc.rpc.transaction_error.create(
+                                    "reason", cdata=str(e))
 
-                            rpc.rpc.transaction_actions_done.create(
-                                "service", cdata=service_name)
+                                break
+
+                            else:
+                                logger.debug(f"Service {service_name} done")
+                                rpc.rpc.transaction_actions_done.create(
+                                    "service", cdata=service_name)
 
                     send(sock, rpc, pp)
 
