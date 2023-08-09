@@ -1,4 +1,3 @@
-import clixon.parser as parser
 import getopt
 import logging
 import os
@@ -6,6 +5,7 @@ import signal
 import sys
 from typing import Optional
 
+import clixon.parser as parser
 from clixon.log import get_log_factory
 
 
@@ -129,7 +129,6 @@ def parse_args() -> tuple:
                 usage(err=f"Invalid logging option {arg}")
             log = arg
         else:
-            print(opt)
             usage()
 
     if configfile:

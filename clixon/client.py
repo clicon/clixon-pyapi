@@ -1,22 +1,20 @@
+import re
 import select
 import socket
 import struct
 import time
 import traceback
-import re
 from typing import Optional
 
+from clixon.args import get_logger
 from clixon.element import Element
 from clixon.modules import run_modules
 from clixon.netconf import (RPCTypes, rpc_error_get, rpc_header_get,
                             rpc_subscription_create)
 from clixon.parser import dump_string, parse_string
-from clixon.args import get_logger
 
 logger = get_logger()
 hdrlen = 8
-
-print(logger)
 
 
 def create_socket(sockpath: str) -> socket.socket:
@@ -110,8 +108,6 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
 
             logger.debug("Received service notify")
 
-            error = False
-
             reply = parse_string(data)
             notification = reply.notification
             tid = str(notification.services_commit.tid.cdata)
@@ -128,8 +124,7 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
 
             if services:
                 for service in services:
-                    match = re.match(
-                        r"(\w+)\[service-name='(\w+)'\]", service.cdata)
+                    match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
                     try:
                         service_name = match.group(1)
@@ -149,8 +144,6 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                             "origin", cdata="pyapi")
                         rpc.rpc.transaction_error.create(
                             "reason", cdata=str(e))
-
-                        error = True
 
                         break
 
