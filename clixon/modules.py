@@ -79,14 +79,18 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
             continue
         modulename = os.path.splitext(modulefile)[0].split("/")[-1]
 
-        logger.info(f"Importing module {modulefile} ({modulename})")
-
+        logger.info(f"Importing module {modulename}")
         try:
             spec = importlib.util.spec_from_file_location(
                 modulename, modulefile)
             module = importlib.util.module_from_spec(spec)
             sys.modules[modulename] = module
             spec.loader.exec_module(module)
+
+            if not hasattr(module, "SERVICE"):
+                logger.error(
+                    f"Failed to load module, {modulename} does not have SERVICE attribute")
+                continue
         except Exception as e:
             logger.error(f"Failed to load module {modulefile}: {e}")
             continue
