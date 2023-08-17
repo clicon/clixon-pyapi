@@ -10,4 +10,4 @@ $ pip3 install -r requirements.txt
 $ ./install.sh
 ```
 
-For more info, see [user guide](https://clixon-docs.readthedocs.io/en/latest/pyapi.html)
+For more info, see [user guide](https://clixon-controller-docs.readthedocs.io/en/latest/)
