@@ -19,6 +19,7 @@ def main() -> None:
     """
     Main function for clixon_server.
     """
+    sys.path.append(modulespath)
 
     modules = load_modules(modulespath, modulefilter)
 
