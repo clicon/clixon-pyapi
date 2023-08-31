@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from xml.dom import minidom
 from xml.sax import handler
@@ -91,3 +92,19 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
         outstr = "\n" + dom.toprettyxml()
 
     return outstr
+
+
+def parse_template(template: str, **kwargs: dict) -> str:
+    """
+    Parse a template and return the result.
+    """
+
+    vars_re = re.compile(r"{{(\w+)}}", re.MULTILINE)
+    vars_list = re.findall(vars_re, template)
+
+    for var in vars_list:
+        if var not in kwargs:
+            raise ValueError("Missing variable: {}".format(var))
+        template = template.replace("{{" + var + "}}", kwargs[var])
+
+    return parse_string(template)
