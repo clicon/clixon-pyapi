@@ -108,3 +108,14 @@ def parse_template(template: str, **kwargs: dict) -> str:
         template = template.replace("{{" + var + "}}", kwargs[var])
 
     return parse_string(template)
+
+
+def parse_template_file(filename: str, **kwargs: dict) -> str:
+    """
+    Parse a template file and return the result.
+    """
+
+    with open(filename, "r") as fd:
+        template = fd.read()
+
+    return parse_template(template, **kwargs)
