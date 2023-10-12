@@ -99,10 +99,12 @@ class Element(object):
             return self.attributes.get(key)
         return self.attributes
 
-    def get_elements(self, name: Optional[str] = None) -> list:
+    def get_elements(self, name: Optional[str] = "") -> list:
         """
         Return the children of the element.
         """
+
+        name = name.replace("-", "_")
 
         if name:
             return [e for e in self._children if e._name == name]
