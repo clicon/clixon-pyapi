@@ -6,6 +6,19 @@ from typing import List, Optional
 log = get_logger()
 
 
+def get_service_instance(root, service_name, kwargs):
+    if "instance" not in kwargs:
+        return None
+
+    services = root.services.get_elements(service_name)
+
+    for service in services:
+        if str(service.service_name) == kwargs["instance"]:
+            return service
+
+    return None
+
+
 def get_devices_from_group(root: Element, device_group_name: str) -> List[str]:
     """Returns a list of devices in a device group."""
     devices = []
