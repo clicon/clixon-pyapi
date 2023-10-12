@@ -10,11 +10,15 @@ def get_service_instance(root, service_name, kwargs):
     if "instance" not in kwargs:
         return None
 
-    services = root.services.get_elements(service_name)
+    try:
+        services = root.services.get_elements(service_name)
 
-    for service in services:
-        if str(service.service_name) == kwargs["instance"]:
-            return service
+        for service in services:
+            if str(service.service_name) == kwargs["instance"]:
+                return service
+    except AttributeError:
+        log.debug("No service with name %s", service_name)
+        return None
 
     return None
 
