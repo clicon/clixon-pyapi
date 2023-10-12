@@ -1,8 +1,13 @@
 from enum import Enum
 from typing import Optional
+from xml.sax._exceptions import SAXParseException
 
 from clixon.element import Element
 from clixon.parser import parse_string
+from clixon.args import get_logger
+
+
+logger = get_logger()
 
 
 class RPCTypes(Enum):
@@ -133,7 +138,11 @@ def rpc_error_get(xmlstr: str) -> None:
     Parse the XML string and raise an exception if an error is found.
     """
 
-    root = parse_string(xmlstr)
+    try:
+        root = parse_string(xmlstr)
+    except SAXParseException:
+        logger.error("XML parse error, XML was: %s", xmlstr)
+        return None
 
     if "error-message" in xmlstr:
         try:
