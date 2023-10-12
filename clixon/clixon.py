@@ -42,14 +42,16 @@ class Clixon():
         """
         Send the final config and commit.
         """
+        try:
+            for device in self.__root.devices.get_elements():
+                config = rpc_config_set(device, device=True)
+                send(self.__socket, config, pp)
+                read(self.__socket, pp)
 
-        for device in self.__root.devices.get_elements():
-            config = rpc_config_set(device, device=True)
-            send(self.__socket, config, pp)
-            read(self.__socket, pp)
-
-            if self.__commit:
-                self.commit()
+                if self.__commit:
+                    self.commit()
+        except AttributeError:
+            logger.debug("No devices to configure")
 
     def commit(self) -> None:
         """
