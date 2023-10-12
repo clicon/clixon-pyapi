@@ -31,7 +31,6 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
     address = ""
 
     try:
-
         for device in root.devices.device:
             if device_name != "" and device_name != device.name:
                 continue
@@ -39,20 +38,21 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
                 if interface.name != interface_name:
                     continue
                 for unit in interface.unit:
-                    if unit.name != interface_unit:
+                    if str(unit.name) != str(interface_unit):
                         continue
                     if family == "" or family == "inet":
                         address = unit.family.inet.address.name
-                    elif family == "ine6t":
+                    elif family == "inet6":
                         address = unit.family.inet6.address.name
     except AttributeError:
         log.debug("No interface with name %s", interface_name)
         return ""
 
-    return address
+    return str(address)
 
 
 if __name__ == "__main__":
     c = Clixon()
     root = c.get_root()
-    print(get_openconfig_interface_address(root, "lo0", "0", "crpd1", "inet"))
+    print(get_openconfig_interface_address(
+        root, "lo0", "0", "juniper1", "inet"))
