@@ -6,7 +6,7 @@ import xmltodict
 
 class Element(object):
     def __init__(self, name: str, attributes: Optional[dict] = {},
-                 cdata: Optional[str] = "") -> None:
+                 cdata: Optional[str] = "", data: Optional[str] = "") -> None:
         """
         Create a new element.
         """
@@ -15,6 +15,10 @@ class Element(object):
         self._children = []
         self._is_root = False
         self.cdata = cdata
+
+        if data != "":
+            self.cdata = data
+
         self._origname = name
 
         if name:
@@ -42,6 +46,7 @@ class Element(object):
 
     def create(self, name: str, attributes: Optional[dict] = {},
                cdata: Optional[str] = "",
+               data: Optional[str] = "",
                element: Optional[object] = None) -> None:
         """
         Create a new element.
@@ -49,7 +54,12 @@ class Element(object):
 
         if not element:
             element = Element(name, attributes)
-            element.cdata = cdata
+
+            if data != "":
+                element.cdata = data
+            else:
+                element.cdata = cdata
+
         self._children.append(element)
 
     def rename(self, name: str, origname: str) -> None:
