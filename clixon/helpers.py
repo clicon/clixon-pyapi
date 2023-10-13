@@ -78,10 +78,14 @@ def get_devices(root: Element) -> Iterable[Element]:
         return None
 
 
-def get_devices_configuration(root: Element) -> Iterable[Element]:
+def get_devices_configuration(root: Element,
+                              name: Optional[str] = "") -> Iterable[Element]:
     """ Returns an iterable of devices configuration. """
     try:
         for device in root.devices.device:
+            if name != "" and name != device.name:
+                continue
+
             yield device.config
     except AttributeError:
         log.debug("No devices or missing config element")

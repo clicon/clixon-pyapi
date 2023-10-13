@@ -105,6 +105,8 @@ def parse_template(template: str, **kwargs: dict) -> str:
     for var in vars_list:
         if var not in kwargs:
             raise ValueError("Missing variable: {}".format(var))
+        if kwargs[var] != str:
+            kwargs[var] = str(kwargs[var])
         template = template.replace("{{" + var + "}}", kwargs[var])
 
     return parse_string(template)
