@@ -1,7 +1,7 @@
 from clixon.clixon import Clixon
 from clixon.args import get_logger
 from clixon.element import Element
-from typing import List, Optional
+from typing import List, Optional, Iterable
 
 log = get_logger()
 
@@ -68,8 +68,21 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
     return str(address)
 
 
-if __name__ == "__main__":
-    c = Clixon()
-    root = c.get_root()
-    print(get_openconfig_interface_address(
-        root, "lo0", "0", "juniper1", "inet"))
+def get_devices(root: Element) -> Iterable[Element]:
+    """ Returns an iterable of devices. """
+    try:
+        for device in root.devices.device:
+            yield device
+    except AttributeError:
+        log.debug("No devices")
+        return None
+
+
+def get_devices_configuration(root: Element) -> Iterable[Element]:
+    """ Returns an iterable of devices configuration. """
+    try:
+        for device in root.devices.device:
+            yield device.config
+    except AttributeError:
+        log.debug("No devices or missing config element")
+        return None
