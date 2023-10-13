@@ -14,10 +14,11 @@ class Element(object):
         self.attributes = attributes
         self._children = []
         self._is_root = False
-        self.cdata = cdata
 
         if data != "":
             self.cdata = data
+        else:
+            self.cdata = cdata
 
         self._origname = name
 
@@ -213,9 +214,7 @@ class Element(object):
         return self.cdata.strip()
 
     def __repr__(self) -> str:
-        cdata = self.cdata.strip()
-
-        return cdata
+        return self.cdata.strip()
 
     def __bool__(self) -> bool:
         return self._is_root or self._name is not None
