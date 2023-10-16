@@ -78,6 +78,18 @@ def get_devices(root: Element) -> Iterable[Element]:
         return None
 
 
+def get_device(root: Element, name: str) -> Element:
+    """ Returns a device. """
+    try:
+        for device in root.devices.device:
+            if name == str(device.name):
+                return device
+    except AttributeError:
+        return None
+
+    return None
+
+
 def get_devices_configuration(root: Element,
                               name: Optional[str] = "") -> Iterable[Element]:
     """ Returns an iterable of devices configuration. """
@@ -90,3 +102,36 @@ def get_devices_configuration(root: Element,
     except AttributeError:
         log.debug("No devices or missing config element")
         return None
+
+
+def get_properties(root: Element, name: str) -> dict:
+    """ Returns a dict of the property values."""
+
+    properties = {}
+
+    try:
+        for prop in root.services.properties.get_elements(name):
+            for item in prop.get_elements():
+                name = item.get_name()
+                properties[name] = str(item)
+
+                name = name.replace("_", "-")
+                properties[name] = str(item)
+
+    except AttributeError:
+        return None
+
+    return properties
+
+
+def is_juniper(device: Element) -> bool:
+    """ Returns True if the device is a Juniper device. """
+
+    try:
+        if device.config.configuration.get_attributes("xmlns") == \
+           "http://yang.juniper.net/junos/conf/root":
+            return True
+    except AttributeError:
+        return None
+
+    return False

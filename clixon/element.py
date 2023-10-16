@@ -134,6 +134,13 @@ class Element(object):
                 attr_string += f" {key}=\"{value}\""
         return attr_string
 
+    def get_data(self) -> str:
+        """
+        Return the data of the element.
+        """
+
+        return self.cdata
+
     def dumps(self) -> str:
         """
         Return the XML string of the element and its children.
