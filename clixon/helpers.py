@@ -138,7 +138,9 @@ def is_juniper(device: Element) -> bool:
     return False
 
 
-def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
+def get_path(root: Element, path: str) -> Optional[Element]:
+    """ Returns the element at the path. """
+
     if path.startswith("/"):
         path = path[1:]
 
@@ -162,7 +164,7 @@ def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
                     node = node.replace(
                         f"[{match.group(1)}='{match.group(2)}']", "")
                 except AttributeError:
-                    return None
+                    return False
 
         try:
             if not new_root:
@@ -170,7 +172,7 @@ def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
             else:
                 new_root = getattr(new_root, node)
         except AttributeError:
-            return None
+            return False
 
         if not isinstance(new_root, list):
             continue
@@ -180,7 +182,7 @@ def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
                 try:
                     new_root = new_root[index]
                 except IndexError:
-                    return None
+                    return False
 
         if parameter and value:
             for item in new_root:
@@ -189,23 +191,6 @@ def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
                     new_root = item
                     break
             else:
-                return None
+                return False
 
     return new_root
-
-
-if __name__ == "__main__":
-    c = Clixon()
-    root = c.get_root()
-
-    e = get_path(
-        root, "/devices/device[1]/config/configuration/version")
-    print(e)
-
-    e = get_path(
-        root, "/devices/device[name='juniper1']/config/configuration/version")
-    print(e)
-
-    e = get_path(
-        root, "/devices/device[name='juniper1']/config/configuration/interfaces/interface[name='lo0']/unit[name='0']/family/inet/address/name")
-    print(e)
