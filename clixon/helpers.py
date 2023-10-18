@@ -1,5 +1,4 @@
 import re
-from clixon.clixon import Clixon
 from clixon.args import get_logger
 from clixon.element import Element
 from typing import List, Optional, Iterable
