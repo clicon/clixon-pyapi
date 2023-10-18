@@ -1,3 +1,4 @@
+import re
 from clixon.clixon import Clixon
 from clixon.args import get_logger
 from clixon.element import Element
@@ -135,3 +136,76 @@ def is_juniper(device: Element) -> bool:
         return None
 
     return False
+
+
+def get_path(root: Element, path: str) -> Optional[tuple[dict, Optional[str]]]:
+    if path.startswith("/"):
+        path = path[1:]
+
+    new_root = None
+    for node in path.split("/"):
+        node = node.replace("-", "_")
+        index = None
+        parameter = None
+        value = None
+        arg = re.search(r'\[(.*?)\]', node)
+
+        if arg:
+            if arg.group(1).isdigit():
+                index = int(arg.group(1))
+                node = node.replace(f"[{index}]", "")
+            else:
+                match = re.match(r"(\S+)='(\S+)'", arg.group(1))
+                try:
+                    parameter = match.group(1)
+                    value = match.group(2)
+                    node = node.replace(
+                        f"[{match.group(1)}='{match.group(2)}']", "")
+                except AttributeError:
+                    return None
+
+        try:
+            if not new_root:
+                new_root = getattr(root, node)
+            else:
+                new_root = getattr(new_root, node)
+        except AttributeError:
+            return None
+
+        if not isinstance(new_root, list):
+            continue
+
+        if isinstance(index, int):
+            if index >= 0:
+                try:
+                    new_root = new_root[index]
+                except IndexError:
+                    return None
+
+        if parameter and value:
+            for item in new_root:
+                param_node = getattr(item, parameter)
+                if str(param_node) == value:
+                    new_root = item
+                    break
+            else:
+                return None
+
+    return new_root
+
+
+if __name__ == "__main__":
+    c = Clixon()
+    root = c.get_root()
+
+    e = get_path(
+        root, "/devices/device[1]/config/configuration/version")
+    print(e)
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/version")
+    print(e)
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/interfaces/interface[name='lo0']/unit[name='0']/family/inet/address/name")
+    print(e)
