@@ -138,17 +138,26 @@ def is_juniper(device: Element) -> bool:
 
 
 def get_path(root: Element, path: str) -> Optional[Element]:
-    """ Returns the element at the path. """
+    """
+    Returns the element at the path. Porr mans xpath.
+
+    Examples:
+        get_path(root, "devices/device[0]")
+        get_path(root, "devices/device[name='r1']/config")
+        get_path(root, "services/bgp-peer[name='bgp-test']")
+    """
 
     if path.startswith("/"):
         path = path[1:]
 
     new_root = None
+
     for node in path.split("/"):
         node = node.replace("-", "_")
         index = None
         parameter = None
         value = None
+
         arg = re.search(r'\[(.*?)\]', node)
 
         if arg:
@@ -157,6 +166,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
                 node = node.replace(f"[{index}]", "")
             else:
                 match = re.match(r"(\S+)='(\S+)'", arg.group(1))
+
                 try:
                     parameter = match.group(1)
                     value = match.group(2)
