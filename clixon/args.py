@@ -85,7 +85,7 @@ def parse_args() -> tuple:
     global logger
 
     sockpath = "/usr/local/var/controller.sock"
-    pidfile = "/tmp/clixon_pyserver.pid"
+    pidfile = "/tmp/clixon_server.pid"
     modulepath = "./modules/"
     modulefilter = ""
     foreground = False
