@@ -110,7 +110,8 @@ class Element(object):
             return self.attributes.get(key)
         return self.attributes
 
-    def get_elements(self, name: Optional[str] = "") -> list:
+    def get_elements(self, name: Optional[str] = "",
+                     data: Optional[str] = "") -> list:
         """
         Return the children of the element.
         """
@@ -118,9 +119,14 @@ class Element(object):
         name = name.replace("-", "_")
 
         if name:
-            return [e for e in self._children if e._name == name]
+            elements = [e for e in self._children if e._name == name]
         else:
-            return self._children
+            elements = self._children
+
+        if data:
+            return [e for e in elements if e.get_data() == data]
+
+        return elements
 
     def get_attributes_str(self) -> str:
         """
