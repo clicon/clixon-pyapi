@@ -1,5 +1,4 @@
 import getopt
-import logging
 import os
 import signal
 import sys
@@ -10,11 +9,17 @@ from clixon.log import get_log_factory
 
 
 def get_logger():
-    sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug = parse_args()
+    _, _, _, _, _, _, log, debug = parse_args()
 
     logger = get_log_factory(log, debug)
 
     return logger
+
+
+def get_sockpath():
+    sockpath, _, _, _, _, _, _, _ = parse_args()
+
+    return sockpath
 
 
 def usage(err: Optional[str] = "") -> None:
