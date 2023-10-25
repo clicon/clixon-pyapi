@@ -33,24 +33,37 @@ def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
 
     data = ""
     datalen = 0
+    opid = 0
 
     logger.debug("Waiting for select")
 
-    readable, writable, exceptional = select.select(
-        [sock], [], [])
+    while datalen == 0 or len(data) < datalen - hdrlen:
+        readable, _, _ = select.select([sock], [], [])
 
-    for read in readable:
-        recv = read.recv(hdrlen)
-        datalen, opid = struct.unpack("!II", recv)
-        recv = read.recv(datalen - hdrlen)
+        for readable_sock in readable:
+            if readable_sock != sock:
+                logger.debug("This is not the socket we want")
+                continue
 
-        logger.debug("Read:")
-        logger.debug(f"  len={datalen}")
-        logger.debug(f"  opid={opid}")
-        logger.debug("  data=" + dump_string(recv, pp=pp))
+            if datalen == 0:
+                recv = sock.recv(hdrlen)
+                datalen, opid = struct.unpack("!II", recv)
 
-        data += recv.decode()
-        data = data[:-1]
+                logger.debug("Read header:")
+                logger.debug(f"  len={datalen}")
+                logger.debug(f"  opid={opid}")
+
+                break
+            else:
+                recv = sock.recv(datalen - hdrlen)
+                data += recv.decode()
+
+    data = data[:-1]
+
+    logger.debug("Read:")
+    logger.debug(f"  len={datalen}")
+    logger.debug(f"  opid={opid}")
+    logger.debug("  data=" + dump_string(recv, pp=pp))
 
     rpc_error_get(data)
 
@@ -75,8 +88,21 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
 
     framelen = hdrlen + len(data)
     frame = struct.pack("!II", framelen, opid)
+    frame = frame + data
 
-    sock.send(frame + data)
+    sent = 0
+    sent_total = 0
+
+    # Send all the data in data
+
+    while sent_total < framelen:
+        _, writable, _ = select.select([], [sock], [])
+
+        if not writable:
+            continue
+
+        sent = sock.send(frame[sent_total:])
+        sent_total += sent
 
     logger.debug("Send:")
     logger.debug(f"  len={framelen}")
