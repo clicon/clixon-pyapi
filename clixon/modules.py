@@ -4,9 +4,11 @@ import sys
 import traceback
 from typing import List, Optional
 
-from clixon.args import get_logger
+from clixon.args import get_logger, get_sockpath
+from clixon.clixon import Clixon
 
 logger = get_logger()
+sockpath = get_sockpath()
 
 
 class ModuleError(Exception):
@@ -33,7 +35,8 @@ def run_modules(modules: List, service_name: str,
 
         try:
             logger.info(f"Running module {module}")
-            module.setup(instance=instance)
+            with Clixon(sockpath=sockpath) as root:
+                module.setup(root, logger, instance=instance)
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
             logger.error(traceback.format_exc())

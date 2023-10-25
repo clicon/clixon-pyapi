@@ -2,12 +2,13 @@ import os
 from typing import Optional
 
 from clixon.args import parse_args
-from clixon.client import create_socket, read, send
 from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
 from clixon.parser import parse_string
 from clixon.args import get_logger
+from clixon.sock import read, send, create_socket
 
-sockpath, _, _, _, _, pp, _, _ = parse_args()
+sockpath = parse_args("sockpath")
+pp = parse_args("pp")
 logger = get_logger()
 default_sockpath = "/usr/local/var/controller.sock"
 
@@ -35,7 +36,6 @@ class Clixon():
         """
         Return the root object.
         """
-
         return self.__root
 
     def __exit__(self, *args: object) -> None:
@@ -57,7 +57,6 @@ class Clixon():
         """
         Commit the configuration.
         """
-
         commit = rpc_commit()
         send(self.__socket, commit, pp)
         read(self.__socket, pp)
@@ -73,7 +72,6 @@ class Clixon():
         """
         Set the root object.
         """
-
         send(self.__socket, root, pp)
         read(self.__socket, pp)
 
@@ -86,7 +84,6 @@ def rpc(sockpath: Optional[str] = sockpath,
     """
     Decorator to create a Clixon object.
     """
-
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:

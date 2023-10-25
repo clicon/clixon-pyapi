@@ -1,5 +1,4 @@
 import getopt
-import logging
 import os
 import signal
 import sys
@@ -10,11 +9,20 @@ from clixon.log import get_log_factory
 
 
 def get_logger():
-    sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug = parse_args()
+    log = parse_args("log")
+    debug = parse_args("debug")
 
     logger = get_log_factory(log, debug)
 
     return logger
+
+
+def get_sockpath():
+    return parse_args("sockpath")
+
+
+def get_prettyprint():
+    return parse_args("pp")
 
 
 def usage(err: Optional[str] = "") -> None:
@@ -78,7 +86,7 @@ def parse_config(configfile: str) -> tuple:
     return sockpath, modulepath, modulefilter, pidfile
 
 
-def parse_args() -> tuple:
+def parse_args(argname: str = None) -> tuple:
     """
     Parse command line arguments.
     """
@@ -134,4 +142,8 @@ def parse_args() -> tuple:
     if configfile:
         sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
 
-    return sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug
+    if argname:
+        return locals()[argname]
+
+    return (sockpath, modulepath, modulefilter, pidfile, foreground, pp,
+            log, debug)
