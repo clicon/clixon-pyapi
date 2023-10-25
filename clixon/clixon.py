@@ -7,7 +7,8 @@ from clixon.parser import parse_string
 from clixon.args import get_logger
 from clixon.sock import read, send, create_socket
 
-sockpath, _, _, _, _, pp, _, _ = parse_args()
+sockpath = parse_args("sockpath")
+pp = parse_args("pp")
 logger = get_logger()
 default_sockpath = "/usr/local/var/controller.sock"
 
