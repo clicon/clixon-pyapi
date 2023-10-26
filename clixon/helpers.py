@@ -203,3 +203,20 @@ def get_path(root: Element, path: str) -> Optional[Element]:
                 return False
 
     return new_root
+
+
+def get_value(element: Element, val: str, req: Optional[bool] = False) -> str:
+    """
+    Returns the value of an element.
+
+    Examples:
+        device_name = get_value(device, "name", required=True)
+        device_name = get_value(exchange_point, "md5-sum", required=False)
+    """
+
+    if element.get_elements(val) == []:
+        if req:
+            raise Exception(f"Value {val} must be configured")
+        return None
+
+    return str(element.get_elements(val)[0])
