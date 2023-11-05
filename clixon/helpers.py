@@ -205,7 +205,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
     return new_root
 
 
-def get_value(element: Element, val: str, req: Optional[bool] = False) -> str:
+def get_value(element: Element, val: str, required: Optional[bool] = False) -> str:
     """
     Returns the value of an element.
 
@@ -215,7 +215,7 @@ def get_value(element: Element, val: str, req: Optional[bool] = False) -> str:
     """
 
     if element.get_elements(val) == []:
-        if req:
+        if required:
             raise Exception(f"Value {val} must be configured")
         return None
 
