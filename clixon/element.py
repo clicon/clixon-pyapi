@@ -147,6 +147,13 @@ class Element(object):
                 attr_string += f" {key}=\"{value}\""
         return attr_string
 
+    def set_data(self, data: str) -> None:
+        """
+        Set the data of the element.
+        """
+
+        self.cdata = data
+
     def get_data(self) -> str:
         """
         Return the data of the element.
