@@ -16,7 +16,8 @@ default_sockpath = "/usr/local/var/run/controller.sock"
 class Clixon():
     def __init__(self, sockpath: Optional[str] = "",
                  commit: Optional[bool] = False,
-                 source: Optional[str] = "actions") -> None:
+                 source: Optional[str] = "actions",
+                 target: Optional[str] = "actions") -> None:
         """
         Create a Clixon object.
         """
@@ -30,6 +31,7 @@ class Clixon():
         self.__socket = create_socket(sockpath)
         self.__commit = commit
         self.__logger = logger
+        self.__target = target
 
         send(self.__socket, rpc_config_get(source), pp)
         data = read(self.__socket, pp)
@@ -48,7 +50,10 @@ class Clixon():
         """
         try:
             for device in self.__root.devices.get_elements():
-                config = rpc_config_set(device, device=True)
+                config = rpc_config_set(
+                    device, device=True,
+                    target=self.__target
+                )
                 send(self.__socket, config, pp)
                 read(self.__socket, pp)
 

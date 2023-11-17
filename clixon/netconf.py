@@ -43,15 +43,22 @@ def rpc_config_get(user: Optional[str] = "root",
 
 
 def rpc_config_set(config: Element, user: Optional[str] = "root",
-                   device: Optional[bool] = False) -> Element:
+                   device: Optional[bool] = False,
+                   target: Optional[str] = "actions",
+                   target_attributes: Optional[dict] = {}) -> Element:
     """
     Create a RPC config set element.
     """
 
+    if target_attributes == {} and target == "actions":
+        target_attributes = {
+            "xmlns": "http://clicon.org/controller"
+        }
+
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create(
-        "actions", attributes={"xmlns": "http://clicon.org/controller"})
+        target, attributes=target_attributes)
     root.rpc.edit_config.create("default-operation")
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
