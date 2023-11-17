@@ -35,7 +35,8 @@ def run_modules(modules: List, service_name: str,
 
         try:
             logger.info(f"Running module {module}")
-            with Clixon(sockpath=sockpath) as root:
+            with Clixon(sockpath=sockpath) as cd:
+                root = cd.get_root()
                 module.setup(root, logger, instance=instance)
         except Exception as e:
             logger.error(f"Module {module} failed with exception: {e}")
