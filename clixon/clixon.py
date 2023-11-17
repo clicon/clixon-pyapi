@@ -10,22 +10,26 @@ from clixon.sock import read, send, create_socket
 sockpath = parse_args("sockpath")
 pp = parse_args("pp")
 logger = get_logger()
-default_sockpath = "/usr/local/var/controller.sock"
+default_sockpath = "/usr/local/var/run/controller.sock"
 
 
 class Clixon():
-    def __init__(self, sockpath: Optional[str] = default_sockpath,
+    def __init__(self, sockpath: Optional[str] = "",
                  commit: Optional[bool] = False,
                  source: Optional[str] = "actions") -> None:
         """
         Create a Clixon object.
         """
 
-        if sockpath == "" or not os.path.exists(sockpath):
+        if sockpath == "":
+            sockpath = default_sockpath
+
+        if not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__socket = create_socket(sockpath)
         self.__commit = commit
+        self.__logger = logger
 
         send(self.__socket, rpc_config_get(source), pp)
         data = read(self.__socket, pp)
@@ -77,6 +81,12 @@ class Clixon():
 
         if self.__commit:
             self.commit()
+
+    def get_logger(self) -> object:
+        """
+        Return the logger object.
+        """
+        return self.__logger
 
 
 def rpc(sockpath: Optional[str] = sockpath,
