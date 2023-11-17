@@ -101,6 +101,13 @@ class Element(object):
                 del self._children[index]
             index += 1
 
+    def set_attributes(self, attributes: dict) -> None:
+        """
+        Set the attributes of the element.
+        """
+
+        self.attributes = attributes
+
     def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
         """
         Return the attributes of the element.
