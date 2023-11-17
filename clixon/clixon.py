@@ -40,7 +40,7 @@ class Clixon():
         """
         Return the root object.
         """
-        return self.__root
+        return self
 
     def __exit__(self, *args: object) -> None:
         """
