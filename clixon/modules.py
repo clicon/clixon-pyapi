@@ -95,6 +95,11 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
                 logger.error(
                     f"Failed to load module, {modulename} does not have SERVICE attribute")
                 continue
+
+            if not hasattr(module, "setup"):
+                logger.error(
+                    f"Failed to load module, {modulename} does not have setup function")
+                continue
         except Exception as e:
             logger.error(f"Failed to load module {modulefile}: {e}")
             continue
