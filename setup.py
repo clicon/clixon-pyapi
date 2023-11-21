@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="clixon-pyapi",
-    version="1.0.0",
+    version="0.0.1",
     author="Kristofer Hallin, Olof Hagsand",
     author_email="clixon-pyapi@8n1.se",
     description="Clixon Python API",
@@ -18,5 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.11',
+    scripts=["clixon_server.py"],
 )
