@@ -19,4 +19,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.11',
+    scripts=["clixon_server.py"],
 )
