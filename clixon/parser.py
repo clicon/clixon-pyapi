@@ -85,7 +85,10 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     Dump an XML string and return the root element.
     """
 
-    outstr = str(xmlstr.decode())[:-1]
+    if isinstance(xmlstr, bytes):
+        outstr = str(xmlstr.decode())[:-1]
+    else:
+        outstr = xmlstr[:-1]
 
     if pp:
         dom = minidom.parseString(outstr)
