@@ -63,7 +63,7 @@ def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
     logger.debug("Read:")
     logger.debug(f"  len={datalen}")
     logger.debug(f"  opid={opid}")
-    logger.debug("  data=" + dump_string(recv, pp=pp))
+    logger.debug("  data=" + dump_string(data, pp=pp))
 
     rpc_error_get(data)
 
@@ -108,3 +108,4 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
     logger.debug(f"  len={framelen}")
     logger.debug(f"  opid={opid}")
     logger.debug("  data=" + dump_string(data, pp=pp))
+    logger.debug(f"  sent={sent_total}")
