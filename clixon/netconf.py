@@ -16,6 +16,7 @@ class RPCTypes(Enum):
     COMMIT = 2
     TRANSACTION_DONE = 3
     TRANSACTION_ERROR = 4
+    PUSH_COMMIT = 5
 
 
 class RPCError(Exception):
@@ -83,6 +84,14 @@ def rpc_commit(user: Optional[str] = "root") -> Element:
     return rpc_header_get(RPCTypes.COMMIT, user)
 
 
+def rpc_push() -> Element:
+    """
+    Create a RPC push element.
+    """
+
+    return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
+
+
 def rpc_header_get(rpc_type: object, user: str,
                    attributes: Optional[dict] = None) -> Element:
     """
@@ -112,6 +121,13 @@ def rpc_header_get(rpc_type: object, user: str,
     elif rpc_type == RPCTypes.TRANSACTION_ERROR:
         root.rpc.create("transaction-error",
                         attributes={"xmlns": "http://clicon.org/controller"})
+    elif rpc_type == RPCTypes.PUSH_COMMIT:
+        root.rpc.create("controller-commit",
+                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.controller_commit.create("device", data="*")
+        root.rpc.controller_commit.create("push", data="COMMIT")
+        root.rpc.controller_commit.create("actions", data="NONE")
+        root.rpc.controller_commit.create("source", data="ds:running")
 
     return root
 
