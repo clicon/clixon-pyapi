@@ -1,3 +1,4 @@
+from clixon.clixon import Clixon
 import re
 from clixon.args import get_logger
 from clixon.element import Element
@@ -220,3 +221,16 @@ def get_value(element: Element, val: str, required: Optional[bool] = False) -> s
         return None
 
     return str(element.get_elements(val)[0])
+
+
+def get_service_instances(root, service_name):
+    instances = []
+    services = get_path(root, f"/services/{service_name}")
+
+    if not services:
+        return instances
+
+    for service in services:
+        instances.append(service)
+
+    return instances
