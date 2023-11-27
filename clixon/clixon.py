@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 from clixon.args import parse_args
-from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set
+from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set, rpc_push, rpc_subscription_create
 from clixon.parser import parse_string
 from clixon.args import get_logger
 from clixon.sock import read, send, create_socket
@@ -16,6 +16,7 @@ default_sockpath = "/usr/local/var/run/controller.sock"
 class Clixon():
     def __init__(self, sockpath: Optional[str] = "",
                  commit: Optional[bool] = False,
+                 push: Optional[bool] = False,
                  source: Optional[str] = "actions",
                  target: Optional[str] = "actions") -> None:
         """
@@ -30,6 +31,7 @@ class Clixon():
 
         self.__socket = create_socket(sockpath)
         self.__commit = commit
+        self.__push = push
         self.__logger = logger
         self.__target = target
 
@@ -59,16 +61,38 @@ class Clixon():
 
                 if self.__commit:
                     self.commit()
-        except AttributeError:
-            logger.debug("No devices to configure")
+        except Exception as e:
+            logger.error(f"Exception: {e}")
 
     def commit(self) -> None:
         """
         Commit the configuration.
         """
         commit = rpc_commit()
+
         send(self.__socket, commit, pp)
         read(self.__socket, pp)
+
+        if self.__push:
+            enable_transaction_notify = rpc_subscription_create(
+                "controller-transaction")
+            send(self.__socket, enable_transaction_notify, pp)
+            read(self.__socket, pp)
+
+            logger.debug("Pushing commit")
+            push = rpc_push()
+
+            send(self.__socket, push, pp)
+
+            data = ""
+            idx = 0
+            while "notification" not in data and "success" not in data:
+                idx += 1
+
+                if idx > 5:
+                    raise ValueError("Push timeout")
+
+                data = read(self.__socket, pp)
 
     def get_root(self) -> object:
         """
