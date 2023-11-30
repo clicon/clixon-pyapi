@@ -34,10 +34,18 @@ def rpc_config_get(user: Optional[str] = "root",
         "nc:select": "/"
     }
 
+    if source == "actions":
+        attributes = {
+            "xmlns": "http://clicon.org/controller"
+        }
+
+    if source == "running":
+        attributes = {}
+
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(
-        source, attributes={"xmlns": "http://clicon.org/controller"})
+        source, attributes=attributes)
     root.rpc.get_config.create("nc:filter", attributes=attributes)
 
     return root

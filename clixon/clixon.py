@@ -18,7 +18,8 @@ class Clixon():
                  commit: Optional[bool] = False,
                  push: Optional[bool] = False,
                  source: Optional[str] = "actions",
-                 target: Optional[str] = "actions") -> None:
+                 target: Optional[str] = "actions",
+                 user: Optional[str] = "root") -> None:
         """
         Create a Clixon object.
         """
@@ -34,8 +35,11 @@ class Clixon():
         self.__push = push
         self.__logger = logger
         self.__target = target
+        self.__source = source
+        self.__user = user
 
-        send(self.__socket, rpc_config_get(source), pp)
+        send(self.__socket, rpc_config_get(
+            user=self.__user, source=self.__source), pp)
         data = read(self.__socket, pp)
 
         self.__root = parse_string(data).rpc_reply.data
