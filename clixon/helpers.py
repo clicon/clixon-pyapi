@@ -1,4 +1,3 @@
-from clixon.clixon import Clixon
 import re
 from clixon.args import get_logger
 from clixon.element import Element
