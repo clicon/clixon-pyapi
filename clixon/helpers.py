@@ -8,6 +8,9 @@ log = get_logger()
 
 
 def get_service_instance(root, service_name, kwargs):
+    """
+    Returns the service instance.
+    """
     if "instance" not in kwargs:
         return None
 
@@ -25,7 +28,9 @@ def get_service_instance(root, service_name, kwargs):
 
 
 def get_devices_from_group(root: Element, device_group_name: str) -> List[str]:
-    """Returns a list of devices in a device group."""
+    """
+    Returns a list of devices in a device group.
+    """
     devices = []
 
     try:
@@ -45,7 +50,9 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
                                      interface_unit: str,
                                      device_name: str,
                                      family: Optional[str] = "") -> str:
-    """Returns the IP address of an interface."""
+    """
+    Returns the IP address of an interface.
+    """
     address = ""
 
     try:
@@ -70,7 +77,9 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
 
 
 def get_devices(root: Element) -> Iterable[Element]:
-    """ Returns an iterable of devices. """
+    """
+    Returns an iterable of devices.
+    """
     try:
         for device in root.devices.device:
             yield device
@@ -80,7 +89,9 @@ def get_devices(root: Element) -> Iterable[Element]:
 
 
 def get_device(root: Element, name: str) -> Element:
-    """ Returns a device. """
+    """
+    Returns a device.
+    """
     try:
         for device in root.devices.device:
             if name == str(device.name):
@@ -93,7 +104,9 @@ def get_device(root: Element, name: str) -> Element:
 
 def get_devices_configuration(root: Element,
                               name: Optional[str] = "") -> Iterable[Element]:
-    """ Returns an iterable of devices configuration. """
+    """
+    Returns an iterable of devices configuration.
+    """
     try:
         for device in root.devices.device:
             if name != "" and name != device.name:
@@ -106,8 +119,9 @@ def get_devices_configuration(root: Element,
 
 
 def get_properties(root: Element, name: str) -> dict:
-    """ Returns a dict of the property values."""
-
+    """
+    Returns a dict of the property values.
+    """
     properties = {}
 
     try:
@@ -126,8 +140,9 @@ def get_properties(root: Element, name: str) -> dict:
 
 
 def is_juniper(device: Element) -> bool:
-    """ Returns True if the device is a Juniper device. """
-
+    """
+    Returns True if the device is a Juniper device.
+    """
     try:
         if device.config.configuration.get_attributes("xmlns") == \
            "http://yang.juniper.net/junos/conf/root":
@@ -147,7 +162,6 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         get_path(root, "devices/device[name='r1']/config")
         get_path(root, "services/bgp-peer[name='bgp-test']")
     """
-
     if path.startswith("/"):
         path = path[1:]
 
@@ -214,7 +228,6 @@ def get_value(element: Element, val: str, required: Optional[bool] = False) -> s
         device_name = get_value(device, "name", required=True)
         device_name = get_value(exchange_point, "md5-sum", required=False)
     """
-
     if element.get_elements(val) == []:
         if required:
             raise Exception(f"Value {val} must be configured")
@@ -224,6 +237,9 @@ def get_value(element: Element, val: str, required: Optional[bool] = False) -> s
 
 
 def get_service_instances(root, service_name):
+    """
+    Returns a list of service instances.
+    """
     instances = []
     services = get_path(root, f"/services/{service_name}")
 
