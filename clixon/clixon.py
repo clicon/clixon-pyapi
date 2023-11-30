@@ -37,7 +37,7 @@ class Clixon():
         self.__target = target
         self.__source = source
         self.__user = user
-        self.__root = self.get_root()
+        self.__root = None
 
     def __enter__(self) -> object:
         """
@@ -50,6 +50,9 @@ class Clixon():
         Send the final config and commit.
         """
         try:
+            if self.__root is None:
+                self.__root = self.get_root()
+
             for device in self.__root.devices.get_elements():
                 if device.get_name() != "device":
                     continue
@@ -103,6 +106,8 @@ class Clixon():
         """
         Return the root object.
         """
+        logger.debug("Updating root object")
+
         send(self.__socket, rpc_config_get(
             user=self.__user, source=self.__source), pp)
         data = read(self.__socket, pp)

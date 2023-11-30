@@ -26,23 +26,24 @@ def run_modules(modules: List, service_name: str,
         logger.info("No modules found.")
         return
 
-    for module in modules:
-        if service_name:
-            if module.SERVICE != service_name:
-                logger.debug(
-                    f"Skipping module {module} for service {service_name}")
-                continue
+    with Clixon(sockpath=sockpath) as cd:
+        for module in modules:
+            if service_name:
+                if module.SERVICE != service_name:
+                    logger.debug(
+                        f"Skipping module {module} for service {service_name}")
+                    continue
 
-        try:
-            logger.info(f"Running module {module}")
-            with Clixon(sockpath=sockpath) as cd:
+            try:
+                logger.info(f"Running module {module}")
+                logger.debug(f"Module {module} is getting config")
                 root = cd.get_root()
                 module.setup(root, logger, instance=instance)
-        except Exception as e:
-            logger.error(f"Module {module} failed with exception: {e}")
-            logger.error(traceback.format_exc())
+            except Exception as e:
+                logger.error(f"Module {module} failed with exception: {e}")
+                logger.error(traceback.format_exc())
 
-            raise ModuleError(e)
+                raise ModuleError(e)
 
 
 def find_modules(modulespath: str) -> List[str]:
