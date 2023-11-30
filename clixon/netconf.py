@@ -28,25 +28,20 @@ def rpc_config_get(user: Optional[str] = "root",
     """
     Create a get-config RPC element.
     """
-
-    attributes = {
+    attributes = {}
+    xpath_attributes = {
         "nc:type": "xpath",
         "nc:select": "/"
     }
 
     if source == "actions":
-        attributes = {
-            "xmlns": "http://clicon.org/controller"
-        }
-
-    if source == "running":
-        attributes = {}
+        attributes = {"xmlns": "http://clicon.org/controller"}
 
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(
         source, attributes=attributes)
-    root.rpc.get_config.create("nc:filter", attributes=attributes)
+    root.rpc.get_config.create("nc:filter", attributes=xpath_attributes)
 
     return root
 

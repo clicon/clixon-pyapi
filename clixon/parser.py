@@ -86,9 +86,9 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     """
 
     if isinstance(xmlstr, bytes):
-        outstr = str(xmlstr.decode())[:-1]
+        outstr = str(xmlstr.decode()).strip()
     else:
-        outstr = xmlstr[:-1]
+        outstr = xmlstr.strip()
 
     if pp:
         dom = minidom.parseString(outstr)
