@@ -62,3 +62,37 @@ def test5():
 
     assert type(e) is Element
     assert teststr == "1.1.1.1/32"
+
+
+def test6():
+    root = parse_string(xmlstr)
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/system/login/user[name='test']/uid")
+
+    assert e is None
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/system/login/user[name='admin']/uid")
+
+    assert str(e) == "2000"
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/system/login/user[0]/uid")
+
+    assert str(e) == "2000"
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/system/login/user[1]/uid")
+
+    assert e is None
+
+    e = get_path(
+        root, "/devices/device[name='juniper1']/config/configuration/system/login/user[666]/uid")
+
+    assert e is None
+
+    e = get_path(
+        root, "/devices/device[0]/config/configuration/system/login/user[0]/uid")
+
+    assert str(e) == "2000"

@@ -184,6 +184,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
                 try:
                     parameter = match.group(1)
                     value = match.group(2)
+
                     node = node.replace(
                         f"[{match.group(1)}='{match.group(2)}']", "")
                 except AttributeError:
@@ -198,10 +199,18 @@ def get_path(root: Element, path: str) -> Optional[Element]:
             return None
 
         if not isinstance(new_root, list):
-            continue
+            if parameter and value:
+                if getattr(new_root, parameter) != value:
+                    return None
+            if index is not None and index != 0:
+                try:
+                    new_root = new_root[index]
+                except IndexError:
+                    return None
 
-        if isinstance(index, int):
-            if index >= 0:
+            continue
+        else:
+            if index is not None:
                 try:
                     new_root = new_root[index]
                 except IndexError:
