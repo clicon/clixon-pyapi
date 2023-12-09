@@ -51,7 +51,7 @@ class Handler(handler.ContentHandler):
         Add character data to the current element.
         """
 
-        self.elements[-1].cdata = cdata
+        self.elements[-1].cdata += cdata
 
 
 def parse_file(filename: str) -> Element:
