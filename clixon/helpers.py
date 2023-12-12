@@ -1,10 +1,6 @@
 import re
-from clixon.args import get_logger
 from clixon.element import Element
 from typing import List, Optional, Iterable
-
-log = get_logger()
-
 
 def get_service_instance(root, service_name, kwargs):
     """
