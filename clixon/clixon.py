@@ -60,7 +60,7 @@ class Clixon():
                     continue
 
                 logger.debug(
-                    f"Sending config to {device.name} and target {self.__target}")
+                    f"Configure {device.name} with target {self.__target}")
 
                 config = rpc_config_set(
                     device, device=True,
