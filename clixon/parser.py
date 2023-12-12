@@ -5,6 +5,7 @@ from xml.sax import handler
 from xml.sax.expatreader import ExpatParser
 
 from clixon.element import Element
+from clixon.helpers import get_path
 
 try:
     from StringIO import StringIO
@@ -51,7 +52,7 @@ class Handler(handler.ContentHandler):
         Add character data to the current element.
         """
 
-        self.elements[-1].cdata += cdata
+        self.elements[-1].cdata += cdata.strip()
 
 
 def parse_file(filename: str) -> Element:
@@ -97,12 +98,19 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     return outstr
 
 
-def parse_template(template: str, **kwargs: dict) -> str:
+def parse_template(template: str, format: Optional[str] = "python",
+                   **kwargs: dict) -> str:
     """
     Parse a template and return the result.
     """
 
-    vars_re = re.compile(r"{{(\w+)}}", re.MULTILINE)
+    if format == "python":
+        vars_re = re.compile(r"{{(\w+)}}", re.MULTILINE)
+    elif format == "clixon":
+        vars_re = re.compile(r"\${(\w+)}", re.MULTILINE)
+    else:
+        raise ValueError(f"Unknown format: {format}")
+
     vars_list = re.findall(vars_re, template)
 
     for var in vars_list:
@@ -110,17 +118,38 @@ def parse_template(template: str, **kwargs: dict) -> str:
             raise ValueError("Missing variable: {}".format(var))
         if kwargs[var] != str:
             kwargs[var] = str(kwargs[var])
-        template = template.replace("{{" + var + "}}", kwargs[var])
+
+        if format == "python":
+            template = template.replace("{{" + var + "}}", kwargs[var])
+        elif format == "clixon":
+            template = template.replace("${" + var + "}", kwargs[var])
 
     return parse_string(template)
 
 
-def parse_template_file(filename: str, **kwargs: dict) -> str:
+def parse_template_file(filename: str, format="python", **kwargs: dict) -> str:
     """
     Parse a template file and return the result.
     """
 
-    with open(filename, "r") as fd:
-        template = fd.read()
+    try:
+        with open(filename, "r") as fd:
+            template = fd.read()
+    except IOError:
+        raise IOError(f"Could not open template file: {filename}")
 
-    return parse_template(template, **kwargs)
+    return parse_template(template, format=format, **kwargs)
+
+
+def parse_template_config(root: Element, name: str, **kwargs) -> str:
+    """
+    Parse a template from configuratino tree and return the result.
+    """
+    template_root = get_path(root, f"/devices/template[name='{name}']")
+
+    if not template_root:
+        raise ValueError(f"Template {name} not found")
+
+    template_str = template_root.config.configuration.dumps()
+
+    return parse_template(template_str, **kwargs)
