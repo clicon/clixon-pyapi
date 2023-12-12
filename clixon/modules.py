@@ -52,10 +52,10 @@ def find_modules(modulespath: str) -> List[str]:
     """
 
     modules = []
-    forbidden = ["#", "~"]
+    forbidden_list = ["#", "~"]
     for root, dirs, files in os.walk(modulespath):
         for module in files:
-            forbidden = [x for x in forbidden if x in module]
+            forbidden = [x for x in forbidden_list if x in module]
             if not module.endswith(".py") or forbidden:
                 logger.debug(f"Skipping file: {module}")
                 continue
