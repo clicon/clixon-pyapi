@@ -1,4 +1,5 @@
 import re
+import sys
 import time
 import traceback
 from typing import Optional
@@ -28,16 +29,20 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
             time.sleep(3)
             continue
 
-        logger.info("Enable service subscriptions")
-        enable_service_notify = rpc_subscription_create()
-        send(sock, enable_service_notify, pp)
-        read(sock, pp)
+        try:
+            logger.info("Enable service subscriptions")
+            enable_service_notify = rpc_subscription_create()
+            send(sock, enable_service_notify, pp)
+            read(sock, pp)
 
-        logger.info("Enable transaction subscriptions")
-        enable_transaction_notify = rpc_subscription_create(
-            "controller-transaction")
-        send(sock, enable_transaction_notify, pp)
-        read(sock, pp)
+            logger.info("Enable transaction subscriptions")
+            enable_transaction_notify = rpc_subscription_create(
+                "controller-transaction")
+            send(sock, enable_transaction_notify, pp)
+            read(sock, pp)
+        except Exception as e:
+            logger.error(str(e))
+            return
 
         logger.info("Listening for notifications...")
 

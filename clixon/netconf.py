@@ -6,6 +6,7 @@ from clixon.element import Element
 from clixon.parser import parse_string
 from clixon.args import get_logger
 
+import sys
 
 logger = get_logger()
 
@@ -167,8 +168,12 @@ def rpc_error_get(xmlstr: str) -> None:
     try:
         root = parse_string(xmlstr)
     except SAXParseException:
+        if "client already registered" in xmlstr:
+            print("Client already registered.")
+            sys.exit(1)
+
         logger.error("XML parse error, XML was: %s", xmlstr)
-        return None
+        raise RPCError("XML parse error, XML was: %s", xmlstr)
 
     if "error-message" in xmlstr:
         try:

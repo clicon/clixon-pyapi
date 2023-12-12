@@ -2,7 +2,9 @@ import os
 from typing import Optional
 
 from clixon.args import parse_args
-from clixon.netconf import rpc_commit, rpc_config_get, rpc_config_set, rpc_push, rpc_subscription_create
+from clixon.netconf import (rpc_commit, rpc_config_get, rpc_config_set,
+                            rpc_push,
+                            rpc_subscription_create)
 from clixon.parser import parse_string
 from clixon.args import get_logger
 from clixon.sock import read, send, create_socket

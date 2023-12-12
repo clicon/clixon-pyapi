@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import os
 import sys
-import threading
-import time
 
 from daemonize import Daemonize
 
@@ -27,18 +25,8 @@ def main() -> None:
         logger.error("No loadable modules found.")
         sys.exit(0)
 
-    threads = []
-    threads.append(threading.Thread(
-        target=readloop, args=(sockpath, modules, pp)))
-
     try:
-        logger.debug("Starting threads.")
-        for thread in threads:
-            thread.daemon = True
-            thread.start()
-
-        while True:
-            time.sleep(5)
+        readloop(sockpath, modules, pp)
     except IOError as e:
         logger.error(f"IO error: {e}")
     except Exception as e:
@@ -48,9 +36,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
-                       logger=logger,
-                       foreground=foreground,
-                       verbose=True,
-                       chdir=os.getcwd())
-    daemon.start()
+    if foreground:
+        main()
+    else:
+        daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
+                           logger=logger,
+                           foreground=foreground,
+                           verbose=True,
+                           chdir=os.getcwd())
+        daemon.start()

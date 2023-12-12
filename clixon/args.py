@@ -58,10 +58,12 @@ def kill(pidfile: str) -> None:
     try:
         with open(pidfile) as fd:
             pid = int(fd.read())
-            logger.info(f"Killing daemon with pid {pid}")
+            print(f"Killing daemon with pid {pid}!")
             os.kill(pid, signal.SIGTERM)
-    except Exception as e:
-        logger.error(f"Failed to kill daemon: {e}")
+    except FileNotFoundError:
+        print(f"Pidfile {pidfile} not found")
+
+    sys.exit(0)
 
 
 def parse_config(configfile: str) -> tuple:
@@ -101,6 +103,7 @@ def parse_args(argname: str = None) -> tuple:
     configfile = None
     log = "s"
     debug = False
+    kill_daemon = False
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "ds:e:p:m:FzPf:l:")
@@ -129,7 +132,7 @@ def parse_args(argname: str = None) -> tuple:
         elif opt == "-F":
             foreground = True
         elif opt == "-z":
-            kill(pidfile)
+            kill_daemon = True
         elif opt == "-P":
             pp = True
         elif opt == "-l":
@@ -138,6 +141,9 @@ def parse_args(argname: str = None) -> tuple:
             log = arg
         else:
             usage()
+
+    if kill_daemon:
+        kill(pidfile)
 
     if configfile:
         sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
