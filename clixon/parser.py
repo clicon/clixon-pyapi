@@ -98,8 +98,7 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     return outstr
 
 
-def parse_template(template: str, format: Optional[str] = "python",
-                   **kwargs: dict) -> str:
+def parse_template(template: str, **kwargs: dict) -> str:
     """
     Parse a template and return the result.
     """
@@ -112,20 +111,20 @@ def parse_template(template: str, format: Optional[str] = "python",
     for var in vars_list:
         var_orig = var
         var = var.replace("-", "_")
+
         if var not in kwargs:
-            raise ValueError("Missing variable: {}".format(var))
+            raise ValueError(f"Missing variable: {var}")
+
         if kwargs[var] != str:
             kwargs[var] = str(kwargs[var])
 
-        if format == "python":
-            template = template.replace("{{" + var_orig + "}}", kwargs[var])
-        elif format == "clixon":
-            template = template.replace("${" + var_orig + "}", kwargs[var])
+        template = template.replace("{{" + var_orig + "}}", kwargs[var])
+        template = template.replace("${" + var_orig + "}", kwargs[var])
 
     return parse_string(template)
 
 
-def parse_template_file(filename: str, format="python", **kwargs: dict) -> str:
+def parse_template_file(filename: str, **kwargs: dict) -> str:
     """
     Parse a template file and return the result.
     """
@@ -136,21 +135,19 @@ def parse_template_file(filename: str, format="python", **kwargs: dict) -> str:
     except IOError:
         raise IOError(f"Could not open template file: {filename}")
 
-    return parse_template(template, format=format, **kwargs)
+    return parse_template(template, **kwargs)
 
 
 def parse_template_config(root: Element, name: str, **kwargs) -> str:
     """
     Parse a template from configuratino tree and return the result.
     """
+
     template_root = get_path(root, f"/devices/template[name='{name}']")
 
     if not template_root:
         raise ValueError(f"Template {name} not found")
 
     template_str = template_root.config.configuration.dumps()
-
-    if "format" not in kwargs:
-        kwargs["format"] = "clixon"
 
     return parse_template(template_str, **kwargs)
