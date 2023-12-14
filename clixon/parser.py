@@ -104,25 +104,23 @@ def parse_template(template: str, format: Optional[str] = "python",
     Parse a template and return the result.
     """
 
-    if format == "python":
-        vars_re = re.compile(r"{{(\w+)}}", re.MULTILINE)
-    elif format == "clixon":
-        vars_re = re.compile(r"\${(\w+)}", re.MULTILINE)
-    else:
-        raise ValueError(f"Unknown format: {format}")
-
-    vars_list = re.findall(vars_re, template)
+    vars_re = re.compile(
+        r"\${([a-zA-Z0-9_\-]+)}|\{\{([a-zA-Z0-9_\-]+)\}\}", re.MULTILINE)
+    matches = re.findall(vars_re, template)
+    vars_list = [match[0] if match[0] else match[1] for match in matches]
 
     for var in vars_list:
+        var_orig = var
+        var = var.replace("-", "_")
         if var not in kwargs:
             raise ValueError("Missing variable: {}".format(var))
         if kwargs[var] != str:
             kwargs[var] = str(kwargs[var])
 
         if format == "python":
-            template = template.replace("{{" + var + "}}", kwargs[var])
+            template = template.replace("{{" + var_orig + "}}", kwargs[var])
         elif format == "clixon":
-            template = template.replace("${" + var + "}", kwargs[var])
+            template = template.replace("${" + var_orig + "}", kwargs[var])
 
     return parse_string(template)
 
@@ -151,5 +149,8 @@ def parse_template_config(root: Element, name: str, **kwargs) -> str:
         raise ValueError(f"Template {name} not found")
 
     template_str = template_root.config.configuration.dumps()
+
+    if "format" not in kwargs:
+        kwargs["format"] = "clixon"
 
     return parse_template(template_str, **kwargs)

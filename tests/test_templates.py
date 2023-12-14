@@ -116,7 +116,7 @@ def test4():
     xml = """
 <devices xmlns="http://clicon.org/controller">
    <template>
-      <name>customer</name>
+      <name>customer-in</name>
       <config>
          <configuration xmlns="http://yang.juniper.net/junos/conf/root">
             <policy-options xmlns="http://yang.juniper.net/junos/conf/policy-options">
@@ -137,7 +137,7 @@ def test4():
                         <community>
                            <choice-ident>delete</choice-ident>
                            <choice-value/>
-                           <community-name>${CORE_COMMUNITY}</community-name>
+                           <community-name>${CORE-COMMUNITY}</community-name>
                         </community>
                         <next-hop>
                            <discard/>
@@ -154,7 +154,7 @@ def test4():
 
     root = parse_string(xml)
 
-    template_root = parse_template_config(root, "customer", format="clixon",
+    template_root = parse_template_config(root, "customer-in",
                                           BLACKHOLE="blackhole",
                                           PREFIX_LIST="my_list",
                                           CORE_COMMUNITY="my_community")

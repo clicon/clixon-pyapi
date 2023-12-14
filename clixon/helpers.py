@@ -159,7 +159,6 @@ def get_path(root: Element, path: str) -> Optional[Element]:
     new_root = None
 
     for node in path.split("/"):
-        node = node.replace("-", "_")
         index = None
         parameter = None
         value = None
@@ -170,6 +169,8 @@ def get_path(root: Element, path: str) -> Optional[Element]:
             if arg.group(1).isdigit():
                 index = int(arg.group(1))
                 node = node.replace(f"[{index}]", "")
+                node = node.replace("-", "_")
+
             else:
                 match = re.match(r"(\S+)='(\S+)'", arg.group(1))
 
@@ -179,6 +180,8 @@ def get_path(root: Element, path: str) -> Optional[Element]:
 
                     node = node.replace(
                         f"[{match.group(1)}='{match.group(2)}']", "")
+                    node = node.replace("-", "_")
+
                 except AttributeError:
                     return None
 
