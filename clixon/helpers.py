@@ -164,11 +164,13 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         value = None
 
         arg = re.search(r'\[(.*?)\]', node)
+        node_origname = node
 
         if arg:
             if arg.group(1).isdigit():
                 index = int(arg.group(1))
                 node = node.replace(f"[{index}]", "")
+                node_origname = node
                 node = node.replace("-", "_")
 
             else:
@@ -176,10 +178,12 @@ def get_path(root: Element, path: str) -> Optional[Element]:
 
                 try:
                     parameter = match.group(1)
+                    parameter = parameter.replace("-", "_")
                     value = match.group(2)
 
                     node = node.replace(
                         f"[{match.group(1)}='{match.group(2)}']", "")
+                    node_origname = node
                     node = node.replace("-", "_")
 
                 except AttributeError:
@@ -187,9 +191,9 @@ def get_path(root: Element, path: str) -> Optional[Element]:
 
         try:
             if not new_root:
-                new_root = getattr(root, node)
+                new_root = getattr(root, node_origname)
             else:
-                new_root = getattr(new_root, node)
+                new_root = getattr(new_root, node_origname)
         except AttributeError:
             return None
 
