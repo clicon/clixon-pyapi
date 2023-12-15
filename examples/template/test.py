@@ -12,7 +12,8 @@ def setup(root, log, **kwargs):
 
     template_name = instance.template_name.get_data()
     template = parse_template_config(
-        root, template_name, NAME="name",
+        root, template_name,
+        NAME="name",
         MEMBERS="1234:4321"
     ).policy_options
 
@@ -27,7 +28,7 @@ def setup(root, log, **kwargs):
         device_root.add(template)
 
         as_number = get_path(
-            root, f"/devices/device[name='{device_name}']/config/configuration/routing-options/autonomous-system/as-number"
+            device_root, "/routing-options/autonomous-system/as-number"
         )
 
         if not as_number:
