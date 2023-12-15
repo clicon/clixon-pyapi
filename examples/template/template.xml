@@ -1,0 +1,17 @@
+<config>
+  <devices xmlns="http://clicon.org/controller">
+    <template>
+      <name>community-test</name>
+      <config>
+        <configuration xmlns="http://yang.juniper.net/junos/conf/root">
+          <policy-options>
+            <community>
+              <name>${NAME}</name>
+              <members>${MEMBERS}</members>
+            </community>
+          </policy-options>
+        </configuration>
+      </config>
+    </template>
+  </devices>
+</config>

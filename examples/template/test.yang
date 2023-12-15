@@ -1,0 +1,32 @@
+module test {
+    namespace "http://clicon.org/test";
+    prefix test;
+
+    import clixon-controller { prefix ctrl; }
+
+    revision 2023-05-22{
+	description "Initial prototype";
+    }
+
+    augment "/ctrl:services" {
+	list test {
+	    key service-name;
+
+	    leaf service-name {
+		type string;
+		description "Service name";
+	    }
+
+	    leaf template-name {
+	    	 type string;
+		 description "Template name";
+		 mandatory true;
+	    }
+
+	    leaf-list devices {
+	    	 type string;
+		 description "Device";		 
+	    }
+	}
+    }
+}
