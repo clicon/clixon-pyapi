@@ -1,11 +1,19 @@
+"""
+Element class for XML and JSON.
+"""
+
 import json
 from typing import Optional
 
 import xmltodict
 
 
-class Element(object):
-    def __init__(self, name: str, attributes: Optional[dict] = {},
+class Element():
+    """
+    Element class for XML and JSON.
+    """
+
+    def __init__(self, name: str, attributes: Optional[dict] = None,
                  cdata: Optional[str] = "", data: Optional[str] = "") -> None:
         """
         Create a new element.
@@ -36,7 +44,7 @@ class Element(object):
 
         self._is_root = boolean
 
-    def origname(self) -> str:
+    def get_origname(self) -> str:
         """
         Return the original name of the element.
         """
@@ -45,7 +53,7 @@ class Element(object):
             return self._name
         return self._origname
 
-    def create(self, name: str, attributes: Optional[dict] = {},
+    def create(self, name: str, attributes: Optional[dict] = None,
                cdata: Optional[str] = "",
                data: Optional[str] = "",
                element: Optional[object] = None) -> None:
@@ -97,7 +105,7 @@ class Element(object):
             return
 
         for child in self._children:
-            if child._origname == name:
+            if child.get_origname() == name:
                 del self._children[index]
             index += 1
 
@@ -126,7 +134,7 @@ class Element(object):
         name = name.replace("-", "_")
 
         if name:
-            elements = [e for e in self._children if e._name == name]
+            elements = [e for e in self._children if e.get_name() == name]
         else:
             elements = self._children
 
@@ -141,7 +149,7 @@ class Element(object):
         """
 
         attr_string = ""
-        if self.attributes and self.attributes != {}:
+        if self.attributes and self.attributes is not None:
             for key in self.attributes.keys():
                 value = self.attributes[key]
                 attr_string += f" {key}=\"{value}\""
@@ -170,7 +178,7 @@ class Element(object):
         attr_string = ""
 
         for child in self.get_elements():
-            name = child.origname()
+            name = child.get_origname()
             cdata = child.cdata
 
             attr_string = ""
@@ -213,17 +221,16 @@ class Element(object):
         Return the attributes of the element.
         """
 
-        matching_children = [x for x in self._children if x._name == key]
+        matching_children = [x for x in self._children if x.get_name() == key]
         if matching_children:
             if len(matching_children) == 1:
                 self.__dict__[key] = matching_children[0]
                 return matching_children[0]
-            else:
-                self.__dict__[key] = matching_children
-                return matching_children
-        else:
-            raise AttributeError(
-                "'%s' has no attribute '%s'" % (self._name, key))
+            self.__dict__[key] = matching_children
+            return matching_children
+
+        raise AttributeError(
+            f"'{self.get_name()}' has no attribute '{key}'")
 
     def __hasattribute__(self, name: str) -> bool:
         """
@@ -232,7 +239,7 @@ class Element(object):
 
         if name in self.__dict__:
             return True
-        return any(x._name == name for x in self._children)
+        return any(x.get_name() == name for x in self._children)
 
     def __iter__(self) -> object:
         yield self

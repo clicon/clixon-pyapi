@@ -1,3 +1,9 @@
+"""
+This module contains functions to handle RPC elements.
+"""
+
+import sys
+
 from enum import Enum
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
@@ -6,12 +12,14 @@ from clixon.element import Element
 from clixon.parser import parse_string
 from clixon.args import get_logger
 
-import sys
 
 logger = get_logger()
 
 
 class RPCTypes(Enum):
+    """
+    RPC types.
+    """
     GET_CONFIG = 0
     EDIT_CONFIG = 1
     COMMIT = 2
@@ -21,7 +29,9 @@ class RPCTypes(Enum):
 
 
 class RPCError(Exception):
-    pass
+    """
+    RPC error exception.
+    """
 
 
 def rpc_config_get(user: Optional[str] = "root",
@@ -50,12 +60,12 @@ def rpc_config_get(user: Optional[str] = "root",
 def rpc_config_set(config: Element, user: Optional[str] = "root",
                    device: Optional[bool] = False,
                    target: Optional[str] = "actions",
-                   target_attributes: Optional[dict] = {}) -> Element:
+                   target_attributes: Optional[dict] = None) -> Element:
     """
     Create a RPC config set element.
     """
 
-    if target_attributes == {} and target == "actions":
+    if not target_attributes and target == "actions":
         target_attributes = {
             "xmlns": "http://clicon.org/controller"
         }
@@ -160,7 +170,7 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     return root
 
 
-def rpc_error_get(xmlstr: str) -> None:
+def rpc_error_get(xmlstr: str) -> bool:
     """
     Parse the XML string and raise an exception if an error is found.
     """
@@ -173,7 +183,7 @@ def rpc_error_get(xmlstr: str) -> None:
             sys.exit(1)
 
         logger.error("XML parse error, XML was: %s", xmlstr)
-        raise RPCError("XML parse error, XML was: %s", xmlstr)
+        raise RPCError(f"XML parse error, XML was: {xmlstr}")
 
     if "error-message" in xmlstr:
         try:
@@ -201,3 +211,5 @@ def rpc_error_get(xmlstr: str) -> None:
             raise RPCError(message)
         except AttributeError:
             return None
+
+    return True

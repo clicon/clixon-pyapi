@@ -1,15 +1,20 @@
-import socket
-from clixon.args import get_logger
-from typing import Optional
+"""
+This module contains functions to read and write to a socket.
+"""
+
 import select
+import socket
 import struct
+
+from typing import Optional
+from clixon.args import get_logger
 from clixon.element import Element
 from clixon.netconf import rpc_error_get
 from clixon.parser import dump_string
 
 
 logger = get_logger()
-hdrlen = 8
+HEADERLEN = 8
 
 
 def create_socket(sockpath: str) -> socket.socket:
@@ -17,7 +22,7 @@ def create_socket(sockpath: str) -> socket.socket:
     Create a socket and connect to the socket path.
     """
 
-    logger.debug(f"Connecting to socket: {sockpath}")
+    logger.debug("Connecting to socket: %s", sockpath)
 
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.setblocking(False)
@@ -26,7 +31,7 @@ def create_socket(sockpath: str) -> socket.socket:
     return sock
 
 
-def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
+def read(sock: socket.socket, pprint: Optional[bool] = False) -> str:
     """
     Read from the socket and return the data.
     """
@@ -37,7 +42,7 @@ def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
 
     logger.debug("Waiting for select")
 
-    while datalen == 0 or len(data) < datalen - hdrlen:
+    while datalen == 0 or len(data) < datalen - HEADERLEN:
         readable, _, _ = select.select([sock], [], [])
 
         for readable_sock in readable:
@@ -46,47 +51,47 @@ def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
                 continue
 
             if datalen == 0:
-                recv = sock.recv(hdrlen)
+                recv = sock.recv(HEADERLEN)
                 datalen, opid = struct.unpack("!II", recv)
 
                 logger.debug("Read header:")
-                logger.debug(f"  len={datalen}")
-                logger.debug(f"  opid={opid}")
+                logger.debug("  len=%s", datalen)
+                logger.debug("  opid=%s", opid)
 
                 break
-            else:
-                recv = sock.recv(datalen - hdrlen)
-                data += recv.decode()
+
+            recv = sock.recv(datalen - HEADERLEN)
+            data += recv.decode()
 
     data = data[:-1]
 
     logger.debug("Read:")
-    logger.debug(f"  len={datalen}")
-    logger.debug(f"  opid={opid}")
-    logger.debug("  data=" + dump_string(data, pp=pp))
+    logger.debug("  len=%s", datalen)
+    logger.debug("  opid=%s", opid)
+    logger.debug("  data=%s",  dump_string(data, pprint=pprint))
 
     rpc_error_get(data)
 
     return data
 
 
-def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
+def send(sock: socket.socket, data: str, pprint: Optional[bool] = False) -> None:
     """
     Send data to the socket.
     """
 
     opid = 42
 
-    if type(data) is Element:
+    if isinstance(data, Element):
         data = data.dumps()
 
     if not data.endswith("\0"):
         data += "\0"
 
-    if type(data) is not bytes:
+    if not isinstance(data, bytes):
         data = str.encode(data)
 
-    framelen = hdrlen + len(data)
+    framelen = HEADERLEN + len(data)
     frame = struct.pack("!II", framelen, opid)
     frame = frame + data
 
@@ -105,7 +110,7 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
         sent_total += sent
 
     logger.debug("Send:")
-    logger.debug(f"  len={framelen}")
-    logger.debug(f"  opid={opid}")
-    logger.debug("  data=" + dump_string(data, pp=pp))
-    logger.debug(f"  sent={sent_total}")
+    logger.debug("  len=%s", framelen)
+    logger.debug("  opid=%s", opid)
+    logger.debug("  data=%s", dump_string(data, pprint=pprint))
+    logger.debug("  sent=%s", sent_total)

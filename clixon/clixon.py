@@ -1,3 +1,7 @@
+"""
+Clixon.
+"""
+
 import os
 from typing import Optional
 
@@ -9,13 +13,17 @@ from clixon.parser import parse_string
 from clixon.args import get_logger
 from clixon.sock import read, send, create_socket
 
-sockpath = parse_args("sockpath")
+args_sockpath = parse_args("sockpath")
 pp = parse_args("pp")
 logger = get_logger()
-default_sockpath = "/usr/local/var/run/controller.sock"
+DEFAULT_SOCKPATH = "/usr/local/var/run/controller.sock"
 
 
 class Clixon():
+    """
+    Clixon class.
+    """
+
     def __init__(self, sockpath: Optional[str] = "",
                  commit: Optional[bool] = False,
                  push: Optional[bool] = False,
@@ -27,7 +35,10 @@ class Clixon():
         """
 
         if sockpath == "":
-            sockpath = default_sockpath
+            sockpath = DEFAULT_SOCKPATH
+
+        if args_sockpath and args_sockpath != "":
+            sockpath = args_sockpath
 
         if not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
@@ -59,8 +70,7 @@ class Clixon():
                 if device.get_name() != "device":
                     continue
 
-                logger.debug(
-                    f"Configure {device.name} with target {self.__target}")
+                logger.debug("Configure %s with target ", self.__target)
 
                 config = rpc_config_set(
                     device, device=True,
@@ -72,7 +82,7 @@ class Clixon():
                 if self.__commit:
                     self.commit()
         except Exception as e:
-            logger.error(f"Exception: {e}")
+            logger.error("Exception: ", e)
 
     def commit(self) -> None:
         """
@@ -135,11 +145,15 @@ class Clixon():
         return self.__logger
 
 
-def rpc(sockpath: Optional[str] = sockpath,
+def rpc(sockpath: Optional[str] = DEFAULT_SOCKPATH,
         commit: Optional[bool] = False) -> object:
     """
     Decorator to create a Clixon object.
     """
+
+    if args_sockpath and args_sockpath != "":
+        sockpath = args_sockpath
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:

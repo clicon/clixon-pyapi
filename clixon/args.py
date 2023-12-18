@@ -1,7 +1,11 @@
-import getopt
+"""
+Command line argument parsing.
+"""
+
 import os
-import signal
 import sys
+import getopt
+import signal
 from typing import Optional
 
 import clixon.parser as parser
@@ -9,6 +13,10 @@ from clixon.log import get_log_factory
 
 
 def get_logger():
+    """
+    Get log handler.
+    """
+
     log = parse_args("log")
     debug = parse_args("debug")
 
@@ -18,10 +26,18 @@ def get_logger():
 
 
 def get_sockpath():
+    """
+    Get socket path.
+    """
+
     return parse_args("sockpath")
 
 
 def get_prettyprint():
+    """
+    Get prettyprint flag.
+    """
+
     return parse_args("pp")
 
 
