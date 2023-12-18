@@ -52,7 +52,13 @@ class Handler(handler.ContentHandler):
         Add character data to the current element.
         """
 
-        self.elements[-1].cdata += cdata.strip()
+        if cdata.isspace():
+            return
+
+        cdata = cdata.replace("<", "&lt;")
+        cdata = cdata.replace(">", "&gt;")
+
+        self.elements[-1].cdata += cdata
 
 
 def parse_file(filename: str) -> Element:
