@@ -72,6 +72,10 @@ invalid_config_xml = """
 
 
 def test_parse_config():
+    """
+    Test that the config file is parsed correctly.
+    """
+
     with open("/tmp/config.xml", "w") as fd:
         fd.write(config_xml)
 
@@ -90,6 +94,10 @@ def test_parse_config():
 
 
 def test_parse_invalid_config():
+    """
+    Test that invalid config is handled correctly.
+    """
+
     with open("/tmp/config.xml", "w") as fd:
         fd.write(invalid_config_xml)
 
@@ -110,6 +118,10 @@ def test_parse_invalid_config():
 
 
 def test_args_parse_config():
+    """
+    Test that the config file is parsed correctly using parse_config.
+    """
+
     with open("/tmp/config.xml", "w") as fd:
         fd.write(config_xml)
 

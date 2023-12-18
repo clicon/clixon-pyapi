@@ -16,6 +16,10 @@ xmlstr3 = """
 
 
 def test1():
+    """
+    Test get_path function using an index in the path.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -28,6 +32,10 @@ def test1():
 
 
 def test2():
+    """
+    Test get_path function using a name in the path.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -40,6 +48,10 @@ def test2():
 
 
 def test3():
+    """
+    Test get_path function using another name in the path.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -52,6 +64,10 @@ def test3():
 
 
 def test4():
+    """
+    Test get_path function using a name in the path that does not exist.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -61,6 +77,10 @@ def test4():
 
 
 def test5():
+    """
+    Test get_path function using a string with mixed types in it.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -73,6 +93,10 @@ def test5():
 
 
 def test6():
+    """
+    Test get_path function with valid an invalid paths.
+    """
+
     root = parse_string(xmlstr)
 
     e = get_path(
@@ -114,6 +138,10 @@ def test6():
 
 
 def test7():
+    """
+    Test get_path function with valid an invalid paths.
+    """
+
     root = parse_string(xmlstr2)
 
     e = get_path(

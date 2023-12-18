@@ -6,6 +6,10 @@ from clixon.parser import (
 
 
 def test1():
+    """
+    Test template parsing from string using {{variale}}.
+    """
+
     xml = """
 <term>
     <name>{{NAME}}</name>
@@ -40,6 +44,10 @@ def test1():
 
 
 def test2():
+    """
+    Test template parsing from string using ${variale}.
+    """
+
     xml = """
 <term>
     <name>${NAME}</name>
@@ -65,7 +73,7 @@ def test2():
 """
     result = """<term><name>my_name</name><from><family>inet</family><community>community</community><prefix-list-filter><list_name>my_list</list_name><longer/></prefix-list-filter></from><then><community><delete/><community-name>my_community</community-name></community><next-hop><discard/></next-hop><accept/></then></term>"""
 
-    root = parse_template(xml, format="clixon",
+    root = parse_template(xml,
                           COMMUNITY_NAME="my_community",
                           COMMUNITY="community",
                           LIST_NAME="my_list",
@@ -75,6 +83,10 @@ def test2():
 
 
 def test3():
+    """
+    Test template parsing from file using mixed variable types.
+    """
+
     xml = """
 <term>
     <name>${NAME}</name>
@@ -89,7 +101,7 @@ def test3():
     <then>
         <community>
             <delete/>
-            <community-name>${COMMUNITY_NAME}</community-name>
+            <community-name>{{COMMUNITY_NAME}}</community-name>
         </community>
         <next-hop>
             <discard/>
@@ -113,6 +125,10 @@ def test3():
 
 
 def test4():
+    """
+    Test template parsing from configuration root using mixed variable types.
+    """
+
     xml = """
 <devices xmlns="http://clicon.org/controller">
    <template>
@@ -126,7 +142,7 @@ def test4():
                      <name>blackhole-v4</name>
                      <from>
                         <family>inet</family>
-                        <community>${BLACKHOLE}</community>
+                        <community>{{BLACKHOLE}}</community>
                         <prefix-list-filter>
                            <list_name>${PREFIX_LIST}</list_name>
                            <choice-ident>longer</choice-ident>

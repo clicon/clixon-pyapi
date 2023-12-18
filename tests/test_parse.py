@@ -6,18 +6,30 @@ xmlstr_2 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><
 
 
 def test_to_obj_and_back():
+    """
+    Test that an XML string can be parsed and dumped back to XML.
+    """
+
     root = parse_string(xmlstr_1)
 
     assert root.dumps() == xmlstr_1
 
 
 def test_add_node():
+    """
+    Test that a node can be added.
+    """
+
     root = parse_string(xmlstr_1)
     root.rpc_reply.create(
         "foo-bar", {"xmlns": "foo:bar:test:1"}, cdata="test data")
 
 
 def test_del_node():
+    """
+    Test that a node can be deleted.
+    """
+
     root = parse_string(xmlstr_2)
     root.rpc_reply.delete("foo-bar")
 
@@ -25,24 +37,40 @@ def test_del_node():
 
 
 def test_repr_0():
+    """
+    Test that the first element is returned from object representation.
+    """
+
     root = parse_string(xmlstr_1)
 
     assert root.rpc_reply.data.table.parameter[0].name.cdata == "name1"
 
 
 def test_repr_1():
+    """
+    Test that the second element is returned from object representation.
+    """
+
     root = parse_string(xmlstr_1)
 
     assert root.rpc_reply.data.table.parameter[1].name.cdata == "name2"
 
 
 def test_repr_2():
+    """
+    Test that the last element is returned from object representation.
+    """
+
     root = parse_string(xmlstr_1)
 
     assert root.rpc_reply.data.table.parameter[2].name.cdata == "name3"
 
 
 def test_html_encoding():
+    """
+    Test that html encoding is preserved and CDATA is intact.
+    """
+
     xmlstr0 = """<description>&lt; * &gt;</description>"""
     xmlstr1 = """<description>&lt;test&gt;</description>"""
     xmlstr2 = """<description>&lt;*&gt;</description>"""
@@ -66,6 +94,10 @@ def test_html_encoding():
 
 
 def test_strip():
+    """
+    Test that leading and trailing whitespace is stripped from cdata
+    """
+
     xmlstr0 = """<description>  test  </description>"""
     xmlstr1 = """<description>test</description>"""
     xmlstr2 = """      <description>   test   </description>   """
