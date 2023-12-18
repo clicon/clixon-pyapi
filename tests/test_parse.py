@@ -63,3 +63,27 @@ def test_html_encoding():
     root = parse_string(xmlstr3)
 
     assert root.dumps() == xmlstr3
+
+
+def test_strip():
+    xmlstr0 = """<description>  test  </description>"""
+    xmlstr1 = """<description>test</description>"""
+    xmlstr2 = """      <description>   test   </description>   """
+    xmlstr2_res = """<description>   test   </description>"""
+    xmlstr3 = """<description>  test   test   test</description>"""
+
+    root = parse_string(xmlstr0)
+
+    assert root.dumps() == xmlstr0
+
+    root = parse_string(xmlstr1)
+
+    assert root.dumps() == xmlstr1
+
+    root = parse_string(xmlstr2)
+
+    assert root.dumps() == xmlstr2_res
+
+    root = parse_string(xmlstr3)
+
+    assert root.dumps() == xmlstr3
