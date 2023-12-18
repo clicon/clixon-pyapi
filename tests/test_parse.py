@@ -40,3 +40,26 @@ def test_repr_2():
     root = parse_string(xmlstr_1)
 
     assert root.rpc_reply.data.table.parameter[2].name.cdata == "name3"
+
+
+def test_html_encoding():
+    xmlstr0 = """<description>&lt; * &gt;</description>"""
+    xmlstr1 = """<description>&lt;test&gt;</description>"""
+    xmlstr2 = """<description>&lt;*&gt;</description>"""
+    xmlstr3 = """<description>asd &lt;*&gt; asd</description>"""
+
+    root = parse_string(xmlstr0)
+
+    assert root.dumps() == xmlstr0
+
+    root = parse_string(xmlstr1)
+
+    assert root.dumps() == xmlstr1
+
+    root = parse_string(xmlstr2)
+
+    assert root.dumps() == xmlstr2
+
+    root = parse_string(xmlstr3)
+
+    assert root.dumps() == xmlstr3
