@@ -94,7 +94,7 @@ def test5():
 
 def test6():
     """
-    Test get_path function with valid an invalid paths.
+    Test get_path and get the UID for the user test which does not exist.
     """
 
     root = parse_string(xmlstr)
@@ -104,30 +104,78 @@ def test6():
 
     assert e is None
 
+
+def test7():
+    """
+    Test get_path function and get the UID for the user admin.
+    """
+
+    root = parse_string(xmlstr)
+
     e = get_path(
         root, "/devices/device[name='juniper1']/config/configuration/system/login/user[name='admin']/uid")
 
     assert str(e) == "2000"
+
+
+def test8():
+    """
+    Test get_path function and get the UID for the user admin using an index.
+    """
+
+    root = parse_string(xmlstr)
 
     e = get_path(
         root, "/devices/device[name='juniper1']/config/configuration/system/login/user[0]/uid")
 
     assert str(e) == "2000"
 
+
+def test9():
+    """
+    Test get_path function and get the UID using and index for a user that does not exist.
+    """
+
+    root = parse_string(xmlstr)
+
     e = get_path(
         root, "/devices/device[name='juniper1']/config/configuration/system/login/user[1]/uid")
 
     assert e is None
+
+
+def test10():
+    """
+    Test get_path function and get the UID using and index for a user that does not exist.
+    """
+
+    root = parse_string(xmlstr)
 
     e = get_path(
         root, "/devices/device[name='juniper1']/config/configuration/system/login/user[666]/uid")
 
     assert e is None
 
+
+def test11():
+    """
+    Test get_path function and get the UID using indexes.
+    """
+
+    root = parse_string(xmlstr)
+
     e = get_path(
         root, "/devices/device[0]/config/configuration/system/login/user[0]/uid")
 
     assert str(e) == "2000"
+
+
+def test12():
+    """
+    Test get_path function and get the whole device configuration.
+    """
+
+    root = parse_string(xmlstr)
 
     e = get_path(
         root, "/devices/device[0]/config/configuration")
@@ -137,7 +185,7 @@ def test6():
     assert e.dumps() == config_xml
 
 
-def test7():
+def tes13():
     """
     Test get_path function with valid an invalid paths.
     """
