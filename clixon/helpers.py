@@ -260,3 +260,26 @@ def get_service_instances(root, service_name):
         instances.append(service)
 
     return instances
+
+
+def set_creator_attributes(root: Element, service_name: str,
+                           instance_name: Optional[str] = "",
+                           operation: Optional[str] = "create",
+                           **kwargs):
+    """
+    Sets the creator attributes.
+    """
+
+    if "instance_name" in kwargs:
+        instance_name = kwargs["instance_name"]
+
+    creator_attr = {
+        "cl:creator": f"{service_name}[service-name='{instance_name}']",
+        "nc:operation": operation,
+        "xmlns:cl": "http://clicon.org/lib"
+    }
+
+    if not isinstance(root, Element):
+        raise Exception("Root must be an Element")
+
+    root.set_attributes(creator_attr)
