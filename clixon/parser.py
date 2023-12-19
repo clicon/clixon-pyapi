@@ -57,6 +57,7 @@ class Handler(handler.ContentHandler):
 
         cdata = cdata.replace("<", "&lt;")
         cdata = cdata.replace(">", "&gt;")
+        cdata = cdata.replace("&", "&amp;;")
 
         self.elements[-1].cdata += cdata
 
