@@ -282,4 +282,4 @@ def set_creator_attributes(root: Element, service_name: str,
     if not isinstance(root, Element):
         raise Exception("Root must be an Element")
 
-    root.set_attributes(creator_attr)
+    root.update_attributes(creator_attr)

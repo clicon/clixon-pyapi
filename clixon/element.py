@@ -108,6 +108,16 @@ class Element(object):
 
         self.attributes = attributes
 
+    def update_attributes(self, attributes: dict) -> None:
+        """
+        Update the attributes of the element.
+        """
+
+        old_attributes = self.get_attributes()
+        new_attributes = attributes | old_attributes
+
+        self.set_attributes(new_attributes)
+
     def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
         """
         Return the attributes of the element.
