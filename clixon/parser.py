@@ -58,9 +58,8 @@ class Handler(handler.ContentHandler):
             return
 
         # Escape special characters
-        cdata = cdata.replace("<", "&lt;")
-        cdata = cdata.replace(">", "&gt;")
-        cdata = cdata.replace("&", "&amp;")
+        cdata = cdata.replace("&", "&amp;").replace(
+            ">", "&gt;").replace("<", "&lt;")
 
         self.elements[-1].cdata += cdata
 

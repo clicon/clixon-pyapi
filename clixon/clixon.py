@@ -9,6 +9,7 @@ from clixon.parser import parse_string
 from clixon.args import get_logger
 from clixon.sock import read, send, create_socket
 
+
 sockpath = parse_args("sockpath")
 pp = parse_args("pp")
 logger = get_logger()
@@ -72,7 +73,8 @@ class Clixon():
                 if self.__commit:
                     self.commit()
         except Exception as e:
-            logger.error(f"Exception: {e}")
+            logger.error(f"Got exception from Clixon.__exit__: {e}")
+            raise Exception(f"{e}")
 
     def commit(self) -> None:
         """
