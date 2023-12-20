@@ -38,6 +38,7 @@ class Handler(handler.ContentHandler):
             self.elements[-1].add(element)
         else:
             self.root.add(element)
+
         self.elements.append(element)
 
     def endElement(self, name: str) -> None:
@@ -52,9 +53,11 @@ class Handler(handler.ContentHandler):
         Add character data to the current element.
         """
 
+        # Ignore CDATA if it is only whitespace
         if cdata.isspace():
             return
 
+        # Escape special characters
         cdata = cdata.replace("<", "&lt;")
         cdata = cdata.replace(">", "&gt;")
         cdata = cdata.replace("&", "&amp;")
