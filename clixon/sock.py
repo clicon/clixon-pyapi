@@ -94,14 +94,13 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
     sent_total = 0
 
     # Send all the data in data
-
     while sent_total < framelen:
         _, writable, _ = select.select([], [sock], [])
 
         if not writable:
             continue
 
-        sent = sock.send(frame[sent_total:])
+        sent = int(sock.send(frame[sent_total:]))
         sent_total += sent
 
     logger.debug("Send:")
