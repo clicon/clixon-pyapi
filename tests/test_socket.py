@@ -5,6 +5,10 @@ import socket
 
 @patch('socket.socket')
 def test_create_socket(mock_socket):
+    """
+    Test that create_socket returns a socket instance.
+    """
+
     mock_socket_instance = MagicMock()
     mock_socket.return_value = mock_socket_instance
     sockpath = "test_socket_path"
@@ -19,6 +23,10 @@ def test_create_socket(mock_socket):
 @patch('select.select')
 @patch('socket.socket')
 def test_read(mock_socket, mock_select):
+    """
+    Test that read returns the data from the socket.
+    """
+
     mock_socket_instance = MagicMock()
     mock_socket.return_value = mock_socket_instance
     mock_socket_instance.recv.side_effect = [
@@ -33,6 +41,10 @@ def test_read(mock_socket, mock_select):
 @patch('select.select')
 @patch('socket.socket')
 def test_send(mock_socket, mock_select):
+    """
+    Test that send sends the data to the socket.
+    """
+
     mock_socket_instance = socket.socket()
     mock_socket.return_value = mock_socket_instance
     mock_select.return_value = ([], [mock_socket_instance], [])

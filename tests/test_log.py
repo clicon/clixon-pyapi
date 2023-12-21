@@ -3,6 +3,10 @@ import logging
 
 
 def test_log():
+    """
+    Test the default log factory.
+    """
+
     logger = get_log_factory()
 
     assert logger.name == "pyserver"
@@ -11,6 +15,10 @@ def test_log():
 
 
 def test_log_stdout():
+    """
+    Test the default log factory with output to stdout.
+    """
+
     logger = get_log_factory(output="stdout")
 
     assert logger.name == "pyserver"
@@ -22,6 +30,10 @@ def test_log_stdout():
 
 
 def test_log_debug():
+    """
+    Test the default log factory with debug enabled.
+    """
+
     logger = get_log_factory(debug=True)
 
     assert logger.name == "pyserver"
