@@ -68,13 +68,15 @@ def test_repr_2():
 
 def test_html_encoding():
     """
-    Test that html encoding is preserved and CDATA is intact.
+    Test that HTML encoding is preserved and CDATA is intact.
     """
 
     xmlstr0 = """<description>&lt; * &gt;</description>"""
     xmlstr1 = """<description>&lt;test&gt;</description>"""
     xmlstr2 = """<description>&lt;*&gt;</description>"""
     xmlstr3 = """<description>asd &lt;*&gt; asd</description>"""
+    xmlstr4 = """<description>&lt;*&gt; asd &amp; test&amp;asd</description>"""
+    xmlstr5 = """<description>"'&lt;*&gt;&amp;'"</description>"""
 
     root = parse_string(xmlstr0)
 
@@ -91,6 +93,26 @@ def test_html_encoding():
     root = parse_string(xmlstr3)
 
     assert root.dumps() == xmlstr3
+
+    root = parse_string(xmlstr4)
+
+    assert root.dumps() == xmlstr4
+
+    root = parse_string(xmlstr5)
+
+    assert root.dumps() == xmlstr5
+
+
+def test_decode_all_characters():
+    """
+    Test that all characters are decoded correctly.
+    """
+
+    xmlstr6 = """<str>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!";#$%&amp;';()*+,-./:;&lt;=;&gt;?@[\\]^_`{|}~</str>"""
+
+    root = parse_string(xmlstr6)
+
+    assert root.dumps() == xmlstr6
 
 
 def test_strip():
