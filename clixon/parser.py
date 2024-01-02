@@ -100,6 +100,10 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     else:
         outstr = xmlstr.strip()
 
+    # If outstr endwith 0x00 (null char), remove it
+    if outstr.endswith("\x00"):
+        outstr = outstr[:-1]
+
     if pp:
         dom = minidom.parseString(outstr)
         outstr = "\n" + dom.toprettyxml()
