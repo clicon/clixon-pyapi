@@ -1,4 +1,4 @@
-from clixon.parser import parse_string
+from clixon.parser import parse_string, dump_string
 
 xmlstr_1 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><table xmlns="urn:example:clixon"><parameter><name>name1</name><value>value1</value></parameter><parameter><name>name2</name><value>value2</value></parameter><parameter><name>name3</name><value>value3</value></parameter></table></data></rpc-reply>"""
 
@@ -141,3 +141,17 @@ def test_strip():
     root = parse_string(xmlstr3)
 
     assert root.dumps() == xmlstr3
+
+
+def test_prettyprint():
+    """
+    Test that prettyprint works.
+    """
+
+    xmlstr_1 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><table xmlns="urn:example:clixon"><parameter><name>name1</name><value>value1</value></parameter><parameter><name>name2</name><value>value2</value></parameter><parameter><name>name3</name><value>value3</value></parameter></table></data></rpc-reply>"""
+
+    xmlstr1_pp = """\n<?xml version="1.0" ?>\n<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">\n\t<data>\n\t\t<table xmlns="urn:example:clixon">\n\t\t\t<parameter>\n\t\t\t\t<name>name1</name>\n\t\t\t\t<value>value1</value>\n\t\t\t</parameter>\n\t\t\t<parameter>\n\t\t\t\t<name>name2</name>\n\t\t\t\t<value>value2</value>\n\t\t\t</parameter>\n\t\t\t<parameter>\n\t\t\t\t<name>name3</name>\n\t\t\t\t<value>value3</value>\n\t\t\t</parameter>\n\t\t</table>\n\t</data>\n</rpc-reply>\n"""
+
+    assert dump_string(xmlstr_1) == xmlstr_1
+
+    assert dump_string(xmlstr_1, pp=True) == xmlstr1_pp
