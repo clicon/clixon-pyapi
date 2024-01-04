@@ -265,13 +265,16 @@ def get_service_instances(root, service_name):
 def set_creator_attributes(root: Element, service_name: str,
                            instance_name: Optional[str] = "",
                            operation: Optional[str] = "create",
-                           **kwargs):
+                           *args, **kwargs):
     """
     Sets the creator attributes.
     """
 
     if "instance_name" in kwargs:
         instance_name = kwargs["instance_name"]
+
+    if isinstance(instance_name, dict):
+        instance_name = instance_name["instance_name"]
 
     creator_attr = {
         "cl:creator": f"{service_name}[service-name='{instance_name}']",
