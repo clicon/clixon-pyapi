@@ -1,6 +1,14 @@
 import pytest
 from clixon.element import Element
-from clixon.helpers import set_creator_attributes, get_value, get_path
+from clixon.helpers import (
+    set_creator_attributes, get_value,
+    get_path,
+    get_service_instance,
+    get_service_instances,
+    get_devices,
+    get_device,
+    get_devices_configuration
+)
 from clixon.parser import parse_string
 
 
@@ -64,3 +72,199 @@ def test_get_value():
 
     with pytest.raises(Exception):
         get_value(value1_path, "valueX", required=True)
+
+
+def test_get_service_instance():
+    """
+    Test that get_service_instance works as expected.
+    """
+
+    xmlstr = """
+<services xmlns="http://clicon.org/controller">
+   <as-path-filter xmlns="http://nordu.net/ns/clixon/as-path-filter">
+      <service-name>as-test1</service-name>
+      <filter-name>as-test1</filter-name>
+      <manual-as-numbers>1111</manual-as-numbers>
+      <as-macro>AS-KTH</as-macro>
+      <irr-sources>irr.ntt.org</irr-sources>
+      <devices>crpd1</devices>
+   </as-path-filter>
+   <as-path-filter xmlns="http://nordu.net/ns/clixon/as-path-filter">
+      <service-name>as-test2</service-name>
+      <filter-name>as-test2</filter-name>
+      <manual-as-numbers>1111</manual-as-numbers>
+      <as-macro>AS-KTH</as-macro>
+      <irr-sources>irr.ntt.org</irr-sources>
+      <devices>crpd1</devices>
+   </as-path-filter>
+</services>
+    """
+
+    root = parse_string(xmlstr)
+
+    instance = get_service_instance(
+        root, "as-path-filter", instance="as-test1")
+
+    assert instance.service_name == "as-test1"
+    assert instance.filter_name == "as-test1"
+
+    instance = get_service_instance(
+        root, "as-path-filter", instance="as-test2")
+
+    assert instance.service_name == "as-test2"
+    assert instance.filter_name == "as-test2"
+
+
+def test_get_service_instances():
+    """
+    Test that get_service_instances works as expected.
+    """
+
+    xmlstr = """
+<services xmlns="http://clicon.org/controller">
+   <as-path-filter xmlns="http://nordu.net/ns/clixon/as-path-filter">
+      <service-name>as-test1</service-name>
+      <filter-name>as-test1</filter-name>
+      <manual-as-numbers>1111</manual-as-numbers>
+      <as-macro>AS-KTH</as-macro>
+      <irr-sources>irr.ntt.org</irr-sources>
+      <devices>crpd1</devices>
+   </as-path-filter>
+   <as-path-filter xmlns="http://nordu.net/ns/clixon/as-path-filter">
+      <service-name>as-test2</service-name>
+      <filter-name>as-test2</filter-name>
+      <manual-as-numbers>1111</manual-as-numbers>
+      <as-macro>AS-KTH</as-macro>
+      <irr-sources>irr.ntt.org</irr-sources>
+      <devices>crpd1</devices>
+   </as-path-filter>
+</services>
+    """
+
+    root = parse_string(xmlstr)
+
+    for instance in get_service_instances(root, "as-path-filter"):
+        assert instance.service_name in ["as-test1", "as-test2"]
+        assert instance.filter_name in ["as-test1", "as-test2"]
+
+
+def test_get_devices():
+    """
+    Test that get_devices works as expected.
+    """
+
+    xmlstr = """
+<devices xmlns="http://clicon.org/controller">
+   <device-profile>
+      <name>junos</name>
+      <user>admin</user>
+      <conn-type>NETCONF_SSH</conn-type>
+   </device-profile>
+   <device>
+      <name>crpd1</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.2</addr>
+      <config>
+        <blah1/>
+      </config>
+    </device>
+   <device>
+      <name>crpd2</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.3</addr>
+      <config>
+        <blah1/>
+      </config>
+    </device>
+</devices>
+"""
+
+    root = parse_string(xmlstr)
+
+    for device in get_devices(root):
+        assert device.name in ["crpd1", "crpd2"]
+        assert device.addr in ["172.40.0.2", "172.40.0.3"]
+
+
+def test_get_device():
+    """
+    Test that get_device works as expected.
+    """
+
+    xmlstr = """
+<devices xmlns="http://clicon.org/controller">
+   <device-profile>
+      <name>junos</name>
+      <user>admin</user>
+      <conn-type>NETCONF_SSH</conn-type>
+   </device-profile>
+   <device>
+      <name>crpd1</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.2</addr>
+      <config>
+        <blah1/>
+      </config>
+    </device>
+   <device>
+      <name>crpd2</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.3</addr>
+      <config>
+        <blah1/>
+      </config>
+    </device>
+</devices>"""
+
+    root = parse_string(xmlstr)
+
+    device = get_device(root, "crpd1")
+
+    assert device.name == "crpd1"
+    assert device.addr == "172.40.0.2"
+
+    device = get_device(root, "crpd2")
+
+    assert device.name == "crpd2"
+    assert device.addr == "172.40.0.3"
+
+
+def test_get_devices_configuration():
+    """
+    Test that get_devices_configuration works as expected.
+    """
+
+    xmlstr = """
+<devices xmlns="http://clicon.org/controller">
+   <device-profile>
+      <name>junos</name>
+      <user>admin</user>
+      <conn-type>NETCONF_SSH</conn-type>
+   </device-profile>
+   <device>
+      <name>crpd1</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.2</addr>
+      <config>
+        <blah1/>
+      </config>
+    </device>
+   <device>
+      <name>crpd2</name>
+      <device-profile>junos</device-profile>
+      <addr>172.40.0.3</addr>
+      <config>
+        <blah2/>
+      </config>
+    </device>
+</devices>"""
+
+    root = parse_string(xmlstr)
+
+    config = get_devices_configuration(root, "crpd1")
+
+    assert config.dumps() == "<blah1/>"
+
+    config = get_devices_configuration(root, "crpd2")
+
+    assert config.dumps() == "<blah2/>"

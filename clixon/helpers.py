@@ -3,7 +3,7 @@ from clixon.element import Element
 from typing import List, Optional, Iterable
 
 
-def get_service_instance(root, service_name, kwargs):
+def get_service_instance(root, service_name, **kwargs):
     """
     Returns the service instance.
     """
@@ -104,7 +104,7 @@ def get_devices_configuration(root: Element,
             if name != "" and name != device.name:
                 continue
 
-            yield device.config
+            return device.config
     except AttributeError:
         return None
 
