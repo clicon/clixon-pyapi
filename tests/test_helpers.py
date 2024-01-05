@@ -8,7 +8,8 @@ from clixon.helpers import (
     get_devices,
     get_device,
     get_devices_configuration,
-    get_properties
+    get_properties,
+    get_devices_from_group
 )
 from clixon.parser import parse_string
 
@@ -306,3 +307,25 @@ def test_get_properties():
     assert properties["irr_sources"] == "RIPE"
     assert properties["prefix_list_delta_limit"] == "100"
     assert properties["prefix_list_delta_limit_v6"] == "200"
+
+
+def test_get_devices_from_group():
+    """
+    Test that get_devices_from_group works as expected.
+    """
+
+    xmlstr = """
+   <devices xmlns="http://clicon.org/controller">
+      <device-group>
+         <name>ALL</name>
+         <device-name>crpd1</device-name>
+         <device-name>crpd2</device-name>
+      </device-group>
+    </devices>
+"""
+
+    root = parse_string(xmlstr)
+
+    devices = get_devices_from_group(root, "ALL")
+
+    assert devices == ["crpd1", "crpd2"]
