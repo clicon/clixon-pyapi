@@ -7,7 +7,8 @@ from clixon.helpers import (
     get_service_instances,
     get_devices,
     get_device,
-    get_devices_configuration
+    get_devices_configuration,
+    get_properties
 )
 from clixon.parser import parse_string
 
@@ -268,3 +269,40 @@ def test_get_devices_configuration():
     config = get_devices_configuration(root, "crpd2")
 
     assert config.dumps() == "<blah2/>"
+
+
+def test_get_properties():
+    """
+    Test that get_properties works as expected.
+    """
+
+    xmlstr = """
+<services xmlns="http://clicon.org/controller">
+   <properties>
+      <bgp-customer xmlns="http://nordu.net/ns/ncs/bgp">
+         <bgp-core-community>4444</bgp-core-community>
+         <bgp-blackhole-community>3333</bgp-blackhole-community>
+         <bgp-upstream-blackhole-community>5555</bgp-upstream-blackhole-community>
+         <bgp-group>test</bgp-group>
+         <bgp-group-ipv6>test6</bgp-group-ipv6>
+         <irr-database>rr.ntt.net</irr-database>
+         <irr-sources>RIPE</irr-sources>
+         <prefix-list-delta-limit>100</prefix-list-delta-limit>
+         <prefix-list-delta-limit-v6>200</prefix-list-delta-limit-v6>
+      </bgp-customer>
+   </properties>
+</services>"""
+
+    root = parse_string(xmlstr)
+
+    properties = get_properties(root, "bgp-customer")
+
+    assert properties["bgp_core_community"] == "4444"
+    assert properties["bgp_blackhole_community"] == "3333"
+    assert properties["bgp_upstream_blackhole_community"] == "5555"
+    assert properties["bgp_group"] == "test"
+    assert properties["bgp_group_ipv6"] == "test6"
+    assert properties["irr_database"] == "rr.ntt.net"
+    assert properties["irr_sources"] == "RIPE"
+    assert properties["prefix_list_delta_limit"] == "100"
+    assert properties["prefix_list_delta_limit_v6"] == "200"
