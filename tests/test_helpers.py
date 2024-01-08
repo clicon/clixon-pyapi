@@ -9,7 +9,8 @@ from clixon.helpers import (
     get_device,
     get_devices_configuration,
     get_properties,
-    get_devices_from_group
+    get_devices_from_group,
+    is_juniper
 )
 from clixon.parser import parse_string
 
@@ -329,3 +330,15 @@ def test_get_devices_from_group():
     devices = get_devices_from_group(root, "ALL")
 
     assert devices == ["crpd1", "crpd2"]
+
+
+def test_is_juniper():
+    """
+    Test that is_juniper works as expected.
+    """
+
+    xmlstr = """<device><config><configuration xmlns="http://yang.juniper.net/junos/conf/root"><version>22.4R2-S2.4-EVO</version></configuration></config></device>"""
+
+    root = parse_string(xmlstr)
+
+    assert is_juniper(root.device) is True
