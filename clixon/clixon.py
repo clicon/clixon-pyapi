@@ -4,6 +4,7 @@ from typing import Optional
 from clixon.args import parse_args
 from clixon.netconf import (rpc_commit, rpc_config_get, rpc_config_set,
                             rpc_push,
+                            rpc_pull,
                             rpc_subscription_create)
 from clixon.parser import parse_string
 from clixon.args import get_logger
@@ -20,6 +21,7 @@ class Clixon():
     def __init__(self, sockpath: Optional[str] = "",
                  commit: Optional[bool] = False,
                  push: Optional[bool] = False,
+                 pull: Optional[bool] = False,
                  source: Optional[str] = "actions",
                  target: Optional[str] = "actions",
                  user: Optional[str] = "root") -> None:
@@ -36,6 +38,7 @@ class Clixon():
         self.__socket = create_socket(sockpath)
         self.__commit = commit
         self.__push = push
+        self.__pull = pull
         self.__logger = logger
         self.__target = target
         self.__source = source
@@ -46,6 +49,33 @@ class Clixon():
         """
         Return the root object.
         """
+
+        if self.__pull:
+            logger.info("Pulling config")
+
+            enable_transaction_notify = rpc_subscription_create(
+                "controller-transaction")
+            send(self.__socket, enable_transaction_notify, pp)
+            read(self.__socket, pp)
+
+            pull = rpc_pull()
+
+            send(self.__socket, pull, pp)
+            data = read(self.__socket, pp)
+
+            idx = 0
+            while True:
+                if "notification" not in data and "SUCCESS" not in data:
+                    break
+
+                idx += 1
+
+                if idx > 5:
+                    raise ValueError("Push timeout")
+
+                data = read(self.__socket, pp)
+                print(data)
+
         return self
 
     def __exit__(self, *args: object) -> None:
@@ -86,6 +116,8 @@ class Clixon():
         read(self.__socket, pp)
 
         if self.__push:
+            logger.info("Pushing config")
+
             enable_transaction_notify = rpc_subscription_create(
                 "controller-transaction")
             send(self.__socket, enable_transaction_notify, pp)
@@ -96,9 +128,13 @@ class Clixon():
 
             send(self.__socket, push, pp)
 
-            data = ""
+            data = read(self.__socket, pp)
+
             idx = 0
-            while "notification" not in data and "success" not in data:
+            while True:
+                if "notification" not in data and "SUCCESS" not in data:
+                    break
+
                 idx += 1
 
                 if idx > 5:
