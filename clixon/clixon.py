@@ -74,7 +74,6 @@ class Clixon():
                     raise ValueError("Push timeout")
 
                 data = read(self.__socket, pp)
-                print(data)
 
         return self
 
