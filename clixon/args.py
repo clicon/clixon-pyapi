@@ -66,10 +66,18 @@ def kill(pidfile: str) -> None:
     sys.exit(0)
 
 
-def parse_config(configfile: str) -> tuple:
+def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
     """
+
+    # Jupyter sucks
+    if "jupyter" in configfile:
+        if argname == "sockpath":
+            print("Looks like you are running this from Jupyter.")
+            print(
+                "I'll fall back to the default configuration file since Jupyter messes with sys.argv.")
+        configfile = "/usr/local/etc/clixon/controller.xml"
 
     config = parser.parse_file(configfile)
 
@@ -146,7 +154,8 @@ def parse_args(argname: str = None) -> tuple:
         kill(pidfile)
 
     if configfile:
-        sockpath, modulepath, modulefilter, pidfile = parse_config(configfile)
+        sockpath, modulepath, modulefilter, pidfile = parse_config(
+            configfile, argname)
 
     if argname:
         return locals()[argname]
