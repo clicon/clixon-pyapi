@@ -1,15 +1,17 @@
 import os
 from typing import Optional
 
-from clixon.args import parse_args
-from clixon.netconf import (rpc_commit, rpc_config_get, rpc_config_set,
-                            rpc_push,
-                            rpc_pull,
-                            rpc_subscription_create)
-from clixon.parser import parse_string
-from clixon.args import get_logger
+from clixon.args import get_logger, parse_args
 from clixon.sock import read, send, create_socket
-
+from clixon.parser import parse_string
+from clixon.netconf import (
+    rpc_commit,
+    rpc_config_get,
+    rpc_config_set,
+    rpc_push,
+    rpc_pull,
+    rpc_subscription_create
+)
 
 sockpath = parse_args("sockpath")
 pp = parse_args("pp")
@@ -24,6 +26,7 @@ class Clixon():
                  pull: Optional[bool] = False,
                  source: Optional[str] = "actions",
                  target: Optional[str] = "actions",
+                 cron: Optional[bool] = False,
                  user: Optional[str] = "root") -> None:
         """
         Create a Clixon object.
@@ -35,15 +38,23 @@ class Clixon():
         if not os.path.exists(sockpath):
             raise ValueError(f"Invalid socket: {sockpath}")
 
-        self.__socket = create_socket(sockpath)
         self.__commit = commit
-        self.__push = push
-        self.__pull = pull
         self.__logger = logger
-        self.__target = target
-        self.__source = source
-        self.__user = user
+        self.__pull = pull
+        self.__push = push
         self.__root = None
+        self.__socket = create_socket(sockpath)
+        self.__source = source
+        self.__target = target
+        self.__user = user
+
+        if cron:
+            self.__commit = True
+            self.__pull = True
+            self.__push = True
+            self.__source = "running"
+            self.__standalone = True
+            self.__target = "candidate"
 
     def __enter__(self) -> object:
         """
@@ -79,6 +90,7 @@ class Clixon():
 
                 if self.__commit:
                     self.commit()
+
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
@@ -109,8 +121,12 @@ class Clixon():
 
         return self.__root
 
-    def __wait_for_pull_push_notification(self) -> None:
-        data = read(self.__socket, pp)
+    def __wait_for_pull_push_notification(
+            self,
+            standalone: Optional[bool] = False
+    ) -> None:
+
+        data = read(self.__socket, pp, standalone=self.__standalone)
 
         idx = 0
         while True:
@@ -122,7 +138,7 @@ class Clixon():
             if idx > 5:
                 raise ValueError("Push timeout")
 
-            data = read(self.__socket, pp)
+            data = read(self.__socket, pp, standalone=self.__standalone)
 
     def pull(self) -> None:
         logger.info("Pulling config")

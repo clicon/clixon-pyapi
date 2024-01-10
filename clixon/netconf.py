@@ -173,11 +173,10 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     return root
 
 
-def rpc_error_get(xmlstr: str) -> None:
+def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     """
     Parse the XML string and raise an exception if an error is found.
     """
-
     try:
         root = parse_string(xmlstr)
     except SAXParseException:
@@ -190,7 +189,12 @@ def rpc_error_get(xmlstr: str) -> None:
 
     if "error-message" in xmlstr:
         try:
-            raise RPCError(root.rpc_reply.rpc_error.error_message.cdata)
+            message = str(root.rpc_reply.rpc_error.error_message.cdata)
+            if standalone:
+                logger.error(message)
+                sys.exit(1)
+
+            raise RPCError(message)
         except AttributeError:
             return None
     elif "error-path" in xmlstr:

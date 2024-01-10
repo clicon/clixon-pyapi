@@ -26,7 +26,8 @@ def create_socket(sockpath: str) -> socket.socket:
     return sock
 
 
-def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
+def read(sock: socket.socket, pp: Optional[bool] = False,
+         standalone: Optional[bool] = False) -> str:
     """
     Read from the socket and return the data.
     """
@@ -65,7 +66,7 @@ def read(sock: socket.socket, pp: Optional[bool] = False) -> str:
     logger.debug(f"  opid={opid}")
     logger.debug("  data=" + dump_string(data, pp=pp))
 
-    rpc_error_get(data)
+    rpc_error_get(data, standalone=standalone)
 
     return data
 
