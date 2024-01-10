@@ -51,29 +51,7 @@ class Clixon():
         """
 
         if self.__pull:
-            logger.info("Pulling config")
-
-            enable_transaction_notify = rpc_subscription_create(
-                "controller-transaction")
-            send(self.__socket, enable_transaction_notify, pp)
-            read(self.__socket, pp)
-
-            pull = rpc_pull()
-
-            send(self.__socket, pull, pp)
-            data = read(self.__socket, pp)
-
-            idx = 0
-            while True:
-                if "notification" not in data and "SUCCESS" not in data:
-                    break
-
-                idx += 1
-
-                if idx > 5:
-                    raise ValueError("Push timeout")
-
-                data = read(self.__socket, pp)
+            self.pull()
 
         return self
 
@@ -115,31 +93,7 @@ class Clixon():
         read(self.__socket, pp)
 
         if self.__push:
-            logger.info("Pushing config")
-
-            enable_transaction_notify = rpc_subscription_create(
-                "controller-transaction")
-            send(self.__socket, enable_transaction_notify, pp)
-            read(self.__socket, pp)
-
-            logger.debug("Pushing commit")
-            push = rpc_push()
-
-            send(self.__socket, push, pp)
-
-            data = read(self.__socket, pp)
-
-            idx = 0
-            while True:
-                if "notification" not in data and "SUCCESS" not in data:
-                    break
-
-                idx += 1
-
-                if idx > 5:
-                    raise ValueError("Push timeout")
-
-                data = read(self.__socket, pp)
+            self.push()
 
     def get_root(self) -> object:
         """
@@ -154,6 +108,50 @@ class Clixon():
         self.__root = parse_string(data).rpc_reply.data
 
         return self.__root
+
+    def __wait_for_pull_push_notification(self) -> None:
+        data = read(self.__socket, pp)
+
+        idx = 0
+        while True:
+            if "notification" not in data and "SUCCESS" not in data:
+                break
+
+            idx += 1
+
+            if idx > 5:
+                raise ValueError("Push timeout")
+
+            data = read(self.__socket, pp)
+
+    def pull(self) -> None:
+        logger.info("Pulling config")
+
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
+        send(self.__socket, enable_transaction_notify, pp)
+        read(self.__socket, pp)
+
+        pull = rpc_pull()
+
+        send(self.__socket, pull, pp)
+
+        self.__wait_for_pull_push_notification()
+
+    def push(self) -> None:
+        logger.info("Pushing config")
+
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
+        send(self.__socket, enable_transaction_notify, pp)
+        read(self.__socket, pp)
+
+        logger.debug("Pushing commit")
+        push = rpc_push()
+
+        send(self.__socket, push, pp)
+
+        self.__wait_for_pull_push_notification()
 
     def set_root(self, root: object) -> None:
         """

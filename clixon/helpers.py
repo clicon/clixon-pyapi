@@ -139,7 +139,7 @@ def is_juniper(device: Element) -> bool:
            "http://yang.juniper.net/junos/conf/root":
             return True
     except AttributeError:
-        return None
+        return False
 
     return False
 

@@ -82,6 +82,10 @@ def parse_string(xmlstr: str):
     Parse an XML string and return the root element.
     """
 
+    # If outstr endwith 0x00 (null char), remove it
+    if xmlstr.endswith("\x00"):
+        xmlstr = xmlstr[:-1]
+
     parser = ExpatParser()
     sax_handler = Handler()
     parser.setContentHandler(sax_handler)
