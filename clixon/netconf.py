@@ -18,6 +18,7 @@ class RPCTypes(Enum):
     TRANSACTION_DONE = 3
     TRANSACTION_ERROR = 4
     PUSH_COMMIT = 5
+    PULL = 6
 
 
 class RPCError(Exception):
@@ -96,6 +97,14 @@ def rpc_push() -> Element:
     return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
 
 
+def rpc_pull() -> Element:
+    """
+    Create a RPC pull element.
+    """
+
+    return rpc_header_get(RPCTypes.PULL, "root")
+
+
 def rpc_header_get(rpc_type: object, user: str,
                    attributes: Optional[dict] = None) -> Element:
     """
@@ -132,6 +141,10 @@ def rpc_header_get(rpc_type: object, user: str,
         root.rpc.controller_commit.create("push", data="COMMIT")
         root.rpc.controller_commit.create("actions", data="NONE")
         root.rpc.controller_commit.create("source", data="ds:running")
+    elif rpc_type == RPCTypes.PULL:
+        root.rpc.create("config-pull",
+                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.config_pull.create("devname", data="*")
 
     return root
 
