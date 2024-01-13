@@ -47,6 +47,7 @@ class Clixon():
         self.__source = source
         self.__target = target
         self.__user = user
+        self.__standalone = False
 
         if cron:
             self.__commit = True
@@ -85,6 +86,7 @@ class Clixon():
                     device, device=True,
                     target=self.__target
                 )
+
                 send(self.__socket, config, pp)
                 read(self.__socket, pp)
 
