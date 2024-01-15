@@ -28,6 +28,8 @@ class Element(object):
             name = name.replace(":", "_")
 
         self._name = name
+        self._clixon_element = False
+        self._clixon_operation = ""
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -45,10 +47,14 @@ class Element(object):
             return self._name
         return self._origname
 
-    def create(self, name: str, attributes: Optional[dict] = {},
-               cdata: Optional[str] = "",
-               data: Optional[str] = "",
-               element: Optional[object] = None) -> None:
+    def create(
+            self, name: str, attributes: Optional[dict] = {},
+            cdata: Optional[str] = "",
+            data: Optional[str] = "",
+            element: Optional[object] = None,
+            clixon: Optional[bool] = False,
+            operation: Optional[str] = "create"
+    ) -> None:
         """
         Create a new element.
         """
@@ -60,6 +66,10 @@ class Element(object):
                 element.cdata = data
             else:
                 element.cdata = cdata
+
+        if clixon:
+            self._clixon_element = clixon
+            self._clixon_operation = operation
 
         self._children.append(element)
 
@@ -171,6 +181,21 @@ class Element(object):
 
         return self.cdata
 
+    def set_creator(self, element: bool, operation: str) -> None:
+        """
+        Set the creator of the element.
+        """
+
+        self._clixon_element = element
+        self._clixon_operation = operation
+
+    def get_creator(self) -> tuple:
+        """
+        Return the creator of the element.
+        """
+
+        return self._clixon_element, self._clixon_operation
+
     def dumps(self) -> str:
         """
         Return the XML string of the element and its children.
@@ -182,6 +207,11 @@ class Element(object):
         for child in self.get_elements():
             name = child.origname()
             cdata = child.cdata
+
+            has_creator, operation = child.get_creator()
+
+            if has_creator:
+                print(f"{name} has creator {operation}")
 
             attr_string = ""
             attr_string = child.get_attributes_str()
