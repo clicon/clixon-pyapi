@@ -29,6 +29,8 @@ class Element(object):
             name = name.replace(":", "_")
 
         self._name = name
+        self._parent = None
+
         self.clixon_element = False
         self.clixon_operation = ""
         self.clixon_path = ""
@@ -72,6 +74,8 @@ class Element(object):
         if clixon:
             element.clixon_element = True
             element.clixon_operation = operation
+
+        element._parent = self
 
         self._children.append(element)
 
@@ -197,6 +201,13 @@ class Element(object):
         """
 
         return self.clixon_element, self.clixon_operation
+
+    def get_parent(self) -> object:
+        """
+        Return the parent of the element.
+        """
+
+        return self._parent
 
     def dump_creators(self) -> list():
         xmlstr = self.__dump_creators().split("\n")
