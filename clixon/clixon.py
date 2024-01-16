@@ -93,6 +93,8 @@ class Clixon():
                 if self.__commit:
                     self.commit()
 
+            # Get creator objects from root
+
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")

@@ -222,6 +222,8 @@ def get_path(root: Element, path: str) -> Optional[Element]:
             else:
                 return None
 
+    new_root.clixon_path = path
+
     return new_root
 
 

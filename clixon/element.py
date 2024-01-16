@@ -1,3 +1,4 @@
+import re
 import json
 from typing import Optional
 
@@ -28,8 +29,9 @@ class Element(object):
             name = name.replace(":", "_")
 
         self._name = name
-        self._clixon_element = False
-        self._clixon_operation = ""
+        self.clixon_element = False
+        self.clixon_operation = ""
+        self.clixon_path = ""
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -68,8 +70,8 @@ class Element(object):
                 element.cdata = cdata
 
         if clixon:
-            self._clixon_element = clixon
-            self._clixon_operation = operation
+            element.clixon_element = True
+            element.clixon_operation = operation
 
         self._children.append(element)
 
@@ -186,17 +188,69 @@ class Element(object):
         Set the creator of the element.
         """
 
-        self._clixon_element = element
-        self._clixon_operation = operation
+        self.clixon_element = element
+        self.clixon_operation = operation
 
     def get_creator(self) -> tuple:
         """
         Return the creator of the element.
         """
 
-        return self._clixon_element, self._clixon_operation
+        return self.clixon_element, self.clixon_operation
 
-    def dumps(self) -> str:
+    def dump_creators(self) -> list():
+        xmlstr = self.__dump_creators().split("\n")
+        creators = []
+        pattern = r" \*(.*?)\* "
+
+        for creator in xmlstr:
+            if "clixon:operation" not in creator:
+                continue
+
+            creator = re.sub(pattern, "", creator)
+            creators.append(creator)
+
+        return creators
+
+    def __dump_creators(self) -> None:
+        """
+        Dump the creators of the element.
+        """
+
+        xmlstr = ""
+        children = False
+
+        childs = self.get_elements()
+        children = len(childs)
+        child_str = ""
+
+        for child in childs:
+            name = child.origname()
+            data = child.get_data()
+            childs = child.get_elements()
+            clixon = child.clixon_element
+            operation = child.clixon_operation
+
+            if not childs:
+                if data != "":
+                    child_str += f"[{name}={data}]"
+            else:
+                child_str += "/" + name
+
+            if clixon:
+                child_str += f" *clixon:operation={operation}* "
+                break
+
+            child_str += child.__dump_creators()
+
+        xmlstr += child_str
+
+        if children:
+            xmlstr += "\n"
+
+        return xmlstr
+
+    def dumps(self, clixon: Optional[bool] = False) -> str:
         """
         Return the XML string of the element and its children.
         """
@@ -208,13 +262,13 @@ class Element(object):
             name = child.origname()
             cdata = child.cdata
 
-            has_creator, operation = child.get_creator()
-
-            if has_creator:
-                print(f"{name} has creator {operation}")
-
             attr_string = ""
             attr_string = child.get_attributes_str()
+
+            has_creator, operation = child.get_creator()
+
+            if clixon and has_creator:
+                attr_string += f" clixon:operation=\"{operation}\""
 
             if child.get_elements() != [] or child.cdata != "":
                 xmlstr += f"<{name}{attr_string}>"
@@ -224,7 +278,7 @@ class Element(object):
             if cdata != "":
                 xmlstr += cdata
 
-            xmlstr += child.dumps()
+            xmlstr += child.dumps(clixon)
 
             if child.get_elements() != [] or child.cdata != "":
                 xmlstr += f"</{name}>"
