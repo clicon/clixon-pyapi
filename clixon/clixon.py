@@ -88,7 +88,7 @@ class Clixon():
                 )
 
                 send(self.__socket, config, pp)
-                read(self.__socket, pp)
+                read(self.__socket, pp, standalone=self.__standalone)
 
                 if self.__commit:
                     self.commit()
@@ -123,16 +123,12 @@ class Clixon():
 
         return self.__root
 
-    def __wait_for_pull_push_notification(
-            self,
-            standalone: Optional[bool] = False
-    ) -> None:
-
+    def __wait_for_pull_push_notification(self) -> None:
         data = read(self.__socket, pp, standalone=self.__standalone)
 
         idx = 0
         while True:
-            if "notification" not in data and "SUCCESS" not in data:
+            if "notification" in data and "SUCCESS" in data:
                 break
 
             idx += 1
@@ -148,7 +144,7 @@ class Clixon():
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
-        read(self.__socket, pp)
+        read(self.__socket, pp, standalone=self.__standalone)
 
         pull = rpc_pull()
 
@@ -162,7 +158,7 @@ class Clixon():
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
-        read(self.__socket, pp)
+        read(self.__socket, pp, standalone=self.__standalone)
 
         logger.debug("Pushing commit")
         push = rpc_push()
