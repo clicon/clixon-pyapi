@@ -219,6 +219,7 @@ class Element(object):
                 continue
 
             creator = re.sub(pattern, "", creator)
+
             creators.append(creator)
 
         return creators
@@ -365,3 +366,35 @@ class Element(object):
 
     def __contains__(self, key: str) -> bool:
         return key in dir(self)
+
+    def path(self) -> str:
+        tree = self.__backwards()
+        tree = reversed(list(tree))
+        confstr = ""
+
+        for node in tree:
+            confstr += "/"
+            data = node.get_data()
+            name = node.get_name()
+
+            potential_key = node.get_elements("name")
+            if potential_key:
+                key_name = potential_key[0].get_data()
+                if key_name:
+                    data = key_name
+
+            if data:
+                confstr += f"{name}=[{data}]"
+            else:
+                confstr += f"{name}"
+
+        return confstr
+
+    def __backwards(self):
+        """
+        Iterate the whole three backwards using the parent attribute.
+        """
+        while self._parent:
+            yield self
+            self = self._parent
+        yield self
