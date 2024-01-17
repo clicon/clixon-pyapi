@@ -14,7 +14,7 @@ def test_log():
     assert logger.hasHandlers() is True
 
 
-def test_log_stdout():
+def test_log_stdout(caplog):
     """
     Test the default log factory with output to stdout.
     """
@@ -25,11 +25,14 @@ def test_log_stdout():
     assert logger.level == logging.INFO
     assert logger.hasHandlers() is True
 
-    assert logger.info("test") is None
-    assert logger.debug("test") is None
+    assert logger.debug("debug test") is None
+    assert "debug test" not in caplog.text
+
+    assert logger.info("info test") is None
+    assert "info test" in caplog.text
 
 
-def test_log_debug():
+def test_log_debug(caplog):
     """
     Test the default log factory with debug enabled.
     """
@@ -40,5 +43,8 @@ def test_log_debug():
     assert logger.level == logging.DEBUG
     assert logger.hasHandlers() is True
 
-    assert logger.info("test") is None
-    assert logger.debug("test") is None
+    assert logger.info("info test") is None
+    assert "info test" in caplog.text
+
+    assert logger.debug("debug test") is None
+    assert "debug test" in caplog.text
