@@ -35,6 +35,10 @@ class Element(object):
         self.clixon_operation = ""
         self.clixon_path = ""
 
+        self.last_container = ""
+        self.last_list = ""
+        self.yin_structure = {}
+
     def is_root(self, boolean: bool) -> None:
         """
         Set the element as root.
@@ -398,3 +402,34 @@ class Element(object):
             yield self
             self = self._parent
         yield self
+
+    def dumpy(self) -> str:
+        """
+            Return the XML string of the element and its children.
+        """
+        output = ""
+
+        for child in self.get_elements():
+            name = child.origname()
+            attr_dict = child.get_attributes()
+            if name == "container":
+                self.last_container = attr_dict["name"]
+                for item in child.get_elements():
+                    item_name = item.get_name()
+                    if item_name != "list":
+                        continue
+                    item_attr = item.get_attributes()
+                    item_name = item_attr["name"]
+
+                    for subitem in item.get_elements():
+                        sub_name = subitem.get_name()
+                        if sub_name != "key":
+                            continue
+                        sub_attr = subitem.get_attributes()
+                        sub_name = sub_attr["value"]
+
+                        output += f"container \"{self.last_container}\" is a list of \"{item_name}\" with key \"{sub_name}\"\n"
+
+            output += child.dumpy()
+
+        return output
