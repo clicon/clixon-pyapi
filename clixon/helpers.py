@@ -3,9 +3,14 @@ from clixon.element import Element
 from typing import List, Optional, Iterable
 
 
-def get_service_instance(root, service_name, **kwargs):
+def get_service_instance(root: Element, service_name: str,
+                         **kwargs: dict) -> Element:
     """
     Returns the service instance.
+    :param root: Root element
+    :param service_name: Service name
+    :param kwargs: Keyword arguments
+    :return: Service instance
     """
     if "instance" not in kwargs:
         return None
@@ -25,6 +30,9 @@ def get_service_instance(root, service_name, **kwargs):
 def get_devices_from_group(root: Element, device_group_name: str) -> List[str]:
     """
     Returns a list of devices in a device group.
+    :param root: Root element
+    :param device_group_name: Device group name
+    :return: List of devices
     """
     devices = []
 
@@ -46,6 +54,12 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
                                      family: Optional[str] = "") -> str:
     """
     Returns the IP address of an interface.
+    :param root: Root element
+    :param interface_name: Interface name
+    :param interface_unit: Interface unit
+    :param device_name: Device name
+    :param family: Address family
+    :return: IP address
     """
     address = ""
 
@@ -72,6 +86,8 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
 def get_devices(root: Element) -> Iterable[Element]:
     """
     Returns an iterable of devices.
+    :param root: Root element
+    :return: Iterable of devices
     """
     try:
         for device in root.devices.device:
@@ -83,6 +99,9 @@ def get_devices(root: Element) -> Iterable[Element]:
 def get_device(root: Element, name: str) -> Element:
     """
     Returns a device.
+    :param root: Root element
+    :param name: Device name
+    :return: Device
     """
     try:
         for device in root.devices.device:
@@ -98,6 +117,9 @@ def get_devices_configuration(root: Element,
                               name: Optional[str] = "") -> Iterable[Element]:
     """
     Returns an iterable of devices configuration.
+    :param root: Root element
+    :param name: Device name
+    :return: Iterable of devices configuration
     """
     try:
         for device in root.devices.device:
@@ -112,6 +134,9 @@ def get_devices_configuration(root: Element,
 def get_properties(root: Element, name: str) -> dict:
     """
     Returns a dict of the property values.
+    :param root: Root element
+    :param name: Property name
+    :return: Dict of property values
     """
     properties = {}
 
@@ -133,6 +158,8 @@ def get_properties(root: Element, name: str) -> dict:
 def is_juniper(device: Element) -> bool:
     """
     Returns True if the device is a Juniper device.
+    :param device: Device
+    :return: True if the device is a Juniper device
     """
     try:
         if device.config.configuration.get_attributes("xmlns") == \
@@ -152,6 +179,10 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         get_path(root, "devices/device[0]")
         get_path(root, "devices/device[name='r1']/config")
         get_path(root, "services/bgp-peer[name='bgp-test']")
+
+    :param root: Root element
+    :param path: Path
+    :return: Element
     """
     if path.startswith("/"):
         path = path[1:]
@@ -233,6 +264,12 @@ def get_value(element: Element, val: str, required: Optional[bool] = False,
     Examples:
         device_name = get_value(device, "name", required=True)
         device_name = get_value(exchange_point, "md5-sum", required=False)
+
+    :param element: Element
+    :param val: Value
+    :param required: If the value is required
+    :param default: Default value
+    :return: Value
     """
     if element.get_elements(val) == []:
         if required:
@@ -246,9 +283,12 @@ def get_value(element: Element, val: str, required: Optional[bool] = False,
     return str(element.get_elements(val)[0])
 
 
-def get_service_instances(root, service_name):
+def get_service_instances(root: Element, service_name: str) -> List[Element]:
     """
     Returns a list of service instances.
+    :param root: Root element
+    :param service_name: Service name
+    :return: List of service instances
     """
     instances = []
     services = get_path(root, f"/services/{service_name}")
@@ -268,6 +308,13 @@ def set_creator_attributes(root: Element, service_name: str,
                            *args, **kwargs):
     """
     Sets the creator attributes.
+    :param root: Root element
+    :param service_name: Service name
+    :param instance_name: Instance name
+    :param operation: Operation
+    :param args: Arguments
+    :param kwargs: Keyword arguments
+    :return: None
     """
 
     if "instance_name" in kwargs:
@@ -286,3 +333,48 @@ def set_creator_attributes(root: Element, service_name: str,
         raise Exception("Root must be an Element")
 
     root.update_attributes(creator_attr)
+
+
+def get_junos_interface_address(root: Element, device: str, interface: str,
+                                unit: str,
+                                family: Optional[str] = "inet",
+                                primary: Optional[bool] = True):
+    """
+    Get the addresses of a Junos interface.
+    :param root: XML root
+    :param device: Device name
+    :param interface: Interface name
+    :param unit: Unit number
+    :param primary: Only return primary addresses
+    :return: List of addresses
+    """
+
+    device_path = f"/devices/device[name='{device}']/config/configuration"
+    interface_path = f"/interfaces/interface[name='{interface}']"
+    unit_path = f"/unit[name='{unit}']"
+    full_path = device_path + interface_path + unit_path
+    unit_root = get_path(root, full_path)
+
+    found_addresses = []
+
+    if not unit_root:
+        return None
+
+    try:
+        if family == "inet":
+            addresses = unit_root.family.inet.get_elements("address")
+        elif family == "inet6":
+            addresses = unit_root.family.inet6.get_elements("address")
+        else:
+            return None
+
+        for address in addresses:
+            if primary:
+                if not address.get_elements("primary"):
+                    continue
+            found_addresses.append(str(address.name))
+
+    except AttributeError:
+        return None
+
+    return found_addresses

@@ -10,7 +10,8 @@ from clixon.helpers import (
     get_devices_configuration,
     get_properties,
     get_devices_from_group,
-    is_juniper
+    is_juniper,
+    get_junos_interface_address
 )
 from clixon.parser import parse_string
 
@@ -342,3 +343,51 @@ def test_is_juniper():
     root = parse_string(xmlstr)
 
     assert is_juniper(root.device) is True
+
+
+def test_get_junos_interface_address():
+    """
+    Test that get_junos_interface_address works as expected.
+    """
+
+    xmlstr = """
+<devices xmlns="http://clicon.org/controller"><device><name>juniper1</name><enabled>true</enabled><conn-type>NETCONF_SSH</conn-type><user>admin</user><addr>172.40.0.3</addr><config><configuration xmlns="http://yang.juniper.net/junos/conf/root"><version>20220909.043510_builder.r1282894</version><system><root-authentication><encrypted-password>$6$lB5c6$Zeud8c6IhCTE6hnZxXBl3ZMZTC2hOx9pxxYUWTHKW1oC32SATWLMH2EXarxWS5k685qMggUfFur1lq.o4p4cg1</encrypted-password></root-authentication><login><user><name>admin</name><uid>2000</uid><class>super-user</class><authentication><ssh-rsa><name>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDF7BB+hkfqtLiwSvPNte72vQSzeF/KRtAEQywJtqrBAiRJBalZ30EyTMwXydPROHI5VBcm6hN28N89HtEBmKcrg8kU7qVLmmrBOJKYWI1aAWTgfwrPbnSOuo4sRu/jUClSHryOidEtUoh+SJ30X1yvm+S2rP0TM8W5URk0KqLvr4c/m1ejePhpg4BElicFwG6ogZYRWPAJZcygXkGil6N2SMJqFuPYC+IWnyh1l9t3C1wg3j1ldcbvagKSp1sH8zywPCfvly14qIHn814Y1ojgI+z27/TG2Y+svfQaRs6uLbCxy98+BMo2OqFQ1qSkzS5CyEis5tdZR3WW917aaEOJvxs5VVIXXb5RuB925z/rM/DwlSXKzefAzpj0hsrY365Gcm0mt/YfRv0hVAa0dOJloYnZwy7ZxcQKaEpDarPLlXhcb13oEGVFj0iQjAgdXpECk40MFXe//EAJyf4sChOoZyd6MNBlSTTOSLyM4vorEnmzFl1WeJze5bERFOsHjUM=</name></ssh-rsa></authentication></user></login><services><ssh/><netconf><ssh/><rfc-compliant/></netconf></services></system><interfaces><interface><name>lo0</name><unit><name>0</name><family><inet><address><name>1.1.1.1/32</name><primary/></address><address><name>1.1.1.2/32</name></address></inet><inet6><address><name>dead:beef::1/64</name><primary/></address><address><name>dead:beef::2/64</name></address></inet6></family></unit></interface></interfaces><policy-options><policy-statement><name>test-in</name><then><accept/></then></policy-statement><policy-statement><name>test-out</name><then><accept/></then></policy-statement></policy-options><routing-options><autonomous-system><as-number>1653</as-number></autonomous-system></routing-options><protocols><bgp><group><name>test</name><type>external</type><local-address>172.40.0.3</local-address><import>test-in</import><export>test-out</export><local-as><as-number>1111</as-number></local-as></group></bgp></protocols></configuration></config></device><device><name>juniper2</name><enabled>true</enabled><conn-type>NETCONF_SSH</conn-type><user>admin</user><addr>172.40.0.5</addr><config><configuration xmlns="http://yang.juniper.net/junos/conf/root"><version>20230909.043510_builder.r1282894</version><system><root-authentication><encrypted-password>$6$lB5c6$Zeud8c6IhCTE6hnZxXBl3ZMZTC2hOx9pxxYUWTHKW1oC32SATWLMH2EXarxWS5k685qMggUfFur1lq.o4p4cg1</encrypted-password></root-authentication><login><user><name>admin</name><uid>2000</uid><class>super-user</class><authentication><ssh-rsa><name>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDF7BB+hkfqtLiwSvPNte72vQSzeF/KRtAEQywJtqrBAiRJBalZ30EyTMwXydPROHI5VBcm6hN28N89HtEBmKcrg8kU7qVLmmrBOJKYWI1aAWTgfwrPbnSOuo4sRu/jUClSHryOidEtUoh+SJ30X1yvm+S2rP0TM8W5URk0KqLvr4c/m1ejePhpg4BElicFwG6ogZYRWPAJZcygXkGil6N2SMJqFuPYC+IWnyh1l9t3C1wg3j1ldcbvagKSp1sH8zywPCfvly14qIHn814Y1ojgI+z27/TG2Y+svfQaRs6uLbCxy98+BMo2OqFQ1qSkzS5CyEis5tdZR3WW917aaEOJvxs5VVIXXb5RuB925z/rM/DwlSXKzefAzpj0hsrY365Gcm0mt/YfRv0hVAa0dOJloYnZwy7ZxcQKaEpDarPLlXhcb13oEGVFj0iQjAgdXpECk40MFXe//EAJyf4sChOoZyd6MNBlSTTOSLyM4vorEnmzFl1WeJze5bERFOsHjUM=</name></ssh-rsa></authentication></user></login><services><ssh/><netconf><ssh/><rfc-compliant/></netconf></services></system><interfaces><interface><name>lo0</name><unit><name>0</name><family><inet><address><name>2.2.2.2/32</name></address><address><name>2.2.2.3/32</name></address></inet><inet6><address><name>dead:beef::10/64</name></address><address><name>dead:beef::20/64</name></address></inet6></family></unit></interface></interfaces><policy-options><policy-statement><name>test-in</name><then><accept/></then></policy-statement><policy-statement><name>test-out</name><then><accept/></then></policy-statement></policy-options><routing-options><autonomous-system><as-number>1653</as-number></autonomous-system></routing-options><protocols><bgp><group><name>test</name><type>external</type><local-address>172.40.0.5</local-address><import>test-in</import><export>test-out</export><local-as><as-number>2222</as-number></local-as></group></bgp></protocols></configuration></config></device></devices>
+    """
+
+    root = parse_string(xmlstr)
+
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", primary=True)
+
+    assert (len(addresses) == 1)
+    assert (addresses == ["1.1.1.1/32"])
+
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", primary=False)
+
+    assert (len(addresses) == 2)
+    assert (addresses == ["1.1.1.1/32", "1.1.1.2/32"])
+
+    addresses = get_junos_interface_address(
+        root, "juniper2", "lo0", "0", primary=True)
+
+    assert (len(addresses) == 0)
+    assert (addresses == [])
+
+    addresses = get_junos_interface_address(
+        root, "juniper2", "lo0", "0", primary=False)
+
+    assert (len(addresses) == 2)
+    assert (addresses == ["2.2.2.2/32", "2.2.2.3/32"])
+
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", family="inet6", primary=True)
+
+    assert (len(addresses) == 1)
+    assert (addresses == ["dead:beef::1/64"])
+
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", family="inet6", primary=False)
+
+    assert (len(addresses) == 2)
+    assert (addresses == ["dead:beef::1/64", "dead:beef::2/64"])
