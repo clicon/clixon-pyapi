@@ -19,6 +19,10 @@ def run_modules(modules: List, service_name: str,
                 instance: str) -> Optional[Exception]:
     """
     Run all modules in the list.
+    :param modules: List of modules to run
+    :param service_name: Name of the service to run modules for
+    :param instance: Instance of the service to run modules for
+    :return: None if all modules ran successfully, otherwise the exception
     """
     logger.debug(f"Modules: {modules}")
 
@@ -49,6 +53,8 @@ def run_modules(modules: List, service_name: str,
 def find_modules(modulespath: str) -> List[str]:
     """
     Find all modules in the modulespath.
+    :param modulespath: Path to the modules
+    :return: List of modules
     """
 
     modules = []
@@ -71,6 +77,9 @@ def find_modules(modulespath: str) -> List[str]:
 def load_modules(modulespath: str, modulefilter: str) -> List:
     """
     Load all modules in the modulespath.
+    :param modulespath: Path to the modules
+    :param modulefilter: Comma separated list of modules to skip
+    :return: List of loaded modules
     """
 
     loaded_modules = []

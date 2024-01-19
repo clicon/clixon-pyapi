@@ -9,6 +9,11 @@ class Element(object):
                  cdata: Optional[str] = "", data: Optional[str] = "") -> None:
         """
         Create a new element.
+        :param name: The name of the element.
+        :param attributes: The attributes of the element.
+        :param cdata: The cdata of the element.
+        :param data: The data of the element.
+        :return: None
         """
 
         self.attributes = attributes
@@ -32,6 +37,8 @@ class Element(object):
     def is_root(self, boolean: bool) -> None:
         """
         Set the element as root.
+        :param boolean: True or False.
+        :return: None
         """
 
         self._is_root = boolean
@@ -39,6 +46,7 @@ class Element(object):
     def origname(self) -> str:
         """
         Return the original name of the element.
+        :return: The original name of the element.
         """
 
         if self._origname == "":
@@ -51,6 +59,12 @@ class Element(object):
                element: Optional[object] = None) -> None:
         """
         Create a new element.
+        :param name: The name of the element.
+        :param attributes: The attributes of the element.
+        :param cdata: The cdata of the element.
+        :param data: The data of the element.
+        :param element: The element to create.
+        :return: None
         """
 
         if not element:
@@ -66,6 +80,9 @@ class Element(object):
     def rename(self, name: str, origname: str) -> None:
         """
         Rename the element.
+        :param name: The new name of the element.
+        :param origname: The original name of the element.
+        :return: None
         """
 
         self._name = name
@@ -74,6 +91,7 @@ class Element(object):
     def get_name(self) -> str:
         """
         Return the name of the element.
+        :return: The name of the element.
         """
 
         return self._name
@@ -81,6 +99,8 @@ class Element(object):
     def add(self, element: object) -> None:
         """
         Add an element to the children of the element.
+        :param element: The element to add.
+        :return: None
         """
 
         self._children.append(element)
@@ -88,6 +108,8 @@ class Element(object):
     def delete(self, name: str) -> None:
         """
         Delete an element from the children of the element.
+        :param name: The name of the element to delete.
+        :return: None
         """
 
         index = 0
@@ -104,6 +126,8 @@ class Element(object):
     def set_attributes(self, attributes: dict) -> None:
         """
         Set the attributes of the element.
+        :param attributes: The attributes of the element.
+        :return: None
         """
 
         self.attributes = attributes
@@ -111,6 +135,8 @@ class Element(object):
     def update_attributes(self, attributes: dict) -> None:
         """
         Update the attributes of the element.
+        :param attributes: The attributes of the element.
+        :return: None
         """
 
         old_attributes = self.get_attributes()
@@ -121,6 +147,8 @@ class Element(object):
     def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
         """
         Return the attributes of the element.
+        :param key: The key of the attribute to return.
+        :return: The attributes of the element.
         """
 
         if key:
@@ -131,6 +159,9 @@ class Element(object):
                      data: Optional[str] = "") -> list:
         """
         Return the children of the element.
+        :param name: The name of the element to return.
+        :param data: The data of the element to return.
+        :return: The children of the element.
         """
 
         name = name.replace("-", "_")
@@ -148,6 +179,7 @@ class Element(object):
     def get_attributes_str(self) -> str:
         """
         Return the attributes of the element as a string.
+        :return: The attributes of the element as a string.
         """
 
         attr_string = ""
@@ -160,6 +192,8 @@ class Element(object):
     def set_data(self, data: str) -> None:
         """
         Set the data of the element.
+        :param data: The data of the element.
+        :return: None
         """
 
         self.cdata = data
@@ -167,6 +201,7 @@ class Element(object):
     def get_data(self) -> str:
         """
         Return the data of the element.
+        :return: The data of the element.
         """
 
         return self.cdata
@@ -174,6 +209,7 @@ class Element(object):
     def dumps(self) -> str:
         """
         Return the XML string of the element and its children.
+        :return: The XML string of the element and its children.
         """
 
         xmlstr = ""
@@ -204,6 +240,7 @@ class Element(object):
     def dumpj(self) -> str:
         """
         Return the JSON string of the element and its children.
+        :return: The JSON string of the element and its children.
         """
 
         data_dict = xmltodict.parse(self.dumps())
@@ -214,6 +251,8 @@ class Element(object):
     def __getitem__(self, key: str) -> Optional[dict]:
         """
         Return the attributes of the element.
+        :param key: The key of the attribute to return.
+        :return: The attributes of the element.
         """
 
         return self.get_attributes(key=key)
@@ -221,6 +260,8 @@ class Element(object):
     def __getattr__(self, key: str) -> Optional[dict]:
         """
         Return the attributes of the element.
+        :param key: The key of the attribute to return.
+        :return: The attributes of the element.
         """
 
         matching_children = [x for x in self._children if x._name == key]
@@ -238,6 +279,8 @@ class Element(object):
     def __hasattribute__(self, name: str) -> bool:
         """
         Return True if the element has the attribute.
+        :param name: The name of the attribute.
+        :return: True if the element has the attribute.
         """
 
         if name in self.__dict__:

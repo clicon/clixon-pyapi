@@ -15,6 +15,10 @@ logger = get_logger()
 def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
     """
     Read loop for the client.
+    :param sockpath: Path to the socket
+    :param modules: List of modules to run
+    :param pp: Pretty print
+    :return: None
     """
 
     logger.debug("Starting read loop")

@@ -8,6 +8,9 @@ def get_log_factory(output: Optional[str] = "s",
                     debug: Optional[bool] = False) -> logging.Logger:
     """
     Get logger for the application.
+    :param output: Output type. "s" for syslog anything else for stdout
+    :param debug: Debug mode.
+    :return: Logger
     """
 
     logger = logging.getLogger('pyserver')

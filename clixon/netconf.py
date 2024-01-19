@@ -29,6 +29,9 @@ def rpc_config_get(user: Optional[str] = "root",
                    source: Optional[str] = "actions") -> Element:
     """
     Create a get-config RPC element.
+    :param user: User name
+    :param source: Source of the configuration
+    :return: RPC element
     """
     attributes = {}
     xpath_attributes = {
@@ -54,6 +57,12 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
                    target_attributes: Optional[dict] = {}) -> Element:
     """
     Create a RPC config set element.
+    :param config: Configuration to set
+    :param user: User name
+    :param device: Device configuration
+    :param target: Target of the configuration
+    :param target_attributes: Target attributes
+    :return: RPC element
     """
 
     if target_attributes == {} and target == "actions":
@@ -84,6 +93,8 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 def rpc_commit(user: Optional[str] = "root") -> Element:
     """
     Create a RPC commit element.
+    :param user: User name
+    :return: RPC element
     """
 
     return rpc_header_get(RPCTypes.COMMIT, user)
@@ -92,6 +103,7 @@ def rpc_commit(user: Optional[str] = "root") -> Element:
 def rpc_push() -> Element:
     """
     Create a RPC push element.
+    :return: RPC element
     """
 
     return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
@@ -100,6 +112,7 @@ def rpc_push() -> Element:
 def rpc_pull() -> Element:
     """
     Create a RPC pull element.
+    :return: RPC element
     """
 
     return rpc_header_get(RPCTypes.PULL, "root")
@@ -109,6 +122,10 @@ def rpc_header_get(rpc_type: object, user: str,
                    attributes: Optional[dict] = None) -> Element:
     """
     Create a RPC header element.
+    :param rpc_type: RPC type
+    :param user: User name
+    :param attributes: Attributes
+    :return: RPC element
     """
 
     if attributes is None:
@@ -152,6 +169,8 @@ def rpc_header_get(rpc_type: object, user: str,
 def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Element:
     """
     Create a RPC subscription element.
+    :param stream: Stream name
+    :return: RPC element
     """
 
     attributes = {
@@ -176,6 +195,9 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     """
     Parse the XML string and raise an exception if an error is found.
+    :param xmlstr: XML string
+    :param standalone: Standalone mode
+    :return: None
     """
     try:
         root = parse_string(xmlstr)

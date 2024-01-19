@@ -9,6 +9,11 @@ from clixon.log import get_log_factory
 
 
 def get_logger():
+    """
+    Get logger.
+    :return: Logger
+    """
+
     log = parse_args("log")
     debug = parse_args("debug")
 
@@ -18,16 +23,28 @@ def get_logger():
 
 
 def get_sockpath():
+    """
+    Get socket path.
+    :return: Socket path
+    """
+
     return parse_args("sockpath")
 
 
 def get_prettyprint():
+    """
+    Get prettyprint flag.
+    :return: Prettyprint flag
+    """
+
     return parse_args("pp")
 
 
 def usage(err: Optional[str] = "") -> None:
     """
     Print usage and exit.
+    :param err: Error message
+    :return: None
     """
 
     name = sys.argv[0]
@@ -53,6 +70,8 @@ def usage(err: Optional[str] = "") -> None:
 def kill(pidfile: str) -> None:
     """
     Kill daemon.
+    :param pidfile: Pidfile
+    :return: None
     """
 
     try:
@@ -69,6 +88,9 @@ def kill(pidfile: str) -> None:
 def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
+    :param configfile: Configuration file
+    :param argname: Argument name
+    :return: Tuple with configuration
     """
 
     # Jupyter sucks
@@ -99,6 +121,8 @@ def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
 def parse_args(argname: str = None) -> tuple:
     """
     Parse command line arguments.
+    :param argname: Argument name
+    :return: Tuple with configuration
     """
     global logger
 

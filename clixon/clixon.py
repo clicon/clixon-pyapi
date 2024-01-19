@@ -30,6 +30,14 @@ class Clixon():
                  user: Optional[str] = "root") -> None:
         """
         Create a Clixon object.
+        :param sockpath: Path to the socket
+        :param commit: Commit the configuration
+        :param push: Push the configuration
+        :param pull: Pull the configuration
+        :param source: Source of the configuration
+        :param target: Target of the configuration
+        :param cron: Run in cron mode
+        :param user: User to run as
         """
 
         if sockpath == "":
@@ -60,6 +68,7 @@ class Clixon():
     def __enter__(self) -> object:
         """
         Return the root object.
+        :return: Root object
         """
 
         if self.__pull:
@@ -70,6 +79,8 @@ class Clixon():
     def __exit__(self, *args: object) -> None:
         """
         Send the final config and commit.
+        :param args: Arguments
+        :return: None
         """
         try:
             if self.__root is None:
@@ -100,6 +111,7 @@ class Clixon():
     def commit(self) -> None:
         """
         Commit the configuration.
+        :return: None
         """
         commit = rpc_commit()
 
@@ -112,6 +124,7 @@ class Clixon():
     def get_root(self) -> object:
         """
         Return the root object.
+        :return: Root object
         """
         logger.debug("Updating root object")
 
@@ -124,6 +137,11 @@ class Clixon():
         return self.__root
 
     def __wait_for_pull_push_notification(self) -> None:
+        """
+        Wait for the pull/push notification.
+        :return: None
+        """
+
         data = read(self.__socket, pp, standalone=self.__standalone)
 
         idx = 0
@@ -139,6 +157,11 @@ class Clixon():
             data = read(self.__socket, pp, standalone=self.__standalone)
 
     def pull(self) -> None:
+        """
+        Send a pull request.
+        :return: None
+        """
+
         logger.info("Pulling config")
 
         enable_transaction_notify = rpc_subscription_create(
@@ -153,6 +176,11 @@ class Clixon():
         self.__wait_for_pull_push_notification()
 
     def push(self) -> None:
+        """
+        Send a push request.
+        :return: None
+        """
+
         logger.info("Pushing config")
 
         enable_transaction_notify = rpc_subscription_create(
@@ -170,7 +198,10 @@ class Clixon():
     def set_root(self, root: object) -> None:
         """
         Set the root object.
+        :param root: Root object
+        :return: None
         """
+
         send(self.__socket, root, pp)
         read(self.__socket, pp)
 
@@ -188,6 +219,9 @@ def rpc(sockpath: Optional[str] = sockpath,
         commit: Optional[bool] = False) -> object:
     """
     Decorator to create a Clixon object.
+    :param sockpath: Path to the socket
+    :param commit: Commit the configuration
+    :return: Clixon object
     """
     def decorator(func):
         def wrapper(*args, **kwargs):

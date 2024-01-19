@@ -15,6 +15,8 @@ hdrlen = 8
 def create_socket(sockpath: str) -> socket.socket:
     """
     Create a socket and connect to the socket path.
+    :param sockpath: Path to the socket
+    :return: socket
     """
 
     logger.debug(f"Connecting to socket: {sockpath}")
@@ -30,6 +32,10 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
          standalone: Optional[bool] = False) -> str:
     """
     Read from the socket and return the data.
+    :param sock: Socket to read from
+    :param pp: Pretty print the data
+    :param standalone: If True, raise an exception if the data is an error
+    :return: Data read from the socket
     """
 
     data = ""
@@ -74,6 +80,10 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
     """
     Send data to the socket.
+    :param sock: Socket to send data to
+    :param data: Data to send
+    :param pp: Pretty print the data
+    :return: None
     """
 
     opid = 42

@@ -17,6 +17,7 @@ class Handler(handler.ContentHandler):
     def __init__(self):
         """
         Initialize the handler.
+        :return:
         """
 
         self.root = Element(None, None)
@@ -26,6 +27,9 @@ class Handler(handler.ContentHandler):
     def startElement(self, name: str, attributes: str) -> None:
         """
         Start a new element.
+        :param name: Name of the element.
+        :param attributes: Attributes of the element.
+        :return: None
         """
 
         attrs = dict()
@@ -44,6 +48,8 @@ class Handler(handler.ContentHandler):
     def endElement(self, name: str) -> None:
         """
         End the current element.
+        :param name: Name of the element.
+        :return: None
         """
 
         self.elements.pop()
@@ -51,6 +57,8 @@ class Handler(handler.ContentHandler):
     def characters(self, cdata: str) -> None:
         """
         Add character data to the current element.
+        :param cdata: Character data.
+        :return: None
         """
 
         # Ignore CDATA if it is only whitespace
@@ -67,6 +75,8 @@ class Handler(handler.ContentHandler):
 def parse_file(filename: str) -> Element:
     """
     Parse an XML file and return the root element.
+    :param filename: Name of the file.
+    :return: Root element.
     """
 
     parser = ExpatParser()
@@ -80,6 +90,8 @@ def parse_file(filename: str) -> Element:
 def parse_string(xmlstr: str):
     """
     Parse an XML string and return the root element.
+    :param xmlstr: XML string.
+    :return: Root element.
     """
 
     # If outstr endwith 0x00 (null char), remove it
@@ -97,6 +109,9 @@ def parse_string(xmlstr: str):
 def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     """
     Dump an XML string and return the root element.
+    :param xmlstr: XML string.
+    :param pp: Pretty print.
+    :return: Root element.
     """
 
     if isinstance(xmlstr, bytes):
@@ -118,6 +133,9 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
 def parse_template(template: str, **kwargs: dict) -> str:
     """
     Parse a template and return the result.
+    :param template: Template string.
+    :param kwargs: Variables.
+    :return: Result.
     """
 
     vars_re = re.compile(
@@ -144,6 +162,9 @@ def parse_template(template: str, **kwargs: dict) -> str:
 def parse_template_file(filename: str, **kwargs: dict) -> str:
     """
     Parse a template file and return the result.
+    :param filename: Template file.
+    :param kwargs: Variables.
+    :return: Result.
     """
 
     try:
@@ -158,6 +179,10 @@ def parse_template_file(filename: str, **kwargs: dict) -> str:
 def parse_template_config(root: Element, name: str, **kwargs) -> str:
     """
     Parse a template from configuratino tree and return the result.
+    :param root: Root of the configuration tree.
+    :param name: Name of the template.
+    :param kwargs: Variables.
+    :return: Result.
     """
 
     template_root = get_path(root, f"/devices/template[name='{name}']")
