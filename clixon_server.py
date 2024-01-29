@@ -23,7 +23,7 @@ def main() -> None:
 
     for path in mpath:
         sys.path.append(path)
-        modules.append(load_modules(path, mfilter))
+        modules.extend(load_modules(path, mfilter))
 
     if modules == []:
         logger.error("No loadable modules found.")
