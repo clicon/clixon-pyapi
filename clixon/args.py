@@ -128,7 +128,7 @@ def parse_args(argname: str = None) -> tuple:
 
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_server.pid"
-    modulepaths = ["/usr/local/share/clixon/controller/modules"]
+    modulepaths = []
     modulefilter = ""
     foreground = False
     pp = False
@@ -176,6 +176,9 @@ def parse_args(argname: str = None) -> tuple:
 
     if kill_daemon:
         kill(pidfile)
+
+    if not modulepaths:
+        modulepaths = ["/usr/local/share/clixon/controller/modules"]
 
     if configfile:
         sockpath, conf_mpath, modulefilter, pidfile = parse_config(
