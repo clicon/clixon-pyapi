@@ -18,9 +18,12 @@ def main() -> None:
     """
     Main function for clixon_server.
     """
-    sys.path.append(mpath)
 
-    modules = load_modules(mpath, mfilter)
+    modules = []
+
+    for path in mpath:
+        sys.path.append(path)
+        modules.append(load_modules(path, mfilter))
 
     if modules == []:
         logger.error("No loadable modules found.")
