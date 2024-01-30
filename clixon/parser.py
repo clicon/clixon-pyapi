@@ -23,6 +23,7 @@ class Handler(handler.ContentHandler):
         self.root = Element(None, None)
         self.root.is_root = True
         self.elements = []
+        self.last_cdata = ""
 
     def startElement(self, name: str, attributes: str) -> None:
         """
@@ -53,6 +54,7 @@ class Handler(handler.ContentHandler):
         """
 
         self.elements.pop()
+        self.last_cdata = ""
 
     def characters(self, cdata: str) -> None:
         """
@@ -61,8 +63,13 @@ class Handler(handler.ContentHandler):
         :return: None
         """
 
-        # Ignore CDATA if it is only whitespace
-        if cdata.isspace():
+        if cdata.startswith("\n"):
+            cdata = cdata[1:]
+
+        if cdata.endswith("\n"):
+            cdata = cdata[:-1]
+
+        if cdata.isspace() and self.last_cdata == "":
             return
 
         # Escape special characters
@@ -70,6 +77,7 @@ class Handler(handler.ContentHandler):
             ">", "&gt;").replace("<", "&lt;")
 
         self.elements[-1].cdata += cdata
+        self.last_cdata = cdata
 
 
 def parse_file(filename: str) -> Element:

@@ -159,3 +159,22 @@ def test_prettyprint():
     assert dump_string(xmlstr_1) == xmlstr_1
 
     assert dump_string(xmlstr_1, pp=True) == xmlstr1_pp
+
+
+def test_junos_decodes():
+    """
+    Test that Junos specific encoding is decoded correctly.
+    """
+
+    xmlstr1 = """<apply-path>protocols bgp group &lt;*&gt; neighbor &lt;*&gt;</apply-path>"""
+    xmlstr2 = """<apply-path>protocols bgp group &lt;*&gt; neighbor  &lt;  *  &gt;  </apply-path>"""
+    xmlstr3 = """<apply-path>  protocols bgp group &lt; * &gt; neighbor  &lt;  *  &gt;  </apply-path>"""
+
+    root = parse_string(xmlstr1)
+    assert root.dumps() == xmlstr1
+
+    root = parse_string(xmlstr2)
+    assert root.dumps() == xmlstr2
+
+    root = parse_string(xmlstr3)
+    assert root.dumps() == xmlstr3
