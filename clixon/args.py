@@ -115,7 +115,7 @@ def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
 
         sys.exit(1)
 
-    return sockpath, modulepath, modulefilter, pidfile
+    return sockpath, [modulepath], modulefilter, pidfile
 
 
 def parse_args(argname: str = None) -> tuple:
@@ -128,7 +128,7 @@ def parse_args(argname: str = None) -> tuple:
 
     sockpath = "/usr/local/var/controller.sock"
     pidfile = "/tmp/clixon_server.pid"
-    modulepath = "./modules/"
+    modulepaths = []
     modulefilter = ""
     foreground = False
     pp = False
@@ -160,7 +160,7 @@ def parse_args(argname: str = None) -> tuple:
         elif opt == "-m":
             if not os.path.exists(arg):
                 usage(err=f"Module path {arg} does not exist")
-            modulepath = arg
+            modulepaths.append(arg)
         elif opt == "-F":
             foreground = True
         elif opt == "-z":
@@ -177,12 +177,16 @@ def parse_args(argname: str = None) -> tuple:
     if kill_daemon:
         kill(pidfile)
 
+    if not modulepaths:
+        modulepaths = ["/usr/local/share/clixon/controller/modules"]
+
     if configfile:
-        sockpath, modulepath, modulefilter, pidfile = parse_config(
+        sockpath, conf_mpath, modulefilter, pidfile = parse_config(
             configfile, argname)
+        modulepaths.extend(conf_mpath)
 
     if argname:
         return locals()[argname]
 
-    return (sockpath, modulepath, modulefilter, pidfile, foreground, pp,
+    return (sockpath, modulepaths, modulefilter, pidfile, foreground, pp,
             log, debug)
