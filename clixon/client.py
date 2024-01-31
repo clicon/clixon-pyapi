@@ -1,8 +1,9 @@
 import re
+import sys
 import time
 import traceback
 from typing import Optional
-
+import struct
 from clixon.args import get_logger
 from clixon.modules import run_modules
 from clixon.netconf import RPCTypes, rpc_header_get, rpc_subscription_create
@@ -52,8 +53,13 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
         while True:
             try:
                 data = read(sock, pp)
-            except Exception as e:
-                logger.error(f"Reader loop got an exception: {e}")
+            except struct.error:
+                logger.error("Socket closed, backend probably died")
+                sys.exit(1)
+            except Exception:
+                logger.error("Reader loop got an exception:")
+                logger.error(traceback.print_exc())
+
                 time.sleep(3)
                 break
 
