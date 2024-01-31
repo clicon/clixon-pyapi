@@ -126,7 +126,7 @@ def parse_args(argname: str = None) -> tuple:
     """
     global logger
 
-    sockpath = "/usr/local/var/controller.sock"
+    sockpath = "/usr/local/var/run/controller.sock"
     pidfile = "/tmp/clixon_server.pid"
     modulepaths = []
     modulefilter = ""
