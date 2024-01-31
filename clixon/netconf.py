@@ -203,7 +203,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
         root = parse_string(xmlstr)
     except SAXParseException:
         if "client already registered" in xmlstr:
-            print("Client already registered.")
+            logger.error("Client already registered.")
             sys.exit(1)
 
         logger.error("XML parse error, XML was: %s", xmlstr)
