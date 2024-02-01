@@ -1,3 +1,4 @@
+from socket import socket
 import re
 import sys
 import time
@@ -22,6 +23,11 @@ events = RPCEventHandler()
 
 @events.register("*<services-commit*></services-commit>*")
 def services_commit_cb(*args, **kwargs) -> None:
+    # Callback for services commit
+    # :param args: Arguments
+    # :param kwargs: Keyword arguments
+    # :return: None
+
     data = kwargs["data"]
     sock = kwargs["sock"]
     modules = kwargs["modules"]
@@ -93,12 +99,22 @@ def services_commit_cb(*args, **kwargs) -> None:
 
 @events.register("*")
 def rpc_error_cb(*args, **kwargs) -> None:
+    # Callback for RPC error checking
+    # :param args: Arguments
+    # :param kwargs: Keyword arguments
+    # :return: None
+
     data = kwargs["data"]
 
     rpc_error_get(data)
 
 
-def enable_service_notify(sock, pp):
+def enable_service_notify(sock: socket, pp: bool) -> None:
+    # Enable service notifications
+    # :param sock: Socket
+    # :param pp: Pretty print
+    # :return: None
+
     rpc = rpc_subscription_create()
     send(sock, rpc, pp)
     data = read(sock, pp)
@@ -106,7 +122,12 @@ def enable_service_notify(sock, pp):
     return data
 
 
-def enable_transaction_notify(sock, pp):
+def enable_transaction_notify(sock: socket, pp: bool) -> None:
+    # Enable transaction notifications
+    # :param sock: Socket
+    # :param pp: Pretty print
+    # :return: None
+
     rpc = rpc_subscription_create("controller-transaction")
     send(sock, rpc, pp)
     data = read(sock, pp)
