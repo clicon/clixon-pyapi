@@ -17,16 +17,20 @@ class RPCEventHandler():
 
         self.events = {}
 
-    def register(self, event: str, callback: function) -> None:
+    def register(self, event: str) -> None:
         """
         Register a callback to an event.
         """
 
-        if event not in self.events:
-            self.events[event] = []
-        self.events[event].append(callback)
+        def decorator(callback: function) -> function:
+            if event not in self.events:
+                self.events[event] = []
+            self.events[event].append(callback)
 
-        logger.debug(f"Registered {callback} to {event}")
+            logger.debug(f"Registered {callback} to {event}")
+
+            return callback
+        return decorator
 
     def unregister(self, event: str, callback: function) -> None:
         """

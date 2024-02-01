@@ -17,8 +17,10 @@ from clixon.sock import read, send, create_socket
 from clixon.event import RPCEventHandler
 
 logger = get_logger()
+events = RPCEventHandler()
 
 
+@events.register("*<services-commit*></services-commit>*")
 def services_commit_cb(*args, **kwargs) -> None:
     data = kwargs["data"]
     sock = kwargs["sock"]
@@ -83,6 +85,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     send(sock, rpc, pp)
 
 
+@events.register("*")
 def rpc_error_cb(*args, **kwargs) -> None:
     data = kwargs["data"]
 
@@ -113,11 +116,6 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
     :param pp: Pretty print
     :return: None
     """
-
-    events = RPCEventHandler()
-    events.register("*", rpc_error_cb)
-    events.register("*<services-commit*></services-commit>*",
-                    services_commit_cb)
 
     logger.debug("Starting read loop")
     while True:
