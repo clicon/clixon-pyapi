@@ -24,6 +24,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     sock = kwargs["sock"]
     modules = kwargs["modules"]
     pp = kwargs["pp"]
+    service_name = ""
 
     logger.debug("Received service notify")
 
@@ -41,40 +42,43 @@ def services_commit_cb(*args, **kwargs) -> None:
     except AttributeError:
         services = None
 
-    if services:
+    try:
+        if not services:
+            logger.debug("No services in commit, running all services")
+            run_modules(modules, None, None)
+            send(sock, rpc, pp)
+
+            return
         for service in services:
             match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
-            try:
-                service_name = match.group(1)
-                instance = match.group(2)
+            service_name = match.group(1)
+            instance = match.group(2)
 
-                run_modules(modules, service_name, instance)
-            except Exception as e:
-                logger.error("Catched an module exception")
+            run_modules(modules, service_name, instance)
+    except Exception as e:
+        logger.error("Catched an module exception")
+        traceback.print_exc()
 
-                traceback.print_exc()
+        if service_name:
+            name = f" {service_name} "
+        else:
+            name = " "
 
-                rpc = rpc_header_get(
-                    RPCTypes.TRANSACTION_ERROR, "root")
-                rpc.rpc.transaction_error.create(
-                    "tid", cdata=tid)
-                rpc.rpc.transaction_error.create(
-                    "origin", cdata="pyapi")
-                rpc.rpc.transaction_error.create(
-                    "reason", cdata=str(e))
+        error = f"\nService module{name}returned an error:\n\n"
+        error += str(e)
 
-                break
-
-            else:
-                logger.debug(f"Service {service_name} done")
-                rpc.rpc.transaction_actions_done.create(
-                    "service", cdata=service_name)
-
+        rpc = rpc_header_get(RPCTypes.TRANSACTION_ERROR, "root")
+        rpc.rpc.transaction_error.create("tid", cdata=tid)
+        rpc.rpc.transaction_error.create("origin", cdata="pyapi")
+        rpc.rpc.transaction_error.create("reason", cdata=error)
     else:
-        logger.debug(
-            "No services in commit, running all services")
-        run_modules(modules, None, None)
+        logger.debug(f"Service {service_name} done")
+
+        if not service_name:
+            service_name = ""
+
+        rpc.rpc.transaction_actions_done.create("service", cdata=service_name)
 
     send(sock, rpc, pp)
 
@@ -112,8 +116,8 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
 
     events = RPCEventHandler()
     events.register("*", rpc_error_cb)
-    events.register(
-        "*<services-commit*><service>*</service></services-commit>*", services_commit_cb)
+    events.register("*<services-commit*></services-commit>*",
+                    services_commit_cb)
 
     logger.debug("Starting read loop")
     while True:
