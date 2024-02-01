@@ -51,6 +51,8 @@ def services_commit_cb(*args, **kwargs) -> None:
             send(sock, rpc, pp)
 
             return
+
+        finished_services = []
         for service in services:
             match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
@@ -58,6 +60,9 @@ def services_commit_cb(*args, **kwargs) -> None:
             instance = match.group(2)
 
             run_modules(modules, service_name, instance)
+
+            if service_name not in finished_services:
+                finished_services.append(service_name)
     except Exception as e:
         logger.error("Catched an module exception")
         traceback.print_exc()
@@ -80,7 +85,8 @@ def services_commit_cb(*args, **kwargs) -> None:
         if not service_name:
             service_name = ""
 
-        rpc.rpc.transaction_actions_done.create("service", cdata=service_name)
+        for service in finished_services:
+            rpc.rpc.transaction_actions_done.create("service", cdata=service)
 
     send(sock, rpc, pp)
 
