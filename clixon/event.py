@@ -11,8 +11,8 @@ class RPCEventTypes(Enum):
     An enumeration of the different event types.
     """
 
-    RPC_ANY = "*"
-    RPC_SERVICES_COMMIT = "*<services-commit*></services-commit>*"
+    ANY = "*"
+    SERVICES_COMMIT = "*<services-commit*></services-commit>*"
 
 
 class RPCEventHandler():
