@@ -21,7 +21,7 @@ logger = get_logger()
 events = RPCEventHandler()
 
 
-@events.register(RPCEventTypes.RPC_EVENT_SERVICES_COMMIT)
+@events.register(RPCEventTypes.RPC_SERVICES_COMMIT)
 def services_commit_cb(*args, **kwargs) -> None:
     # Callback for services commit
     # :param args: Arguments
@@ -97,7 +97,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     send(sock, rpc, pp)
 
 
-@events.register(RPCEventTypes.RPC_EVENT_ANY)
+@events.register(RPCEventTypes.RPC_ANY)
 def rpc_error_cb(*args, **kwargs) -> None:
     # Callback for RPC error checking
     # :param args: Arguments
