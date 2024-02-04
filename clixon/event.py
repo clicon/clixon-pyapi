@@ -12,7 +12,7 @@ class RPCEventTypes(Enum):
     """
 
     ANY = "*"
-    SERVICES_COMMIT = "*<services-commit*></services-commit>*"
+    SERVICES_COMMIT = "*<services-commit*>*</services-commit>*"
 
 
 class RPCEventHandler():
@@ -36,6 +36,13 @@ class RPCEventHandler():
         """
 
         def decorator(callback: function) -> function:
+            """
+            A decorator to register a callback to an event.
+            :param callback: The callback to register.
+            :return: The callback.
+            """
+
+            # If the event is not in the events dictionary, add it.
             if event not in self.events:
                 self.events[event] = []
             self.events[event].append(callback)
