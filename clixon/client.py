@@ -15,13 +15,13 @@ from clixon.netconf import (
 )
 from clixon.parser import parse_string
 from clixon.sock import read, send, create_socket
-from clixon.event import RPCEventHandler, RPCEventTypes
+from clixon.event import RPCEventHandler
 
 logger = get_logger()
 events = RPCEventHandler()
 
 
-@events.register(RPCEventTypes.SERVICES_COMMIT)
+@events.register("*<services-commit*>*</services-commit>*")
 def services_commit_cb(*args, **kwargs) -> None:
     # Callback for services commit
     # :param args: Arguments
@@ -97,7 +97,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     send(sock, rpc, pp)
 
 
-@events.register(RPCEventTypes.ANY)
+@events.register("*")
 def rpc_error_cb(*args, **kwargs) -> None:
     # Callback for RPC error checking
     # :param args: Arguments

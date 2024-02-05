@@ -6,15 +6,6 @@ from enum import Enum
 logger = get_logger()
 
 
-class RPCEventTypes(Enum):
-    """
-    An enumeration of the different event types.
-    """
-
-    ANY = "*"
-    SERVICES_COMMIT = "*<services-commit*>*</services-commit>*"
-
-
 class RPCEventHandler():
     """
     A simple event handler class.
@@ -34,7 +25,6 @@ class RPCEventHandler():
         :param event: The event to register to.
         :return: None
         """
-        event = str(event)
 
         def decorator(callback: function) -> function:
             """
