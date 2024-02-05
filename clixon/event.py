@@ -34,6 +34,7 @@ class RPCEventHandler():
         :param event: The event to register to.
         :return: None
         """
+        event = str(event)
 
         def decorator(callback: function) -> function:
             """
