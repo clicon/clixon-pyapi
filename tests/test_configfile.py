@@ -112,7 +112,7 @@ def test_parse_invalid_config():
         pidfile = clixon_config.CONTROLLER_PYAPI_PIDFILE.cdata
 
         assert sockpath == "/usr/local/var/controller.sock"
-        assert modulepath == "modules path"
+        assert modulepath == ["modules path"]
         assert modulefilter == "filter"
         assert pidfile == "pidfile"
 
@@ -129,6 +129,6 @@ def test_args_parse_config():
         "/tmp/config.xml")
 
     assert sockpath == "/usr/local/var/controller.sock"
-    assert modulepath == "modules path"
+    assert modulepath == ["modules path"]
     assert modulefilter == "filter"
     assert pidfile == "pidfile"

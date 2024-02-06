@@ -11,7 +11,7 @@ def test_parse_args():
     sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug = parse_args()
 
     assert sockpath == "/test/socket"
-    assert modulepath == "./modules/"
+    assert modulepath == ["./modules/"]
     assert modulefilter == ""
     assert pidfile == "/test/pidfile"
     assert foreground is True

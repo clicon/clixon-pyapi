@@ -72,8 +72,6 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
     logger.debug(f"  opid={opid}")
     logger.debug("  data=" + dump_string(data, pp=pp))
 
-    rpc_error_get(data, standalone=standalone)
-
     return data
 
 

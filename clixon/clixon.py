@@ -10,7 +10,8 @@ from clixon.netconf import (
     rpc_config_set,
     rpc_push,
     rpc_pull,
-    rpc_subscription_create
+    rpc_subscription_create,
+    rpc_error_get
 )
 
 sockpath = parse_args("sockpath")
@@ -99,7 +100,9 @@ class Clixon():
                 )
 
                 send(self.__socket, config, pp)
-                read(self.__socket, pp, standalone=self.__standalone)
+                data = read(self.__socket, pp, standalone=self.__standalone)
+
+                self.__handle_errors(data)
 
                 if self.__commit:
                     self.commit()
@@ -116,7 +119,9 @@ class Clixon():
         commit = rpc_commit()
 
         send(self.__socket, commit, pp)
-        read(self.__socket, pp)
+        data = read(self.__socket, pp)
+
+        self.__handle_errors(data)
 
         if self.__push:
             self.push()
@@ -128,10 +133,14 @@ class Clixon():
         """
         logger.debug("Updating root object")
 
-        send(self.__socket, rpc_config_get(
-            user=self.__user, source=self.__source), pp)
+        config = rpc_config_get(user=self.__user,
+                                source=self.__source
+                                )
+
+        send(self.__socket, config, pp)
         data = read(self.__socket, pp)
 
+        self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
 
         return self.__root
@@ -143,6 +152,8 @@ class Clixon():
         """
 
         data = read(self.__socket, pp, standalone=self.__standalone)
+
+        rpc_error_get(data, standalone=self.__standalone)
 
         idx = 0
         while True:
@@ -156,6 +167,17 @@ class Clixon():
 
             data = read(self.__socket, pp, standalone=self.__standalone)
 
+            self.__handle_errors(data)
+
+    def __handle_errors(self, data: str) -> None:
+        """
+        Handle errors.
+        :param data: Data
+        :return: None
+        """
+
+        rpc_error_get(data, standalone=self.__standalone)
+
     def pull(self) -> None:
         """
         Send a pull request.
@@ -167,10 +189,11 @@ class Clixon():
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
-        read(self.__socket, pp, standalone=self.__standalone)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
 
         pull = rpc_pull()
-
         send(self.__socket, pull, pp)
 
         self.__wait_for_pull_push_notification()
@@ -186,7 +209,9 @@ class Clixon():
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
-        read(self.__socket, pp, standalone=self.__standalone)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
 
         logger.debug("Pushing commit")
         push = rpc_push()
@@ -203,7 +228,8 @@ class Clixon():
         """
 
         send(self.__socket, root, pp)
-        read(self.__socket, pp)
+        data = read(self.__socket, pp)
+        self.__handle_errors(data)
 
         if self.__commit:
             self.commit()
