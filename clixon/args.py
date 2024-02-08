@@ -58,7 +58,7 @@ def _parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
                 "since Jupyter messes with sys.argv.")
         configfile = "/usr/local/etc/clixon/controller.xml"
 
-    config = parser._parse_file(configfile)
+    config = parser.parse_file(configfile)
 
     try:
         config = config.clixon_config
