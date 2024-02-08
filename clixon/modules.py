@@ -72,7 +72,8 @@ def find_modules(modulespath: str) -> List[str]:
             modules = modules + dir_modules
     modules.reverse()
 
-    logger.info("Modules found: " + str(modules))
+    if modules:
+        logger.info("Modules found: " + str(modules))
 
     return modules
 
