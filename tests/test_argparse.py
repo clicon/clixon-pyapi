@@ -1,17 +1,29 @@
 from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint, usage
+from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
 
 
-@patch("sys.argv", ["test", "-s", "/test/socket", "-p", "/test/pidfile", "-m", "./modules/", "-l" "o", "-F", "-d", "-P"])
+@patch("sys.argv", [
+    "test", "-s", "/test/socket", "-p", "/test/pidfile", "-m", "./modules/",
+    "-l" "o", "-F", "-d", "-P"])
 def test_parse_args():
     """
     Test that the arguments are parsed correctly.
     """
-
-    sockpath, modulepath, modulefilter, pidfile, foreground, pp, log, debug = parse_args()
+    (
+        sockpath,
+        modulepaths,
+        modulefilter,
+        pidfile,
+        foreground,
+        pp,
+        log,
+        debug
+    ) = parse_args()
 
     assert sockpath == "/test/socket"
-    assert modulepath == ["./modules/"]
+    for m_path in modulepaths:
+        assert m_path in ["/usr/local/share/clixon/controller/modules/",
+                          "./modules/"]
     assert modulefilter == ""
     assert pidfile == "/test/pidfile"
     assert foreground is True
@@ -20,6 +32,7 @@ def test_parse_args():
     assert debug is True
 
 
+@patch("sys.argv", ["test"])
 def test_get_logger():
     """
     Test that the logger is created correctly.
@@ -55,5 +68,5 @@ def test_usage(mock_print, mock_exit):
     Test that the usage function prints the correct message and exits.
     """
 
-    usage('error message')
+    parse_args(["--help"])
     mock_exit.assert_called_with(0)

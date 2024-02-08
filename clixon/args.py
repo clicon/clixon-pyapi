@@ -1,4 +1,4 @@
-import getopt
+import argparse
 import os
 import signal
 import sys
@@ -8,66 +8,24 @@ import clixon.parser as parser
 from clixon.log import get_log_factory
 
 
-def get_logger():
+def __update_from_configfile(opt: Optional[str] = None):
     """
-    Get logger.
-    :return: Logger
+    Updates
+        sockpath, modulepaths, modulefilter, pidfile
+    from configfile (if it is set).
     """
+    if not global_args.get("configfile"):
+        return
 
-    log = parse_args("log")
-    debug = parse_args("debug")
-
-    logger = get_log_factory(log, debug)
-
-    return logger
-
-
-def get_sockpath():
-    """
-    Get socket path.
-    :return: Socket path
-    """
-
-    return parse_args("sockpath")
+    sockpath, modulepaths, modulefilter, pidfile = __parse_config(
+        global_args.get("configfile"), opt)
+    global_args["sockpath"] = sockpath
+    global_args["modulepaths"] = modulepaths
+    global_args["modulefilter"] = modulefilter
+    global_args["pidfile"] = pidfile
 
 
-def get_prettyprint():
-    """
-    Get prettyprint flag.
-    :return: Prettyprint flag
-    """
-
-    return parse_args("pp")
-
-
-def usage(err: Optional[str] = "") -> None:
-    """
-    Print usage and exit.
-    :param err: Error message
-    :return: None
-    """
-
-    name = sys.argv[0]
-
-    if err != "":
-        print(f"{name}: {err}")
-        print("")
-    print(f"{name} -f<module1,module2> -s<path> -d -p<pidfile>")
-    print("  -f       Clixon controller configuration file")
-    print("  -m       Modules path")
-    print("  -e       Comma separate list of modules to exclude")
-    print("  -d       Enable verbose debug logging")
-    print("  -s       Clixon socket path")
-    print("  -p       Pidfile for Python server")
-    print("  -F       Run in foreground")
-    print("  -P       Prettyprint XML")
-    print("  -l       <s|o> Log on (s)yslog, std(o)ut")
-    print("  -h       This!")
-
-    sys.exit(0)
-
-
-def kill(pidfile: str) -> None:
+def __kill(pidfile: str) -> None:
     """
     Kill daemon.
     :param pidfile: Pidfile
@@ -82,10 +40,8 @@ def kill(pidfile: str) -> None:
     except FileNotFoundError:
         print(f"Pidfile {pidfile} not found")
 
-    sys.exit(0)
 
-
-def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
+def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
     :param configfile: Configuration file
@@ -98,7 +54,8 @@ def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
         if argname == "sockpath":
             print("Looks like you are running this from Jupyter.")
             print(
-                "I'll fall back to the default configuration file since Jupyter messes with sys.argv.")
+                "I'll fall back to the default configuration file",
+                "since Jupyter messes with sys.argv.")
         configfile = "/usr/local/etc/clixon/controller.xml"
 
     config = parser.parse_file(configfile)
@@ -118,75 +75,128 @@ def parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     return sockpath, [modulepath], modulefilter, pidfile
 
 
-def parse_args(argname: str = None) -> tuple:
+global_args = {}
+
+
+def parse_args(cli_args: Optional = None) -> tuple:
     """
     Parse command line arguments.
-    :param argname: Argument name
+
+    :param cli_args: List of command line arguments
     :return: Tuple with configuration
     """
-    global logger
+    global global_args
 
-    sockpath = "/usr/local/var/run/controller.sock"
-    pidfile = "/tmp/clixon_server.pid"
-    modulepaths = []
-    modulefilter = ""
-    foreground = False
-    pp = False
-    configfile = None
-    log = "s"
-    debug = False
-    kill_daemon = False
+    default_mpath = "/usr/local/share/clixon/controller/modules/"
+    default_sockpath = "/usr/local/var/run/controller.sock"
+    default_pidfile = "/tmp/clixon_server.pid"
+    default_log = "s"
 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "ds:e:p:m:FzPf:l:")
-    except getopt.GetoptError as e:
-        usage(err=e)
+    parser = argparse.ArgumentParser(description="clixon PyAPI")
+    parser.add_argument("-f", "--configfile",
+                        help="Clixon controller configuration file")
+    parser.add_argument("-m", "--modulepaths", action="append",
+                        default=[default_mpath], help="Modules path")
+    parser.add_argument("-e", "--modulefilter", default="",
+                        help="Comma separated list of modules to exclude")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable verbose debug logging")
+    parser.add_argument("-s", "--sockpath",
+                        default=default_sockpath,
+                        help="Clixon socket path")
+    parser.add_argument("-p", "--pidfile", default=default_pidfile,
+                        help="Pidfile for Python server")
+    parser.add_argument("-F", "--foreground", action="store_true",
+                        help="Run in foreground")
+    parser.add_argument("-P", "--pp", action="store_true",
+                        help="Prettyprint XML")
+    parser.add_argument("-l", "--log", choices=["s", "o"], default=default_log,
+                        help="Log on (s)yslog, std(o)ut")
+    parser.add_argument("-z", "--kill-daemon", action="store_true",
+                        help="Kill daemon")
+    args = parser.parse_args(cli_args)
 
-    for opt, arg in opts:
-        if opt == "-f":
-            if not os.path.exists(arg):
-                usage(err=f"Configuration file {arg} does not exist")
-            configfile = arg
-        elif opt == "-d":
-            debug = True
-        elif opt == "-s":
-            sockpath = arg
-        elif opt == "-e":
-            if opt == "" or opt == "-f":
-                usage(err="No module filter specified")
-            modulefilter = arg
-        elif opt == "-p":
-            pidfile = arg
-        elif opt == "-m":
-            if not os.path.exists(arg):
-                usage(err=f"Module path {arg} does not exist")
-            modulepaths.append(arg)
-        elif opt == "-F":
-            foreground = True
-        elif opt == "-z":
-            kill_daemon = True
-        elif opt == "-P":
-            pp = True
-        elif opt == "-l":
-            if arg not in ["s", "e", "o"]:
-                usage(err=f"Invalid logging option {arg}")
-            log = arg
-        else:
-            usage()
+    args.modulepaths = list(set(args.modulepaths))
+    if not all(map(os.path.exists, args.modulepaths)):
+        print(f"Module path {args.modulepaths} does not exist")
+        sys.exit(0)
 
-    if kill_daemon:
-        kill(pidfile)
+    if args.configfile is not None and not os.path.exists(args.configfile):
+        print(f"Configuration file {args.configfile} does not exist")
+        sys.exit(0)
 
-    if not modulepaths:
-        modulepaths = ["/usr/local/share/clixon/controller/modules"]
+    if args.kill_daemon:
+        __kill(args.pidfile)
+        sys.exit(0)
 
-    if configfile:
-        sockpath, conf_mpath, modulefilter, pidfile = parse_config(
-            configfile, argname)
-        modulepaths.extend(conf_mpath)
+    # Load
+    #   sockpath, conf_mpath, modulefilter, pidfile
+    # from config file
+    if args.configfile:
+        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
+            args.configfile)
+        args.sockpath = sockpath
+        args.modulepaths.extend(conf_mpath)
+        args.modulefilter = modulefilter
+        args.pidfile = pidfile
 
-    if argname:
-        return locals()[argname]
+    # Save args is global scope
+    global_args = vars(args)
 
-    return (sockpath, modulepaths, modulefilter, pidfile, foreground, pp,
-            log, debug)
+    return (args.sockpath,
+            args.modulepaths,
+            args.modulefilter,
+            args.pidfile,
+            args.foreground,
+            args.pp,
+            args.log,
+            args.debug)
+
+
+def get_logger():
+    """
+    Get logger.
+    :return: Logger
+    """
+
+    log = get_arg("log")
+    debug = get_arg("debug")
+
+    logger = get_log_factory(log, debug)
+
+    return logger
+
+
+def get_sockpath():
+    """
+    Get socket path.
+    :return: Socket path
+    """
+
+    return get_arg("sockpath")
+
+
+def get_prettyprint():
+    """
+    Get prettyprint flag.
+    :return: Prettyprint flag
+    """
+
+    return get_arg("pp")
+
+
+def get_arg(opt: str):
+    """
+    Get CLI argument.
+
+    :param opt: Key of option to get.
+    :return: Value of key
+    """
+    if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
+        __update_from_configfile(opt)
+
+    if opt in global_args.keys():
+        return global_args.get(opt)
+    elif sys.argv[1:]:
+        parse_args(sys.argv[1:])
+        return global_args.get(opt)
