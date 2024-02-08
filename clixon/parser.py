@@ -80,7 +80,7 @@ class Handler(handler.ContentHandler):
         self.last_cdata = cdata
 
 
-def parse_file(filename: str) -> Element:
+def _parse_file(filename: str) -> Element:
     """
     Parse an XML file and return the root element.
     :param filename: Name of the file.

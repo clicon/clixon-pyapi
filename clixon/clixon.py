@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-from clixon.args import get_logger, parse_args
+from clixon.args import get_arg, get_logger
 from clixon.sock import read, send, create_socket
 from clixon.parser import parse_string
 from clixon.netconf import (
@@ -14,8 +14,8 @@ from clixon.netconf import (
     rpc_error_get
 )
 
-sockpath = parse_args("sockpath")
-pp = parse_args("pp")
+sockpath = get_arg("sockpath")
+pp = get_arg("pp")
 logger = get_logger()
 default_sockpath = "/usr/local/var/run/controller.sock"
 

@@ -1,6 +1,6 @@
 import pytest
-from clixon.args import parse_config
-from clixon.parser import parse_file
+from clixon.args import _parse_config
+from clixon.parser import _parse_file
 
 config_xml = """
 <clixon-config xmlns="http://clicon.org/config">
@@ -79,7 +79,7 @@ def test_parse_config():
     with open("/tmp/config.xml", "w") as fd:
         fd.write(config_xml)
 
-    config = parse_file("/tmp/config.xml")
+    config = _parse_file("/tmp/config.xml")
     clixon_config = config.clixon_config
 
     sockpath = clixon_config.CLICON_SOCK.cdata
@@ -101,7 +101,7 @@ def test_parse_invalid_config():
     with open("/tmp/config.xml", "w") as fd:
         fd.write(invalid_config_xml)
 
-    config = parse_file("/tmp/config.xml")
+    config = _parse_file("/tmp/config.xml")
 
     with pytest.raises(AttributeError):
         clixon_config = config.clixon_config
@@ -125,7 +125,7 @@ def test_args_parse_config():
     with open("/tmp/config.xml", "w") as fd:
         fd.write(config_xml)
 
-    sockpath, modulepath, modulefilter, pidfile = parse_config(
+    sockpath, modulepath, modulefilter, pidfile = _parse_config(
         "/tmp/config.xml")
 
     assert sockpath == "/usr/local/var/controller.sock"
