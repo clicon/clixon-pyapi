@@ -8,7 +8,7 @@ import clixon.parser as parser
 from clixon.log import get_log_factory
 
 
-def _update_from_configfile(opt: Optional[str] = None):
+def __update_from_configfile(opt: Optional[str] = None):
     """
     Updates
         sockpath, modulepaths, modulefilter, pidfile
@@ -17,7 +17,7 @@ def _update_from_configfile(opt: Optional[str] = None):
     if not global_args.get("configfile"):
         return
 
-    sockpath, modulepaths, modulefilter, pidfile = _parse_config(
+    sockpath, modulepaths, modulefilter, pidfile = __parse_config(
         global_args.get("configfile"), opt)
     global_args["sockpath"] = sockpath
     global_args["modulepaths"] = modulepaths
@@ -25,7 +25,7 @@ def _update_from_configfile(opt: Optional[str] = None):
     global_args["pidfile"] = pidfile
 
 
-def _kill(pidfile: str) -> None:
+def __kill(pidfile: str) -> None:
     """
     Kill daemon.
     :param pidfile: Pidfile
@@ -41,7 +41,7 @@ def _kill(pidfile: str) -> None:
         print(f"Pidfile {pidfile} not found")
 
 
-def _parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
+def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
     :param configfile: Configuration file
@@ -126,14 +126,14 @@ def parse_args(cli_args: Optional = None) -> tuple:
         sys.exit(0)
 
     if args.kill_daemon:
-        _kill(args.pidfile)
+        __kill(args.pidfile)
         sys.exit(0)
 
     # Load
     #   sockpath, conf_mpath, modulefilter, pidfile
     # from config file
     if args.configfile:
-        sockpath, conf_mpath, modulefilter, pidfile = _parse_config(
+        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
             args.configfile)
         args.sockpath = sockpath
         args.modulepaths.extend(conf_mpath)
@@ -193,7 +193,7 @@ def get_arg(opt: str):
     :return: Value of key
     """
     if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
-        _update_from_configfile(opt)
+        __update_from_configfile(opt)
 
     if opt in global_args.keys():
         return global_args.get(opt)

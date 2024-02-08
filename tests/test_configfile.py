@@ -1,5 +1,5 @@
 import pytest
-from clixon.args import _parse_config
+from clixon.args import __parse_config
 from clixon.parser import parse_file
 
 config_xml = """
@@ -125,7 +125,7 @@ def test_args_parse_config():
     with open("/tmp/config.xml", "w") as fd:
         fd.write(config_xml)
 
-    sockpath, modulepath, modulefilter, pidfile = _parse_config(
+    sockpath, modulepath, modulefilter, pidfile = __parse_config(
         "/tmp/config.xml")
 
     assert sockpath == "/usr/local/var/controller.sock"
