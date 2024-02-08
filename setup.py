@@ -15,9 +15,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License"
         "Operating System :: OS Independent",
     ],
+    license="Apache-2.0",
     python_requires='>=3.11',
     scripts=["clixon_server.py"],
 )
