@@ -4,8 +4,9 @@ import sys
 import traceback
 from typing import List, Optional
 
-from clixon.args import get_logger, get_arg
+from clixon.args import get_arg
 from clixon.clixon import Clixon
+from clixon.log import get_logger
 
 logger = get_logger()
 sockpath = get_arg("sockpath")

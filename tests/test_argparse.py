@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_arg
+from clixon.args import parse_args, get_arg
 
 
 @patch("sys.argv", [
@@ -30,17 +30,6 @@ def test_parse_args():
     assert pp is True
     assert log == "o"
     assert debug is True
-
-
-@patch("sys.argv", ["test"])
-def test_get_logger():
-    """
-    Test that the logger is created correctly.
-    """
-
-    logger = get_logger()
-
-    assert logger is not None
 
 
 @patch("sys.argv", ["test", "-s", "/test/socket"])

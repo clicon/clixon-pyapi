@@ -4,23 +4,27 @@ from typing import Optional
 import os
 
 
-def get_log_factory(output: Optional[str] = "s",
-                    debug: Optional[bool] = False) -> logging.Logger:
+logger_name = "pyserver"
+
+
+def init_logger(output: Optional[str] = "s",
+                debug: Optional[bool] = False) -> logging.Logger:
     """
-    Get logger for the application.
+    Initialize logger for the application.
+
     :param output: Output type. "s" for syslog anything else for stdout
     :param debug: Debug mode.
     :return: Logger
     """
 
-    logger = logging.getLogger('pyserver')
+    logger = logging.getLogger(logger_name)
     if not logger.handlers:
         formatter = logging.Formatter(
-            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+            "[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
 
         if output == "s":
             if os.path.exists("/dev/log"):
-                handler = SysLogHandler(address='/dev/log')
+                handler = SysLogHandler(address="/dev/log")
             else:
                 handler = SysLogHandler()
         else:
@@ -35,3 +39,8 @@ def get_log_factory(output: Optional[str] = "s",
         logger.setLevel(logging.INFO)
 
     return logger
+
+
+def get_logger():
+    "Fetch logger with name logger_name"
+    return logging.getLogger(logger_name)

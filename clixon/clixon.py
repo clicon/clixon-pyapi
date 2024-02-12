@@ -1,7 +1,8 @@
 import os
 from typing import Optional
 
-from clixon.args import get_arg, get_logger
+from clixon.args import get_arg
+from clixon.log import get_logger
 from clixon.sock import read, send, create_socket
 from clixon.parser import parse_string
 from clixon.netconf import (

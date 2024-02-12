@@ -4,7 +4,7 @@ from xml.sax._exceptions import SAXParseException
 
 from clixon.element import Element
 from clixon.parser import parse_string
-from clixon.args import get_logger
+from clixon.log import get_logger
 
 import sys
 

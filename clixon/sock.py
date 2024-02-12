@@ -1,10 +1,9 @@
 import socket
-from clixon.args import get_logger
+from clixon.log import get_logger
 from typing import Optional
 import select
 import struct
 from clixon.element import Element
-from clixon.netconf import rpc_error_get
 from clixon.parser import dump_string
 
 

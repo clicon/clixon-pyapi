@@ -5,7 +5,7 @@ import time
 import traceback
 from typing import Optional
 import struct
-from clixon.args import get_logger
+from clixon.log import get_logger
 from clixon.modules import run_modules
 from clixon.netconf import (
     RPCTypes,

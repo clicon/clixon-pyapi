@@ -5,7 +5,6 @@ import sys
 from typing import Optional
 
 import clixon.parser as parser
-from clixon.log import get_log_factory
 
 
 def __kill(pidfile: str) -> None:
@@ -133,20 +132,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
             args.pp,
             args.log,
             args.debug)
-
-
-def get_logger():
-    """
-    Get logger.
-    :return: Logger
-    """
-
-    log = get_arg("log")
-    debug = get_arg("debug")
-
-    logger = get_log_factory(log, debug)
-
-    return logger
 
 
 def get_arg(opt: str):
