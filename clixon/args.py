@@ -8,23 +8,6 @@ import clixon.parser as parser
 from clixon.log import get_log_factory
 
 
-def __update_from_configfile(opt: Optional[str] = None):
-    """
-    Updates
-        sockpath, modulepaths, modulefilter, pidfile
-    from configfile (if it is set).
-    """
-    if not global_args.get("configfile"):
-        return
-
-    sockpath, modulepaths, modulefilter, pidfile = __parse_config(
-        global_args.get("configfile"), opt)
-    global_args["sockpath"] = sockpath
-    global_args["modulepaths"] = modulepaths
-    global_args["modulefilter"] = modulefilter
-    global_args["pidfile"] = pidfile
-
-
 def __kill(pidfile: str) -> None:
     """
     Kill daemon.
@@ -41,21 +24,20 @@ def __kill(pidfile: str) -> None:
         print(f"Pidfile {pidfile} not found")
 
 
-def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
+def __parse_config_file(configfile: str) -> tuple:
     """
-    Parse configuration file.
+    Parse configuration variables
+        sockpath, modulepaths, modulefilter, pidfile
+    from file.
     :param configfile: Configuration file
-    :param argname: Argument name
-    :return: Tuple with configuration
+    :return: Tuple with parsed configuration
     """
 
     # Jupyter sucks
     if "jupyter" in configfile:
-        if argname == "sockpath":
-            print("Looks like you are running this from Jupyter.")
-            print(
-                "I'll fall back to the default configuration file",
-                "since Jupyter messes with sys.argv.")
+        print("Looks like you are running this from Jupyter.")
+        print("I'll fall back to the default configuration file",
+              "since Jupyter messes with sys.argv.")
         configfile = "/usr/local/etc/clixon/controller.xml"
 
     config = parser.parse_file(configfile)
@@ -116,31 +98,31 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Kill daemon")
     args = parser.parse_args(cli_args)
 
+    if args.kill_daemon:
+        __kill(args.pidfile)
+        sys.exit(0)
+
     args.modulepaths = list(set(args.modulepaths))
     if not all(map(os.path.exists, args.modulepaths)):
-        print(f"Module path {args.modulepaths} does not exist")
+        print(f"Module path {args.modulepaths} contains non-existing paths")
         sys.exit(0)
 
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
 
-    if args.kill_daemon:
-        __kill(args.pidfile)
-        sys.exit(0)
-
     # Load
     #   sockpath, conf_mpath, modulefilter, pidfile
     # from config file
     if args.configfile:
-        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
+        sockpath, conf_mpath, modulefilter, pidfile = __parse_config_file(
             args.configfile)
         args.sockpath = sockpath
         args.modulepaths.extend(conf_mpath)
         args.modulefilter = modulefilter
         args.pidfile = pidfile
 
-    # Save args is global scope
+    # Save args in global scope for get_args function
     global_args = vars(args)
 
     return (args.sockpath,
@@ -167,24 +149,6 @@ def get_logger():
     return logger
 
 
-def get_sockpath():
-    """
-    Get socket path.
-    :return: Socket path
-    """
-
-    return get_arg("sockpath")
-
-
-def get_prettyprint():
-    """
-    Get prettyprint flag.
-    :return: Prettyprint flag
-    """
-
-    return get_arg("pp")
-
-
 def get_arg(opt: str):
     """
     Get CLI argument.
@@ -192,11 +156,7 @@ def get_arg(opt: str):
     :param opt: Key of option to get.
     :return: Value of key
     """
-    if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
-        __update_from_configfile(opt)
-
     if opt in global_args.keys():
         return global_args.get(opt)
-    elif sys.argv[1:]:
-        parse_args(sys.argv[1:])
-        return global_args.get(opt)
+
+    return None

@@ -8,8 +8,16 @@ from clixon.args import parse_args, get_logger
 from clixon.client import readloop
 from clixon.modules import load_modules
 
-(sockpath, mpath, mfilter, pidfile, foreground,
- pp, _, _) = parse_args(sys.argv[1:])
+(
+    sockpath,
+    mpath,
+    mfilter,
+    pidfile,
+    foreground,
+    pp,
+    _,
+    _
+) = parse_args(sys.argv[1:])
 
 logger = get_logger()
 lockfd = None

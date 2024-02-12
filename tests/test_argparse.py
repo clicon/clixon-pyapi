@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
+from clixon.args import parse_args, get_logger, get_arg
 
 
 @patch("sys.argv", [
@@ -49,16 +49,7 @@ def test_get_sockpath():
     Test that the socket path is returned correctly.
     """
 
-    assert get_sockpath() == '/test/socket'
-
-
-@patch("sys.argv", ["test", "-P"])
-def test_get_prettyprint():
-    """
-    Test that the prettyprint flag is returned correctly.
-    """
-
-    assert get_prettyprint() is True
+    assert get_arg("sockpath") == '/test/socket'
 
 
 @patch('sys.exit')
