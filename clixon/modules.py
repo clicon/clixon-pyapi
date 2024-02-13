@@ -1,4 +1,5 @@
 import importlib.util
+from logging import getLogger
 import os
 import sys
 import traceback
@@ -6,9 +7,9 @@ from typing import List, Optional
 
 from clixon.args import get_arg
 from clixon.clixon import Clixon
-from clixon.log import get_logger
 
-logger = get_logger(__name__)
+
+logger = getLogger(__name__)
 sockpath = get_arg("sockpath")
 
 

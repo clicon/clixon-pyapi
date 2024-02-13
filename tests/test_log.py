@@ -1,10 +1,10 @@
-from clixon.log import init_root_logger, get_logger
+from clixon.log import init_root_logger
 import logging
 
 
 def test_log():
     """
-    Test the root logger.
+    Test init_root_logger.
     """
 
     logger = init_root_logger()
@@ -21,11 +21,11 @@ def test_get_logger(caplog):
     """
     _ = init_root_logger(output="stdout", debug=True)
 
-    logger = get_logger("module_name")
+    logger = logging.getLogger("module_name")
 
     assert logger is not None
     assert logger.parent is not None
-    assert logger.name == "root.module_name"
+    assert logger.name == "module_name"
 
     assert logger.debug("info test") is None
     assert "info test" in caplog.text
@@ -49,7 +49,7 @@ def test_log_stdout(caplog):
     assert logger.info("info test") is None
     assert "info test" in caplog.text
 
-    assert get_logger("child_module").level == logging.NOTSET
+    assert logging.getLogger("child_module").level == logging.NOTSET
 
 
 def test_log_debug(caplog):
@@ -70,4 +70,4 @@ def test_log_debug(caplog):
     assert logger.debug("debug test") is None
     assert "debug test" in caplog.text
 
-    assert get_logger("child_module").level == logging.NOTSET
+    assert logging.getLogger("child_module").level == logging.NOTSET

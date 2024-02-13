@@ -1,13 +1,14 @@
-import socket
-from clixon.log import get_logger
-from typing import Optional
+from logging import getLogger
 import select
+import socket
 import struct
+from typing import Optional
+
 from clixon.element import Element
 from clixon.parser import dump_string
 
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 hdrlen = 8
 
 

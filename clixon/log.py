@@ -37,8 +37,3 @@ def init_root_logger(
         logger.setLevel(logging.INFO)
 
     return logger
-
-
-def get_logger(name: str):
-    "Get child of root logger."
-    return logging.getLogger("root." + name)

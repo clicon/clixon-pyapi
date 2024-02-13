@@ -1,8 +1,9 @@
-from typing import Callable as function, Optional
+from logging import getLogger
 from fnmatch import fnmatch
-from clixon.log import get_logger
+from typing import Callable as function, Optional
 
-logger = get_logger(__name__)
+
+logger = getLogger(__name__)
 
 
 class RPCEventHandler():
