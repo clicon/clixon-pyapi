@@ -17,7 +17,7 @@ from clixon.parser import parse_string
 from clixon.sock import read, send, create_socket
 from clixon.event import RPCEventHandler
 
-logger = get_logger()
+logger = get_logger(__name__)
 events = RPCEventHandler()
 
 

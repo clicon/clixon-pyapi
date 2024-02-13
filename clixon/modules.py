@@ -8,7 +8,7 @@ from clixon.args import get_arg
 from clixon.clixon import Clixon
 from clixon.log import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 sockpath = get_arg("sockpath")
 
 

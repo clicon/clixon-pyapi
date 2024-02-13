@@ -4,20 +4,18 @@ from typing import Optional
 import os
 
 
-logger_name = "pyserver"
-
-
-def init_logger(output: Optional[str] = "s",
-                debug: Optional[bool] = False) -> logging.Logger:
+def init_root_logger(
+        output: Optional[str] = "s",
+        debug: Optional[bool] = False) -> logging.Logger:
     """
-    Initialize logger for the application.
+    Initialize root logger for the application.
 
     :param output: Output type. "s" for syslog anything else for stdout
     :param debug: Debug mode.
     :return: Logger
     """
 
-    logger = logging.getLogger(logger_name)
+    logger = logging.getLogger()
     if not logger.handlers:
         formatter = logging.Formatter(
             "[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
@@ -41,6 +39,6 @@ def init_logger(output: Optional[str] = "s",
     return logger
 
 
-def get_logger():
-    "Fetch logger with name logger_name"
-    return logging.getLogger(logger_name)
+def get_logger(name: str):
+    "Get child of root logger."
+    return logging.getLogger("root." + name)

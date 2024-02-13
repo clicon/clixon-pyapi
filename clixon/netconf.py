@@ -8,7 +8,7 @@ from clixon.log import get_logger
 
 import sys
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 class RPCTypes(Enum):

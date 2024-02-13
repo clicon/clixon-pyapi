@@ -2,7 +2,7 @@ from typing import Callable as function, Optional
 from fnmatch import fnmatch
 from clixon.log import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 class RPCEventHandler():

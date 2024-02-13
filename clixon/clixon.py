@@ -17,7 +17,7 @@ from clixon.netconf import (
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
-logger = get_logger()
+logger = get_logger(__name__)
 default_sockpath = "/usr/local/var/run/controller.sock"
 
 

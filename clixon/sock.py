@@ -7,7 +7,7 @@ from clixon.element import Element
 from clixon.parser import dump_string
 
 
-logger = get_logger()
+logger = get_logger(__name__)
 hdrlen = 8
 
 

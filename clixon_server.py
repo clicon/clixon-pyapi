@@ -5,7 +5,7 @@ import sys
 from daemonize import Daemonize
 
 from clixon.args import parse_args
-from clixon.log import init_logger
+from clixon.log import init_root_logger
 from clixon.client import readloop
 from clixon.modules import load_modules
 
@@ -20,7 +20,7 @@ from clixon.modules import load_modules
     debug
 ) = parse_args(sys.argv[1:])
 
-logger = init_logger(log, debug)
+logger = init_root_logger(log, debug)
 lockfd = None
 
 
