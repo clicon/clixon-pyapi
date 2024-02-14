@@ -27,7 +27,7 @@ jobs:
           pip install -r requirements.txt
       - name: Create folder
         run: |
-          mkdir -p /usr/local/share/clixon/controller/modules/
+          sudo mkdir -p /usr/local/share/clixon/controller/modules/
       - name: Test with pytest
         run: |
           pytest
