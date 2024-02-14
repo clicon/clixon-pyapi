@@ -38,6 +38,7 @@ class Handler(handler.ContentHandler):
             attrs[k] = v
 
         element = Element(name, attrs)
+        element._parent = self.elements[-1] if len(self.elements) > 0 else None
 
         if len(self.elements) > 0:
             self.elements[-1].add(element)

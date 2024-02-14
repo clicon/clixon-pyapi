@@ -1,6 +1,6 @@
 import re
 from clixon.element import Element
-from typing import List, Optional, Iterable
+from typing import List, Optional, Iterable, Generator
 
 
 def get_service_instance(root: Element, service_name: str,
@@ -378,3 +378,80 @@ def get_junos_interface_address(root: Element, device: str, interface: str,
         return None
 
     return found_addresses
+
+
+def get_tree_diffs(source: Element, target: Element, path: str = "",
+                   diff: list = []) -> str:
+    """
+    This function finds the differences between two XML trees and returns the
+    paths of the differences.
+
+    :param source: Element
+    :param target: Element
+    :param path: str
+    :param diff: list
+    :return: list
+    """
+
+    source_name = source.get_name()
+    target_name = target.get_name()
+
+    if source_name != target_name:
+        diff.append(path)
+        return diff
+
+    source_attributes = source.get_attributes()
+    target_attributes = target.get_attributes()
+
+    if source_attributes != target_attributes:
+        diff.append(path)
+        return diff
+
+    source_data = source.get_data()
+    target_data = target.get_data()
+
+    if source_data != target_data:
+        node_name = path.split("/")[-1]
+        path = path.replace(f"/{node_name}", "")
+
+        diff_path = path + f"[{node_name}='{source_data}']"
+        diff.append(diff_path)
+
+        return diff
+
+    if len(source) != len(target):
+        diff.append(path)
+        return diff
+
+    tree_iter = min(len(source.get_elements()), len(target.get_elements()))
+    for i in range(tree_iter):
+        child1 = source.get_elements()[i]
+        child2 = target.get_elements()[i]
+
+        if child1 and child2:
+            child1_name = child1.get_name()
+            get_tree_diffs(child1, child2, f"{path}/{child1_name}", diff)
+
+    return diff
+
+
+def get_tree_reverse(root: Generator[Element, None, None]) -> str:
+
+    xmlstr = next(root).dumps()
+
+    for node in root:
+        name = node.get_name()
+        attr_string = node.get_attributes_str()
+
+        if node.get_elements() or node.get_data() != "":
+            xmlstr = f"<{name}{attr_string}>" + xmlstr
+        else:
+            xmlstr = f"<{name}{attr_string}/>" + xmlstr
+
+        if node.get_data():
+            xmlstr = f"{xmlstr}{node.get_data()}"
+
+        if node.get_elements() or node.get_data():
+            xmlstr = f"{xmlstr}</{name}>"
+
+    return xmlstr

@@ -33,6 +33,7 @@ class Element(object):
             name = name.replace(":", "_")
 
         self._name = name
+        self._parent = None
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -74,6 +75,8 @@ class Element(object):
                 element.cdata = data
             else:
                 element.cdata = cdata
+
+        element._parent = self
 
         self._children.append(element)
 
@@ -188,6 +191,26 @@ class Element(object):
                 value = self.attributes[key]
                 attr_string += f" {key}=\"{value}\""
         return attr_string
+
+    def get_parent(self) -> object:
+        """
+        Return the parent of the element.
+        :return: The parent of the element.
+        """
+
+        return self._parent
+
+    def get_root_node(self) -> object:
+        """
+        Return the root node of the element.
+        :return: The root node of the element.
+        """
+
+        while self._parent:
+            yield self
+            self = self._parent
+
+        yield self
 
     def set_data(self, data: str) -> None:
         """

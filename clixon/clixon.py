@@ -13,6 +13,7 @@ from clixon.netconf import (
     rpc_subscription_create,
     rpc_error_get
 )
+from clixon.helpers import get_tree_diffs
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -83,6 +84,13 @@ class Clixon():
         :param args: Arguments
         :return: None
         """
+
+        diff = get_tree_diffs(self.__old_root, self.__root)
+
+        if not diff:
+            logger.info("No changes detected")
+            return
+
         try:
             if self.__root is None:
                 self.__root = self.get_root()
@@ -133,15 +141,17 @@ class Clixon():
         """
         logger.debug("Updating root object")
 
-        config = rpc_config_get(user=self.__user,
-                                source=self.__source
-                                )
+        config = rpc_config_get(
+            user=self.__user,
+            source=self.__source
+        )
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
+        self.__old_root = parse_string(data).rpc_reply.data
 
         return self.__root
 
