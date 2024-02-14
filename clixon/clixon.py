@@ -4,6 +4,7 @@ from typing import Optional
 from clixon.args import get_arg, get_logger
 from clixon.sock import read, send, create_socket
 from clixon.parser import parse_string
+from clixon.helpers import get_path
 from clixon.netconf import (
     rpc_commit,
     rpc_config_get,
@@ -91,6 +92,14 @@ class Clixon():
                 if device.get_name() != "device":
                     continue
 
+                old_device = get_path(
+                    self.__old_root, f"/devices/device[name='{device.name}']")
+
+                if old_device:
+                    if device.dumps() == old_device.dumps():
+                        logger.info(f"No diff for {device.name}, skipping...")
+                        continue
+
                 logger.debug(
                     f"Configure {device.name} with target {self.__target}")
 
@@ -141,6 +150,7 @@ class Clixon():
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
+        self.__old_root = parse_string(data).rpc_reply.data
         self.__root = parse_string(data).rpc_reply.data
 
         return self.__root
