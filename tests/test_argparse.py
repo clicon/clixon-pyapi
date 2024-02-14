@@ -9,7 +9,7 @@ def test_parse_args():
     """
     Test that the arguments are parsed correctly.
     """
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=".") as tmp_dir:
         (
             sockpath,
             modulepaths,
@@ -43,6 +43,7 @@ def test_get_sockpath():
     Test that the socket path is returned correctly.
     """
 
+    parse_args()
     assert get_arg("sockpath") == '/test/socket'
 
 
