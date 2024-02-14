@@ -59,7 +59,7 @@ def __parse_config_file(configfile: str) -> tuple:
 global_args = {}
 
 
-def parse_args(cli_args: Optional = None) -> tuple:
+def parse_args(cli_args: Optional[list] = None) -> tuple:
     """
     Parse command line arguments.
 
