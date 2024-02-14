@@ -4,7 +4,6 @@ from unittest.mock import patch
 from clixon.args import parse_args, get_arg
 
 
-
 def test_parse_args():
     """
     Test that the arguments are parsed correctly.
