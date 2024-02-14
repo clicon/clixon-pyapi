@@ -380,8 +380,7 @@ def get_junos_interface_address(root: Element, device: str, interface: str,
     return found_addresses
 
 
-def get_tree_diffs(source: Element, target: Element, path: str = "",
-                   diff: list = []) -> str:
+def get_tree_diffs(source: Element, target: Element, diff: list = []) -> str:
     """
     This function finds the differences between two XML trees and returns the
     paths of the differences.
@@ -397,40 +396,36 @@ def get_tree_diffs(source: Element, target: Element, path: str = "",
     target_name = target.get_name()
 
     if source_name != target_name:
-        diff.append(path)
+        diff.append(target)
         return diff
 
     source_attributes = source.get_attributes()
     target_attributes = target.get_attributes()
 
     if source_attributes != target_attributes:
-        diff.append(path)
+        diff.append(target)
         return diff
 
     source_data = source.get_data()
     target_data = target.get_data()
 
     if source_data != target_data:
-        node_name = path.split("/")[-1]
-        path = path.replace(f"/{node_name}", "")
-
-        diff_path = path + f"[{node_name}='{source_data}']"
-        diff.append(diff_path)
+        diff.append(target)
 
         return diff
 
     if len(source) != len(target):
-        diff.append(path)
+        diff.append(target)
         return diff
 
     tree_iter = min(len(source.get_elements()), len(target.get_elements()))
+
     for i in range(tree_iter):
         child1 = source.get_elements()[i]
         child2 = target.get_elements()[i]
 
         if child1 and child2:
-            child1_name = child1.get_name()
-            get_tree_diffs(child1, child2, f"{path}/{child1_name}", diff)
+            get_tree_diffs(child1, child2, diff)
 
     return diff
 

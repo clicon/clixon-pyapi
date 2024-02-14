@@ -13,7 +13,7 @@ from clixon.netconf import (
     rpc_subscription_create,
     rpc_error_get
 )
-from clixon.helpers import get_tree_diffs
+from clixon.helpers import get_tree_diffs, get_path, get_tree_reverse
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -85,35 +85,26 @@ class Clixon():
         :return: None
         """
 
-        diff = get_tree_diffs(self.__old_root, self.__root)
-
-        if not diff:
-            logger.info("No changes detected")
-            return
-
         try:
-            if self.__root is None:
-                self.__root = self.get_root()
+            diff_elements = get_tree_diffs(
+                self.__root,
+                self.__old_root
+            )
 
-            for device in self.__root.devices.get_elements():
-                if device.get_name() != "device":
-                    continue
+            for diff in diff_elements:
+                diff_root = get_tree_reverse(diff.get_parents())
 
-                logger.debug(
-                    f"Configure {device.name} with target {self.__target}")
-
-                config = rpc_config_set(
-                    device, device=True,
-                    target=self.__target
-                )
+                print(diff_root)
+                new_config = parse_string(diff_root).rpc_reply.data
+                config = rpc_config_set(new_config, target=self.__target)
 
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp, standalone=self.__standalone)
 
                 self.__handle_errors(data)
 
-                if self.__commit:
-                    self.commit()
+            if self.__commit:
+                self.commit()
 
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
@@ -139,7 +130,7 @@ class Clixon():
         Return the root object.
         :return: Root object
         """
-        logger.debug("Updating root object")
+        logger.info("Updating root object")
 
         config = rpc_config_get(
             user=self.__user,

@@ -200,7 +200,7 @@ class Element(object):
 
         return self._parent
 
-    def get_root_node(self) -> object:
+    def get_parents(self) -> object:
         """
         Return the root node of the element.
         :return: The root node of the element.
