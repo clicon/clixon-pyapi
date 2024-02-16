@@ -87,7 +87,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     """
     global global_args
 
-    default_mpath = "/usr/local/share/clixon/controller/modules/"
+    default_mpath = "/usr/local/share/clixon/controller/modules"
     default_sockpath = "/usr/local/var/run/controller.sock"
     default_pidfile = "/tmp/clixon_server.pid"
     default_log = "s"
@@ -136,7 +136,12 @@ def parse_args(cli_args: Optional = None) -> tuple:
         sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
             args.configfile)
         args.sockpath = sockpath
-        args.modulepaths.extend(conf_mpath)
+
+        for path in conf_mpath:
+            if os.path.normpath(path) in args.modulepaths:
+                continue
+            args.modulepaths.extend(conf_mpath)
+
         args.modulefilter = modulefilter
         args.pidfile = pidfile
 
