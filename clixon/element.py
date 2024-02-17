@@ -99,6 +99,14 @@ class Element(object):
 
         return self._name
 
+    def get_origname(self) -> str:
+        """
+        Return the original name of the element.
+        :return: The original name of the element.
+        """
+
+        return self._origname
+
     def add(self, element: object) -> None:
         """
         Add an element to the children of the element.

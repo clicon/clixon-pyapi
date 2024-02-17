@@ -439,7 +439,7 @@ def get_tree_reverse(root: Generator[Element, None, None]) -> str:
 
     xmlstr = ""
     for node in root:
-        name = node.get_name()
+        name = node.get_origname()
         attr_string = node.get_attributes_str()
 
         if node.get_elements() or node.get_data() != "":
