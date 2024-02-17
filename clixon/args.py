@@ -96,7 +96,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     parser.add_argument("-f", "--configfile",
                         help="Clixon controller configuration file")
     parser.add_argument("-m", "--modulepaths", action="append",
-                        default=[default_mpath], help="Modules path")
+                        help="Modules path")
     parser.add_argument("-e", "--modulefilter", default="",
                         help="Comma separated list of modules to exclude")
     parser.add_argument("-d", "--debug", action="store_true",
@@ -116,7 +116,9 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Kill daemon")
     args = parser.parse_args(cli_args)
 
-    args.modulepaths = list(set(args.modulepaths))
+    if args.modulepaths is None:
+        args.modulepaths = [default_mpath]
+
     if not all(map(os.path.exists, args.modulepaths)):
         print(f"Module path {args.modulepaths} does not exist")
         sys.exit(0)

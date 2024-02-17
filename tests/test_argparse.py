@@ -13,7 +13,7 @@ def test_parse_args():
 
     sys.argv = [
         "test",
-        "-m", "/usr/local/share/clixon/controller/modules",
+        "-m", "/tmp",
         "-s", "/test/socket",
         "-p", "/test/pidfile",
         "-F",
@@ -35,7 +35,7 @@ def test_parse_args():
 
     assert sockpath == "/test/socket"
     for m_path in modulepaths:
-        assert m_path == "/usr/local/share/clixon/controller/modules"
+        assert m_path == "/tmp"
     assert modulefilter == ""
     assert pidfile == "/test/pidfile"
     assert foreground is True
