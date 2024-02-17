@@ -212,6 +212,18 @@ class Element(object):
 
         yield self
 
+    def get_root(self) -> object:
+        """
+        Return the root node of the element.
+        :param element: The element to return the root node of.
+        :return: The root node of the element.
+        """
+
+        while self._parent:
+            self = self._parent
+
+        return self
+
     def set_data(self, data: str) -> None:
         """
         Set the data of the element.

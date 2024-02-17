@@ -395,26 +395,31 @@ def get_tree_diffs(source: Element, target: Element, diff: list = []) -> str:
     source_name = source.get_name()
     target_name = target.get_name()
 
-    if source_name != target_name:
-        diff.append(target)
-        return diff
+    source_data = source.get_data()
+    target_data = target.get_data()
 
     source_attributes = source.get_attributes()
     target_attributes = target.get_attributes()
 
-    if source_attributes != target_attributes:
+    if source_name != target_name:
+        print(f"Name. Source: {source_name} Target: {target_name}")
         diff.append(target)
         return diff
 
-    source_data = source.get_data()
-    target_data = target.get_data()
+    if source_attributes != target_attributes:
+        print(
+            f"Attribute. Source: {source_attributes} Target: {target_attributes}")
+        diff.append(target)
+        return diff
 
     if source_data != target_data:
+        print(f"Data. Source: {source_data} Target: {target_data}")
         diff.append(target)
 
         return diff
 
     if len(source) != len(target):
+        print(f"Length. Source: {len(source)} Target: {len(target)}")
         diff.append(target)
         return diff
 
@@ -432,8 +437,7 @@ def get_tree_diffs(source: Element, target: Element, diff: list = []) -> str:
 
 def get_tree_reverse(root: Generator[Element, None, None]) -> str:
 
-    xmlstr = next(root).dumps()
-
+    xmlstr = ""
     for node in root:
         name = node.get_name()
         attr_string = node.get_attributes_str()

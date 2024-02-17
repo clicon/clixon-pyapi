@@ -85,23 +85,43 @@ class Clixon():
         :return: None
         """
 
+        if self.__old_root.dumps() == self.__root.dumps():
+            logger.info("No changes made to the configuration")
+            return
+
         try:
-            diff_elements = get_tree_diffs(
-                self.__root,
-                self.__old_root
-            )
+            for device in self.__root.devices.get_elements():
+                if device.get_name() != "device":
+                    continue
 
-            for diff in diff_elements:
-                diff_root = get_tree_reverse(diff.get_parents())
+                config = device.config
+                device_name = device.name.get_data()
 
-                print(diff_root)
-                new_config = parse_string(diff_root).rpc_reply.data
-                config = rpc_config_set(new_config, target=self.__target)
+                old_device_config = get_path(
+                    self.__old_root, f"/devices/device[name='{device_name}']/config")
 
-                send(self.__socket, config, pp)
-                data = read(self.__socket, pp, standalone=self.__standalone)
+                config_diff = get_tree_diffs(
+                    old_device_config,
+                    config
+                )
 
-                self.__handle_errors(data)
+                if config_diff:
+                    for diff in config_diff:
+                        diff_parent = diff.get_parents()
+                        diff_reversed = get_tree_reverse(diff_parent)
+                        config = parse_string(diff_reversed)
+
+                        config = rpc_config_set(
+                            device,
+                            device=True,
+                            target=self.__target
+                        )
+
+                        send(self.__socket, config, pp)
+                        data = read(self.__socket, pp,
+                                    standalone=self.__standalone)
+
+                        self.__handle_errors(data)
 
             if self.__commit:
                 self.commit()
