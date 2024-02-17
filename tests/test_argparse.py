@@ -1,5 +1,6 @@
 from unittest.mock import patch
 from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
+import sys
 
 
 @patch("sys.argv", [
@@ -9,6 +10,18 @@ def test_parse_args():
     """
     Test that the arguments are parsed correctly.
     """
+
+    sys.argv = [
+        "test",
+        "-m", "/tmp",
+        "-s", "/test/socket",
+        "-p", "/test/pidfile",
+        "-F",
+        "-P",
+        "-l", "o",
+        "-d"
+    ]
+
     (
         sockpath,
         modulepaths,
@@ -22,8 +35,7 @@ def test_parse_args():
 
     assert sockpath == "/test/socket"
     for m_path in modulepaths:
-        assert m_path in ["/usr/local/share/clixon/controller/modules/",
-                          "./modules/"]
+        assert m_path == "/tmp"
     assert modulefilter == ""
     assert pidfile == "/test/pidfile"
     assert foreground is True

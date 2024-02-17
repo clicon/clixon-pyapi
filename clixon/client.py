@@ -62,6 +62,10 @@ def services_commit_cb(*args, **kwargs) -> None:
         for service in services:
             match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
+            if not match:
+                raise ValueError(
+                    f"Invalid command, could not parse service: {service.cdata}")
+
             service_name = match.group(1)
             instance = match.group(2)
 

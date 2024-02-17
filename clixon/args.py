@@ -87,7 +87,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     """
     global global_args
 
-    default_mpath = "/usr/local/share/clixon/controller/modules/"
+    default_mpath = "/usr/local/share/clixon/controller/modules"
     default_sockpath = "/usr/local/var/run/controller.sock"
     default_pidfile = "/tmp/clixon_server.pid"
     default_log = "s"
@@ -96,7 +96,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     parser.add_argument("-f", "--configfile",
                         help="Clixon controller configuration file")
     parser.add_argument("-m", "--modulepaths", action="append",
-                        default=[default_mpath], help="Modules path")
+                        help="Modules path")
     parser.add_argument("-e", "--modulefilter", default="",
                         help="Comma separated list of modules to exclude")
     parser.add_argument("-d", "--debug", action="store_true",
@@ -116,7 +116,9 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Kill daemon")
     args = parser.parse_args(cli_args)
 
-    args.modulepaths = list(set(args.modulepaths))
+    if args.modulepaths is None:
+        args.modulepaths = [default_mpath]
+
     if not all(map(os.path.exists, args.modulepaths)):
         print(f"Module path {args.modulepaths} does not exist")
         sys.exit(0)
@@ -136,7 +138,12 @@ def parse_args(cli_args: Optional = None) -> tuple:
         sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
             args.configfile)
         args.sockpath = sockpath
-        args.modulepaths.extend(conf_mpath)
+
+        for path in conf_mpath:
+            if os.path.normpath(path) in args.modulepaths:
+                continue
+            args.modulepaths.extend(conf_mpath)
+
         args.modulefilter = modulefilter
         args.pidfile = pidfile
 
