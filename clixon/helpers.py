@@ -437,7 +437,8 @@ def get_tree_diffs(source: Element, target: Element, diff: list = []) -> str:
 
 def get_tree_reverse(root: Generator[Element, None, None]) -> str:
 
-    xmlstr = ""
+    xmlstr = next(root).dumps()
+
     for node in root:
         name = node.get_origname()
         attr_string = node.get_attributes_str()

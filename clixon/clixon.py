@@ -109,6 +109,9 @@ class Clixon():
                     for diff in config_diff:
                         diff_parent = diff.get_parents()
                         diff_reversed = get_tree_reverse(diff_parent)
+
+                        print("New config:" + diff_reversed)
+
                         config = parse_string(diff_reversed)
 
                         config = rpc_config_set(
