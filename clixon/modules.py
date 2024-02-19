@@ -69,6 +69,8 @@ def find_modules(modulespath: str) -> List[str]:
                 continue
             logger.info(f"Added module {module}")
             modules.append(root + "/" + module)
+            if root not in sys.path:
+                sys.path.append(root)
         for directory in dirs:
             dir_modules = find_modules(directory + "/")
             modules = modules + dir_modules

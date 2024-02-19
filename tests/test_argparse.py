@@ -1,4 +1,4 @@
-import os
+import sys
 import tempfile
 from unittest.mock import patch
 
@@ -10,6 +10,17 @@ def test_parse_args():
     Test that the arguments are parsed correctly.
     """
     with tempfile.TemporaryDirectory() as tmp_file:
+        sys.argv = [
+            "test",
+            "-m", tmp_file,
+            "-s", "/test/socket",
+            "-p", "/test/pidfile",
+            "-F",
+            "-P",
+            "-l", "o",
+            "-d"
+        ]
+
         (
             sockpath,
             modulepaths,
@@ -19,16 +30,11 @@ def test_parse_args():
             pp,
             log,
             debug
-        ) = parse_args(
-            ["-s", "/test/socket",
-             "-p", "/test/pidfile",
-             "-m", tmp_file,
-             "-l" "o",
-             "-F", "-d", "-P"])
+        ) = parse_args()
+
         assert sockpath == "/test/socket"
         for m_path in modulepaths:
-            assert m_path in ["/usr/local/share/clixon/controller/modules/",
-                              tmp_file]
+            assert m_path == "/tmp"
         assert modulefilter == ""
         assert pidfile == "/test/pidfile"
         assert foreground is True
