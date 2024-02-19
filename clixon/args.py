@@ -76,7 +76,7 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
     parser = argparse.ArgumentParser(description="clixon PyAPI")
     parser.add_argument("-f", "--configfile",
                         help="Clixon controller configuration file")
-    parser.add_argument("-m", "--modulepaths", action="append",
+    parser.add_argument("-m", "--modulepaths", action="append", default=[],
                         help="Modules path")
     parser.add_argument("-e", "--modulefilter", default="",
                         help="Comma separated list of modules to exclude")
@@ -101,14 +101,6 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
         __kill(args.pidfile)
         sys.exit(0)
 
-    if args.modulepaths is None:
-        args.modulepaths = [default_mpath]
-    args.modulepaths = list(set(args.modulepaths))
-
-    if not all(map(os.path.exists, args.modulepaths)):
-        print(f"Module path {args.modulepaths} contains non-existing paths")
-        sys.exit(0)
-
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
@@ -128,6 +120,14 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
 
         args.modulefilter = modulefilter
         args.pidfile = pidfile
+
+    if len(args.modulepaths) == 0:
+        args.modulepaths = [default_mpath]
+    args.modulepaths = list(set(args.modulepaths))
+
+    if not all(map(os.path.exists, args.modulepaths)):
+        print(f"Module path {args.modulepaths} contains non-existing paths")
+        sys.exit(0)
 
     # Save args in global scope for get_args function
     global_args = vars(args)

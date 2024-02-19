@@ -53,6 +53,61 @@ def test_get_sockpath():
     assert get_arg("sockpath") == '/test/socket'
 
 
+@patch("sys.argv", ["test", "-P"])
+def test_get_prettyprint():
+    """
+    Test that the pretty print is returned correctly.
+    """
+
+    parse_args()
+    assert get_arg("pp") is True
+
+
+@patch("sys.argv", ["test"])
+def test_modulepath_fallback():
+    """
+    Test that fallback module path is added when no modulepath is provided.
+    """
+
+    fallback_mpath = "/usr/local/share/clixon/controller/modules"
+    parse_args()
+    mpaths = get_arg("modulepaths")
+    assert mpaths == [fallback_mpath]
+    assert len(mpaths) == 1
+
+
+@patch("sys.argv", ["test", "-m", "/tmp"])
+def test_modulepath_argument():
+    """
+    Test that
+    - argument is added,
+    - fallback module path is not added.
+    """
+
+    parse_args()
+    mpaths = get_arg("modulepaths")
+    assert mpaths == ["/tmp"]
+    assert len(mpaths) == 1
+
+
+@patch("sys.argv", ["test", "-f", "dummy_config_file"])
+def test_modulepath_configfile(mocker):
+    """
+    Test that
+    - configfile modulpath is added,
+    - fallback module path is not added.
+    """
+    mock_path_exist = mocker.patch("os.path.exists")
+    mock_path_exist.return_value = True
+    mock_conf_parser = mocker.patch("clixon.args.__parse_config_file")
+    mock_conf_parser.return_value = ("a", ["/tmp/conf_file_mpath"], "b", "c")
+
+    parse_args()
+    mpaths = get_arg("modulepaths")
+    assert mpaths == ["/tmp/conf_file_mpath"]
+    assert len(mpaths) == 1
+
+
 @patch('sys.exit')
 @patch('builtins.print')
 def test_usage(mock_print, mock_exit):
