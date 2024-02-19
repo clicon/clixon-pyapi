@@ -28,6 +28,7 @@ class Clixon():
                  source: Optional[str] = "actions",
                  target: Optional[str] = "actions",
                  cron: Optional[bool] = False,
+                 read_only: Optional[bool] = False,
                  user: Optional[str] = "root") -> None:
         """
         Create a Clixon object.
@@ -57,6 +58,7 @@ class Clixon():
         self.__target = target
         self.__user = user
         self.__standalone = False
+        self.__read_only = read_only
 
         if cron:
             self.__commit = True
@@ -83,6 +85,10 @@ class Clixon():
         :param args: Arguments
         :return: None
         """
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
+
         try:
             if self.__root is None:
                 self.__root = self.get_root()
