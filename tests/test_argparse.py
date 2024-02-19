@@ -34,7 +34,7 @@ def test_parse_args():
 
         assert sockpath == "/test/socket"
         for m_path in modulepaths:
-            assert m_path == "/tmp"
+            assert m_path == tmp_file
         assert modulefilter == ""
         assert pidfile == "/test/pidfile"
         assert foreground is True
