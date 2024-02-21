@@ -6,13 +6,18 @@ from typing import Optional
 
 import clixon.parser as parser
 from clixon.log import get_log_factory
+import logging
 
 
 def __update_from_configfile(opt: Optional[str] = None):
     """
-    Updates
-        sockpath, modulepaths, modulefilter, pidfile
-    from configfile (if it is set).
+    Update global arguments from configuration file.
+
+    :param opt: Option
+    :type opt: str
+    :return: None
+    :rtype: None
+
     """
     if not global_args.get("configfile"):
         return
@@ -28,8 +33,12 @@ def __update_from_configfile(opt: Optional[str] = None):
 def __kill(pidfile: str) -> None:
     """
     Kill daemon.
+
     :param pidfile: Pidfile
+    :type pidfile: str
     :return: None
+    :rtype: None
+
     """
 
     try:
@@ -44,9 +53,14 @@ def __kill(pidfile: str) -> None:
 def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
+
     :param configfile: Configuration file
+    :type configfile: str
     :param argname: Argument name
+    :type argname: str
     :return: Tuple with configuration
+    :rtype: tuple
+
     """
 
     # Jupyter sucks
@@ -83,7 +97,10 @@ def parse_args(cli_args: Optional = None) -> tuple:
     Parse command line arguments.
 
     :param cli_args: List of command line arguments
+    :type cli_args: list
     :return: Tuple with configuration
+    :rtype: tuple
+
     """
     global global_args
 
@@ -160,10 +177,13 @@ def parse_args(cli_args: Optional = None) -> tuple:
             args.debug)
 
 
-def get_logger():
+def get_logger() -> logging.Logger:
     """
     Get logger.
+
     :return: Logger
+    :rtype: logging.Logger
+
     """
 
     log = get_arg("log")
@@ -174,19 +194,25 @@ def get_logger():
     return logger
 
 
-def get_sockpath():
+def get_sockpath() -> str:
     """
     Get socket path.
+
     :return: Socket path
+    :rtype: str
+
     """
 
     return get_arg("sockpath")
 
 
-def get_prettyprint():
+def get_prettyprint() -> bool:
     """
     Get prettyprint flag.
+
     :return: Prettyprint flag
+    :rtype: bool
+
     """
 
     return get_arg("pp")
@@ -197,8 +223,14 @@ def get_arg(opt: str):
     Get CLI argument.
 
     :param opt: Key of option to get.
+    :type opt: str
     :return: Value of key
+    :rtype: str
+
     """
+    if sys.argv[0] == "sphinx-build":
+        return None
+
     if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
         __update_from_configfile(opt)
 

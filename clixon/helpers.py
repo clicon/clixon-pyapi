@@ -7,10 +7,15 @@ def get_service_instance(root: Element, service_name: str,
                          **kwargs: dict) -> Element:
     """
     Returns the service instance.
+
     :param root: Root element
+    :type root: Element
     :param service_name: Service name
+    :type service_name: str
     :param kwargs: Keyword arguments
+    :type kwargs: dict
     :return: Service instance
+    :rtype: Element
     """
     if "instance" not in kwargs:
         return None
@@ -30,9 +35,13 @@ def get_service_instance(root: Element, service_name: str,
 def get_devices_from_group(root: Element, device_group_name: str) -> List[str]:
     """
     Returns a list of devices in a device group.
+
     :param root: Root element
+    :type root: Element
     :param device_group_name: Device group name
+    :type device_group_name: str
     :return: List of devices
+    :rtype: List[str]
     """
     devices = []
 
@@ -54,12 +63,19 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
                                      family: Optional[str] = "") -> str:
     """
     Returns the IP address of an interface.
+
     :param root: Root element
+    :type root: Element
     :param interface_name: Interface name
+    :type interface_name: str
     :param interface_unit: Interface unit
+    :type interface_unit: str
     :param device_name: Device name
+    :type device_name: str
     :param family: Address family
+    :type family: str
     :return: IP address
+    :rtype: str
     """
     address = ""
 
@@ -86,8 +102,11 @@ def get_openconfig_interface_address(root: Element, interface_name: str,
 def get_devices(root: Element) -> Iterable[Element]:
     """
     Returns an iterable of devices.
+
     :param root: Root element
+    :type root: Element
     :return: Iterable of devices
+    :rtype: Iterable[Element]
     """
     try:
         for device in root.devices.device:
@@ -99,9 +118,13 @@ def get_devices(root: Element) -> Iterable[Element]:
 def get_device(root: Element, name: str) -> Element:
     """
     Returns a device.
+
     :param root: Root element
+    :type root: Element
     :param name: Device name
+    :type name: str
     :return: Device
+    :rtype: Element
     """
     try:
         for device in root.devices.device:
@@ -117,9 +140,13 @@ def get_devices_configuration(root: Element,
                               name: Optional[str] = "") -> Iterable[Element]:
     """
     Returns an iterable of devices configuration.
+
     :param root: Root element
+    :type root: Element
     :param name: Device name
+    :type name: str
     :return: Iterable of devices configuration
+    :rtype: Iterable[Element]
     """
     try:
         for device in root.devices.device:
@@ -134,9 +161,13 @@ def get_devices_configuration(root: Element,
 def get_properties(root: Element, name: str) -> dict:
     """
     Returns a dict of the property values.
+
     :param root: Root element
+    :type root: Element
     :param name: Property name
+    :type name: str
     :return: Dict of property values
+    :rtype: dict
     """
     properties = {}
 
@@ -158,8 +189,11 @@ def get_properties(root: Element, name: str) -> dict:
 def is_juniper(device: Element) -> bool:
     """
     Returns True if the device is a Juniper device.
+
     :param device: Device
+    :type device: Element
     :return: True if the device is a Juniper device
+    :rtype: bool
     """
     try:
         if device.config.configuration.get_attributes("xmlns") == \
@@ -173,7 +207,7 @@ def is_juniper(device: Element) -> bool:
 
 def get_path(root: Element, path: str) -> Optional[Element]:
     """
-    Returns the element at the path. Porr mans xpath.
+    Returns the element at the path. Poor mans xpath.
 
     Examples:
         get_path(root, "devices/device[0]")
@@ -181,8 +215,12 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         get_path(root, "services/bgp-peer[name='bgp-test']")
 
     :param root: Root element
+    :type root: Element
     :param path: Path
+    :type path: str
     :return: Element
+    :rtype: Element
+
     """
     if path.startswith("/"):
         path = path[1:]
@@ -266,10 +304,15 @@ def get_value(element: Element, val: str, required: Optional[bool] = False,
         device_name = get_value(exchange_point, "md5-sum", required=False)
 
     :param element: Element
+    :type element: Element
     :param val: Value
+    :type val: str
     :param required: If the value is required
+    :type required: bool
     :param default: Default value
+    :type default: str
     :return: Value
+    :rtype: str
     """
     if element.get_elements(val) == []:
         if required:
@@ -286,9 +329,13 @@ def get_value(element: Element, val: str, required: Optional[bool] = False,
 def get_service_instances(root: Element, service_name: str) -> List[Element]:
     """
     Returns a list of service instances.
+
     :param root: Root element
+    :type root: Element
     :param service_name: Service name
+    :type service_name: str
     :return: List of service instances
+    :rtype: List[Element]
     """
     instances = []
     services = get_path(root, f"/services/{service_name}")
@@ -308,13 +355,21 @@ def set_creator_attributes(root: Element, service_name: str,
                            *args, **kwargs):
     """
     Sets the creator attributes.
+
     :param root: Root element
+    :type root: Element
     :param service_name: Service name
+    :type service_name: str
     :param instance_name: Instance name
+    :type instance_name: str
     :param operation: Operation
+    :type operation: str
     :param args: Arguments
+    :type args: list
     :param kwargs: Keyword arguments
+    :type kwargs: dict
     :return: None
+    :rtype: None
     """
 
     if "instance_name" in kwargs:
@@ -341,12 +396,19 @@ def get_junos_interface_address(root: Element, device: str, interface: str,
                                 primary: Optional[bool] = True):
     """
     Get the addresses of a Junos interface.
+
     :param root: XML root
+    :type root: Element
     :param device: Device name
+    :type device: str
     :param interface: Interface name
+    :type interface: str
     :param unit: Unit number
+    :type unit: str
     :param primary: Only return primary addresses
+    :type primary: bool
     :return: List of addresses
+    :rtype: List[str]
     """
 
     device_path = f"/devices/device[name='{device}']/config/configuration"
