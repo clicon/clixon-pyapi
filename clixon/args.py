@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import signal
 import sys
@@ -6,7 +7,6 @@ from typing import Optional
 
 import clixon.parser as parser
 from clixon.log import get_log_factory
-import logging
 
 
 def __update_from_configfile(opt: Optional[str] = None):
@@ -228,8 +228,9 @@ def get_arg(opt: str):
     :rtype: str
 
     """
-    if sys.argv[0] == "sphinx-build":
-        return None
+
+    if "sphinx-build" in sys.argv[0]:
+        return
 
     if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
         __update_from_configfile(opt)
