@@ -39,6 +39,17 @@ def test_del_node():
     assert root.dumps() == xmlstr_1
 
 
+def test_add_multiple_nodes():
+    """
+    Test that multiple nodes can be added.
+    """
+
+    root = Element("root")
+    root.create("foo").create("bar").create("baz")
+
+    assert root.dumps() == "<foo><bar><baz/></bar></foo>"
+
+
 def test_repr_0():
     """
     Test that the first element is returned from object representation.
