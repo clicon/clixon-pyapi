@@ -2,17 +2,11 @@ import os
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
-from clixon.sock import read, send, create_socket
+from clixon.netconf import (rpc_commit, rpc_config_get, rpc_config_set,
+                            rpc_error_get, rpc_pull, rpc_push,
+                            rpc_subscription_create)
 from clixon.parser import parse_string
-from clixon.netconf import (
-    rpc_commit,
-    rpc_config_get,
-    rpc_config_set,
-    rpc_push,
-    rpc_pull,
-    rpc_subscription_create,
-    rpc_error_get
-)
+from clixon.sock import create_socket, read, send
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -32,14 +26,25 @@ class Clixon():
                  user: Optional[str] = "root") -> None:
         """
         Create a Clixon object.
+
         :param sockpath: Path to the socket
+        :type sockpath: str
         :param commit: Commit the configuration
+        :type commit: bool
         :param push: Push the configuration
+        :type push: bool
         :param pull: Pull the configuration
+        :type pull: bool
         :param source: Source of the configuration
+        :type source: str
         :param target: Target of the configuration
+        :type target: str
         :param cron: Run in cron mode
+        :type cron: bool
         :param user: User to run as
+        :type user: str
+        :return: None
+        :rtype: None
         """
 
         if sockpath == "":
@@ -71,7 +76,10 @@ class Clixon():
     def __enter__(self) -> object:
         """
         Return the root object.
+
         :return: Root object
+        :rtype: object
+
         """
 
         if self.__pull:
@@ -82,8 +90,12 @@ class Clixon():
     def __exit__(self, *args: object) -> None:
         """
         Send the final config and commit.
+
         :param args: Arguments
+        :type args: object
         :return: None
+        :rtype: None
+
         """
         if self.__read_only:
             logger.info("Read only mode enabled")
@@ -120,8 +132,16 @@ class Clixon():
     def commit(self) -> None:
         """
         Commit the configuration.
+
         :return: None
+        :rtype: None
+
         """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
+
         commit = rpc_commit()
 
         send(self.__socket, commit, pp)
@@ -135,7 +155,10 @@ class Clixon():
     def get_root(self) -> object:
         """
         Return the root object.
+
         :return: Root object
+        :rtype: object
+
         """
         logger.debug("Updating root object")
 
@@ -154,7 +177,10 @@ class Clixon():
     def __wait_for_pull_push_notification(self) -> None:
         """
         Wait for the pull/push notification.
+
         :return: None
+        :rtype: None
+
         """
 
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -178,8 +204,12 @@ class Clixon():
     def __handle_errors(self, data: str) -> None:
         """
         Handle errors.
+
         :param data: Data
+        :type data: str
         :return: None
+        :rtype: None
+
         """
 
         rpc_error_get(data, standalone=self.__standalone)
@@ -187,7 +217,10 @@ class Clixon():
     def pull(self) -> None:
         """
         Send a pull request.
+
         :return: None
+        :rtype: None
+
         """
 
         logger.info("Pulling config")
@@ -207,10 +240,17 @@ class Clixon():
     def push(self) -> None:
         """
         Send a push request.
+
         :return: None
+        :rtype: None
+
         """
 
         logger.info("Pushing config")
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
 
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
@@ -229,9 +269,17 @@ class Clixon():
     def set_root(self, root: object) -> None:
         """
         Set the root object.
+
         :param root: Root object
+        :type root: object
         :return: None
+        :rtype: None
+
         """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
 
         send(self.__socket, root, pp)
         data = read(self.__socket, pp)
@@ -243,6 +291,10 @@ class Clixon():
     def get_logger(self) -> object:
         """
         Return the logger object.
+
+        :return: Logger object
+        :rtype: object
+
         """
         return self.__logger
 
@@ -251,9 +303,14 @@ def rpc(sockpath: Optional[str] = sockpath,
         commit: Optional[bool] = False) -> object:
     """
     Decorator to create a Clixon object.
+
     :param sockpath: Path to the socket
+    :type sockpath: str
     :param commit: Commit the configuration
+    :type commit: bool
     :return: Clixon object
+    :rtype: object
+
     """
     def decorator(func):
         def wrapper(*args, **kwargs):

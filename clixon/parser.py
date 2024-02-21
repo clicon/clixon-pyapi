@@ -17,7 +17,9 @@ class Handler(handler.ContentHandler):
     def __init__(self):
         """
         Initialize the handler.
-        :return:
+
+        :return: None
+        :rtype: None
         """
 
         self.root = Element(None, None)
@@ -28,9 +30,14 @@ class Handler(handler.ContentHandler):
     def startElement(self, name: str, attributes: str) -> None:
         """
         Start a new element.
+
         :param name: Name of the element.
+        :type name: str
         :param attributes: Attributes of the element.
+        :type attributes: str
         :return: None
+        :rtype: None
+
         """
 
         attrs = dict()
@@ -49,8 +56,12 @@ class Handler(handler.ContentHandler):
     def endElement(self, name: str) -> None:
         """
         End the current element.
+
         :param name: Name of the element.
+        :type name: str
         :return: None
+        :rtype: None
+
         """
 
         self.elements.pop()
@@ -59,8 +70,12 @@ class Handler(handler.ContentHandler):
     def characters(self, cdata: str) -> None:
         """
         Add character data to the current element.
+
         :param cdata: Character data.
+        :type cdata: str
         :return: None
+        :rtype: None
+
         """
 
         if cdata.startswith("\n"):
@@ -83,8 +98,12 @@ class Handler(handler.ContentHandler):
 def parse_file(filename: str) -> Element:
     """
     Parse an XML file and return the root element.
+
     :param filename: Name of the file.
+    :type filename: str
     :return: Root element.
+    :rtype: Element
+
     """
 
     parser = ExpatParser()
@@ -98,8 +117,12 @@ def parse_file(filename: str) -> Element:
 def parse_string(xmlstr: str):
     """
     Parse an XML string and return the root element.
+
     :param xmlstr: XML string.
+    :type xmlstr: str
     :return: Root element.
+    :rtype: Element
+
     """
 
     # If outstr endwith 0x00 (null char), remove it
@@ -117,9 +140,14 @@ def parse_string(xmlstr: str):
 def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
     """
     Dump an XML string and return the root element.
+
     :param xmlstr: XML string.
+    :type xmlstr: str
     :param pp: Pretty print.
+    :type pp: bool
     :return: Root element.
+    :rtype: Element
+
     """
 
     if isinstance(xmlstr, bytes):
@@ -141,9 +169,14 @@ def dump_string(xmlstr: str, pp: Optional[bool] = False) -> str:
 def parse_template(template: str, **kwargs: dict) -> str:
     """
     Parse a template and return the result.
+
     :param template: Template string.
+    :type template: str
     :param kwargs: Variables.
+    :type kwargs: dict
     :return: Result.
+    :rtype: str
+
     """
 
     vars_re = re.compile(
@@ -170,9 +203,14 @@ def parse_template(template: str, **kwargs: dict) -> str:
 def parse_template_file(filename: str, **kwargs: dict) -> str:
     """
     Parse a template file and return the result.
+
     :param filename: Template file.
+    :type filename: str
     :param kwargs: Variables.
+    :type kwargs: dict
     :return: Result.
+    :type: str
+
     """
 
     try:
@@ -187,10 +225,16 @@ def parse_template_file(filename: str, **kwargs: dict) -> str:
 def parse_template_config(root: Element, name: str, **kwargs) -> str:
     """
     Parse a template from configuratino tree and return the result.
+
     :param root: Root of the configuration tree.
+    :type root: Element
     :param name: Name of the template.
+    :type name: str
     :param kwargs: Variables.
+    :type kwargs: dict
     :return: Result.
+    :rtype: str
+
     """
 
     template_root = get_path(root, f"/devices/template[name='{name}']")
