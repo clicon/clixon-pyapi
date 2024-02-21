@@ -2,17 +2,11 @@ import os
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
-from clixon.sock import read, send, create_socket
+from clixon.netconf import (rpc_commit, rpc_config_get, rpc_config_set,
+                            rpc_error_get, rpc_pull, rpc_push,
+                            rpc_subscription_create)
 from clixon.parser import parse_string
-from clixon.netconf import (
-    rpc_commit,
-    rpc_config_get,
-    rpc_config_set,
-    rpc_push,
-    rpc_pull,
-    rpc_subscription_create,
-    rpc_error_get
-)
+from clixon.sock import create_socket, read, send
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -143,6 +137,11 @@ class Clixon():
         :rtype: None
 
         """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
+
         commit = rpc_commit()
 
         send(self.__socket, commit, pp)
@@ -249,6 +248,10 @@ class Clixon():
 
         logger.info("Pushing config")
 
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
+
         enable_transaction_notify = rpc_subscription_create(
             "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
@@ -273,6 +276,10 @@ class Clixon():
         :rtype: None
 
         """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
 
         send(self.__socket, root, pp)
         data = read(self.__socket, pp)
