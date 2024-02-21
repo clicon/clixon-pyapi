@@ -3,7 +3,6 @@ attrs==23.1.0
 Babel==2.14.0
 certifi==2024.2.2
 charset-normalizer==3.3.2
-clixon-pyapi==0.0.1
 coverage==7.3.4
 daemonize==2.5.0
 docutils==0.20.1
