@@ -77,6 +77,8 @@ class Element(object):
 
         self._children.append(element)
 
+        return element
+        
     def rename(self, name: str, origname: str) -> None:
         """
         Rename the element.
