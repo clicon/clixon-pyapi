@@ -17,7 +17,7 @@ $ sudo python3 -m pip3 install dist/<wheel file>
 Currently `clixon-controller` expects a _clixon_server.py_, in order to support this do
 
 ```
-sudo ln -s $(which clixon_server) $(which clixon_server).py
+sudo ln -s $(which clixon_server) /usr/local/bin/clixon_server.py
 ```
 
 ## Develop
