@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-import os
-import sys
-
-from daemonize import Daemonize
-
-from clixon.args import parse_args, get_logger
-from clixon.client import readloop
+from clixon.version import __version__
 from clixon.modules import load_modules
+from clixon.client import readloop
+from clixon.args import parse_args, get_logger
+from daemonize import Daemonize
+import sys
+import os
 
 (sockpath, mpath, mfilter, pidfile, foreground,
  pp, _, _) = parse_args(sys.argv[1:])
@@ -41,6 +40,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    if "-V" in sys.argv or "--version" in sys.argv:
+        print(__version__)
+        sys.exit(0)
+
     if foreground:
         main()
     else:
