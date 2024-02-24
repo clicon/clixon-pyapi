@@ -125,12 +125,12 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
             spec.loader.exec_module(module)
 
             if not hasattr(module, "SERVICE"):
-                logger.info(
+                logger.debug(
                     f"Failed to load module, {modulename} does not have SERVICE attribute")
                 continue
 
             if not hasattr(module, "setup"):
-                logger.info(
+                logger.debug(
                     f"Failed to load module, {modulename} does not have setup function")
                 continue
         except Exception as e:
