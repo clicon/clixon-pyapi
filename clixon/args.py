@@ -4,7 +4,7 @@ import os
 import signal
 import sys
 from typing import Optional
-
+from clixon.version import __version__
 import clixon.parser as parser
 from clixon.log import get_log_factory
 
@@ -131,7 +131,13 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Log on (s)yslog, std(o)ut")
     parser.add_argument("-z", "--kill-daemon", action="store_true",
                         help="Kill daemon")
+    parser.add_argument("-V", "--version", action="store_true",
+                        help="Print version")
     args = parser.parse_args(cli_args)
+
+    if args.version:
+        print(__version__)
+        sys.exit(0)
 
     if args.modulepaths is None:
         args.modulepaths = [default_mpath]

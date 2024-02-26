@@ -40,10 +40,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    if "-V" in sys.argv or "--version" in sys.argv:
-        print(__version__)
-        sys.exit(0)
-
     if foreground:
         main()
     else:
