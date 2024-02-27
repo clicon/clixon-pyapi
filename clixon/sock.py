@@ -69,12 +69,15 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
                 data += sock.recv(1)
         else:
             if len(data) < int(chunk_len):
-                data += sock.recv(chunk_len - len(data))
+                data += sock.recv(chunk_len - len(data) + 3)
             else:
                 break
 
         if b"\n##\n" in data:
             break
+
+    if b"\n##" in data:
+        data = data[:-3]
 
     logger.debug("Read:")
     logger.debug(f"  len={chunk_len}")
