@@ -60,9 +60,10 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
             continue
 
         if not chunk_len:
-            if re.search(re_chunk_size, data.decode()):
-                chunk_len = int(
-                    re.search(re_chunk_size, data.decode()).group(1))
+            chunk_len = re.search(re_chunk_size, data.decode())
+
+            if chunk_len:
+                chunk_len = int(chunk_len.group(1))
                 logger.debug(f"Found chunk length: {chunk_len}")
                 data = b""
             else:
