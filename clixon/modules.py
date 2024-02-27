@@ -116,7 +116,7 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
             continue
         modulename = os.path.splitext(modulefile)[0].split("/")[-1]
 
-        logger.info(f"Importing module {modulename}")
+        logger.debug(f"Importing module {modulename}")
         try:
             spec = importlib.util.spec_from_file_location(
                 modulename, modulefile)
