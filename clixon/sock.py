@@ -1,3 +1,4 @@
+import re
 import socket
 from clixon.args import get_logger
 from typing import Optional
@@ -47,41 +48,38 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
     :rtype: str
     """
 
-    data = ""
-    datalen = 0
-    opid = 0
+    data = b""
+    chunk_len = 0
 
-    logger.debug("Waiting for select")
+    re_chunk_size = r"\n#(\d+)\n"
 
-    while datalen == 0 or len(data) < datalen - hdrlen:
+    while True:
         readable, _, _ = select.select([sock], [], [])
 
-        for readable_sock in readable:
-            if readable_sock != sock:
-                logger.debug("This is not the socket we want")
-                continue
+        if not readable:
+            continue
 
-            if datalen == 0:
-                recv = sock.recv(hdrlen)
-                datalen, opid = struct.unpack("!II", recv)
-
-                logger.debug("Read header:")
-                logger.debug(f"  len={datalen}")
-                logger.debug(f"  opid={opid}")
-
-                break
+        if not chunk_len:
+            if re.search(re_chunk_size, data.decode()):
+                chunk_len = int(
+                    re.search(re_chunk_size, data.decode()).group(1))
+                logger.debug(f"Found chunk length: {chunk_len}")
+                data = b""
             else:
-                recv = sock.recv(datalen - hdrlen)
-                data += recv.decode()
+                data += sock.recv(1)
+        else:
+            data += sock.recv(chunk_len)
 
-    data = data[:-1]
+            if len(data) < int(chunk_len):
+                data += sock.recv(chunk_len - len(data))
+            else:
+                break
 
     logger.debug("Read:")
-    logger.debug(f"  len={datalen}")
-    logger.debug(f"  opid={opid}")
+    logger.debug(f"  len={chunk_len}")
     logger.debug("  data=" + dump_string(data, pp=pp))
 
-    return data
+    return data.decode()
 
 
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
@@ -99,36 +97,43 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
 
     """
 
-    opid = 42
-
     if type(data) is Element:
         data = data.dumps()
-
-    if not data.endswith("\0"):
-        data += "\0"
 
     if type(data) is not bytes:
         data = str.encode(data)
 
-    framelen = hdrlen + len(data)
-    frame = struct.pack("!II", framelen, opid)
-    frame = frame + data
+    datalen = len(data)
+
+    frame_start = b"\n#"
+    frame_end = b"\n##\n"
+
+    frame_header = frame_start + str(datalen).encode() + b"\n"
+    framelen = len(frame_header) + datalen + len(frame_end)
+
+    frame = frame_header + data + frame_end
 
     sent = 0
     sent_total = 0
+
+    logger.debug(f"Sending {framelen} bytes of data")
 
     # Send all the data in data
     while sent_total < framelen:
         _, writable, _ = select.select([], [sock], [])
 
         if not writable:
+            logger.debug("No data available")
             continue
 
         sent = int(sock.send(frame[sent_total:]))
         sent_total += sent
 
+        logger.debug(f"Sent {sent} bytes of {framelen} bytes")
+
     logger.debug("Send:")
     logger.debug(f"  len={framelen}")
-    logger.debug(f"  opid={opid}")
     logger.debug("  data=" + dump_string(data, pp=pp))
     logger.debug(f"  sent={sent_total}")
+
+    return sent_total
