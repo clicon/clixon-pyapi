@@ -74,17 +74,17 @@ def read(sock: socket.socket, pp: Optional[bool] = False,
             else:
                 break
 
-        if b"\n##\n" in data:
-            break
-
-    if b"\n##" in data:
+    if data[-3:] == b"\n##":
         data = data[:-3]
+
+    if isinstance(data, bytes):
+        data = data.decode()
 
     logger.debug("Read:")
     logger.debug(f"  len={chunk_len}")
     logger.debug("  data=" + dump_string(data, pp=pp))
 
-    return data.decode()
+    return data
 
 
 def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
