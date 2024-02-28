@@ -29,14 +29,12 @@ def test_read(mock_socket, mock_select):
 
     mock_socket_instance = MagicMock()
     mock_socket.return_value = mock_socket_instance
-    mock_socket_instance.recv.side_effect = [
-        b'\n#20\n<test><data/></test>\n##\n'
-    ]
+    mock_socket_instance.recv.return_value = b'\n#20\n<test><data/></test>\n##\n'
     mock_select.return_value = ([mock_socket_instance], [], [])
     sock = mock_socket()
     data = read(sock)
 
-    assert data == "\n#20\n<test><data/></test>\n"
+    assert data == "\n#20\n<test><data/></test>\n##\n"
     mock_select.assert_called()
 
 
