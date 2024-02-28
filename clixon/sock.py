@@ -134,8 +134,6 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
         sent = int(sock.send(frame[sent_total:]))
         sent_total += sent
 
-        logger.debug(f"Sent {sent} bytes of {framelen} bytes")
-
     logger.debug("Send:")
     logger.debug(f"  len={framelen}")
     logger.debug("  data=" + dump_string(data, pp=pp))
