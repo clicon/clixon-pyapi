@@ -141,6 +141,10 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Print version")
     args = parser.parse_args(cli_args)
 
+    if args.version:
+        print(__version__)
+        sys.exit(0)
+
     if args.modulepaths is None:
         args.modulepaths = [default_mpath]
 
