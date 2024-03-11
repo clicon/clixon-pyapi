@@ -1,10 +1,12 @@
 import setuptools
 import os
 
+import clixon.version
+
 if "VERSION" in os.environ:
     version = os.environ["VERSION"]
 else:
-    version = "1.0.0.PRE"
+    version = clixon.version.__version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
