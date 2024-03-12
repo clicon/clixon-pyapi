@@ -18,14 +18,13 @@ def get_log_factory(output: Optional[str] = "s",
 
     """
 
-    logger = logging.getLogger('pyserver')
+    logger = logging.getLogger("pyserver")
     if not logger.handlers:
-        formatter = logging.Formatter(
-            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+        formatter = logging.Formatter("%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s")
 
         if output == "s":
             if os.path.exists("/dev/log"):
-                handler = SysLogHandler(address='/dev/log')
+                handler = SysLogHandler(address="/dev/log")
             else:
                 handler = SysLogHandler()
         else:
