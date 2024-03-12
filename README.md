@@ -15,7 +15,7 @@ $ pip3 install -r requirements.txt
 $ ./install.sh
 ```
 
-The Clixon controller Python API is open-source Apache License, Version 2.0, see [LICENSE](https://github.com/clicon/clixon-pyapi/LICENSE.md).
+The Clixon controller Python API is open-source Apache License, Version 2.0, see [LICENSE](https://github.com/clicon/clixon-pyapi/blob/main/LICENSE).
 
 The controller has a main branch continuously tested with CI.
 
