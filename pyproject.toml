@@ -35,4 +35,4 @@ clixon_server = "clixon.clixon_server:cli"
 packages = ["clixon"]
 
 [tool.setuptools.dynamic]
-version = {attr = "clixon.__version__"}
+version = {attr = "clixon.version.__version__"}
