@@ -29,7 +29,7 @@ Documentation = "https://clixon-controller-docs.readthedocs.io/en/latest/index.h
 Repository = "https://github.com/clicon/clixon-pyapi"
 
 [project.scripts]
-clixon_server = "clixon.clixon_server:cli"
+"clixon_server.py" = "clixon.clixon_server:cli"
 
 [tool.setuptools]
 packages = ["clixon"]
