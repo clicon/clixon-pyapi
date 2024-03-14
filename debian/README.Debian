@@ -1,0 +1,29 @@
+Built with `git-buildpackage`.
+
+## Building a deb package
+
+1. Create a tag in *upstream-branch*
+
+```
+git tag <version>
+```
+
+2. Switch to *debian-branch* and import tag
+
+```
+git import-ref -u <version>
+```
+
+3. Update the *debian/changelog* file and commit it, eg
+
+```
+gbp dch -N <version>-<debian revision>
+git add debian/
+git commit -m "<version>"
+```
+
+4. Build package
+
+```
+gbp buildpackage
+```

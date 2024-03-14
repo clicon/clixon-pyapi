@@ -1,0 +1,26 @@
+Source: clixon-pyapi
+Section: python
+Priority: optional
+Maintainer: Kristofer Hallin <clixon-pyapi@8n1.se>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3.11,
+               python3-setuptools,
+               pybuild-plugin-pyproject,
+               python3-xmltodict,
+               python3-pytest,
+               python3-pytest-cov,
+               python3-pytest-mock
+Standards-Version: 4.5.0
+X-Python3-Version: >= 3.11
+
+Package: python3-clixon-pyapi
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-all,
+         python3-xmltodict,
+         python3-pytest
+Description: Clixon services
