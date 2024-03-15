@@ -78,10 +78,10 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 
     """
 
+    controller_ns = {"xmlns": "http://clicon.org/controller"}
+
     if target_attributes == {} and target == "actions":
-        target_attributes = {
-            "xmlns": "http://clicon.org/controller"
-        }
+        target_attributes = controller_ns
 
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
@@ -93,8 +93,7 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 
     if device:
         root.rpc.edit_config.config.delete("services")
-        root.rpc.edit_config.config.create(
-            "devices", attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.edit_config.config.create("devices", attributes=controller_ns)
         root.rpc.edit_config.config.devices.add(config)
     else:
         for node in config.get_elements():
@@ -157,6 +156,8 @@ def rpc_header_get(rpc_type: object, user: str,
 
     """
 
+    controller_ns = {"xmlns": "http://clicon.org/controller"}
+
     if attributes is None:
         attributes = {
             "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
@@ -175,21 +176,17 @@ def rpc_header_get(rpc_type: object, user: str,
     elif rpc_type == RPCTypes.COMMIT:
         root.rpc.create("commit")
     elif rpc_type == RPCTypes.TRANSACTION_DONE:
-        root.rpc.create("transaction-actions-done",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("transaction-actions-done", attributes=controller_ns)
     elif rpc_type == RPCTypes.TRANSACTION_ERROR:
-        root.rpc.create("transaction-error",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("transaction-error", attributes=controller_ns)
     elif rpc_type == RPCTypes.PUSH_COMMIT:
-        root.rpc.create("controller-commit",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("controller-commit", attributes=controller_ns)
         root.rpc.controller_commit.create("device", data="*")
         root.rpc.controller_commit.create("push", data="COMMIT")
         root.rpc.controller_commit.create("actions", data="NONE")
         root.rpc.controller_commit.create("source", data="ds:running")
     elif rpc_type == RPCTypes.PULL:
-        root.rpc.create("config-pull",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("config-pull", attributes=controller_ns)
         root.rpc.config_pull.create("devname", data="*")
 
     return root
