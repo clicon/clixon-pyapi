@@ -5,8 +5,8 @@ import sys
 from daemonize import Daemonize
 
 from clixon.args import parse_args
-from clixon.log import init_root_logger
 from clixon.client import readloop
+from clixon.log import init_root_logger
 from clixon.modules import load_modules
 
 (

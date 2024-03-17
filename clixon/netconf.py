@@ -29,9 +29,14 @@ def rpc_config_get(user: Optional[str] = "root",
                    source: Optional[str] = "actions") -> Element:
     """
     Create a get-config RPC element.
+
     :param user: User name
+    :type user: str
     :param source: Source of the configuration
+    :type source: str
     :return: RPC element
+    :rtype: Element
+
     """
     attributes = {}
     xpath_attributes = {
@@ -57,18 +62,26 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
                    target_attributes: Optional[dict] = {}) -> Element:
     """
     Create a RPC config set element.
+
     :param config: Configuration to set
+    :type config: Element
     :param user: User name
+    :type user: str
     :param device: Device configuration
+    :type device: bool
     :param target: Target of the configuration
+    :type target: str
     :param target_attributes: Target attributes
+    :type target_attributes: dict
     :return: RPC element
+    :rtype: Element
+
     """
 
+    controller_ns = {"xmlns": "http://clicon.org/controller"}
+
     if target_attributes == {} and target == "actions":
-        target_attributes = {
-            "xmlns": "http://clicon.org/controller"
-        }
+        target_attributes = controller_ns
 
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
@@ -80,8 +93,7 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 
     if device:
         root.rpc.edit_config.config.delete("services")
-        root.rpc.edit_config.config.create(
-            "devices", attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.edit_config.config.create("devices", attributes=controller_ns)
         root.rpc.edit_config.config.devices.add(config)
     else:
         for node in config.get_elements():
@@ -93,8 +105,12 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 def rpc_commit(user: Optional[str] = "root") -> Element:
     """
     Create a RPC commit element.
+
     :param user: User name
+    :type user: str
     :return: RPC element
+    :rtype: Element
+
     """
 
     return rpc_header_get(RPCTypes.COMMIT, user)
@@ -103,7 +119,10 @@ def rpc_commit(user: Optional[str] = "root") -> Element:
 def rpc_push() -> Element:
     """
     Create a RPC push element.
+
     :return: RPC element
+    :rtype: Element
+
     """
 
     return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
@@ -112,7 +131,10 @@ def rpc_push() -> Element:
 def rpc_pull() -> Element:
     """
     Create a RPC pull element.
+
     :return: RPC element
+    :rtype: Element
+
     """
 
     return rpc_header_get(RPCTypes.PULL, "root")
@@ -122,11 +144,19 @@ def rpc_header_get(rpc_type: object, user: str,
                    attributes: Optional[dict] = None) -> Element:
     """
     Create a RPC header element.
+
     :param rpc_type: RPC type
+    :type rpc_type: object
     :param user: User name
+    :type user: str
     :param attributes: Attributes
+    :type attributes: dict
     :return: RPC element
+    :rtype: Element
+
     """
+
+    controller_ns = {"xmlns": "http://clicon.org/controller"}
 
     if attributes is None:
         attributes = {
@@ -146,21 +176,17 @@ def rpc_header_get(rpc_type: object, user: str,
     elif rpc_type == RPCTypes.COMMIT:
         root.rpc.create("commit")
     elif rpc_type == RPCTypes.TRANSACTION_DONE:
-        root.rpc.create("transaction-actions-done",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("transaction-actions-done", attributes=controller_ns)
     elif rpc_type == RPCTypes.TRANSACTION_ERROR:
-        root.rpc.create("transaction-error",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("transaction-error", attributes=controller_ns)
     elif rpc_type == RPCTypes.PUSH_COMMIT:
-        root.rpc.create("controller-commit",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("controller-commit", attributes=controller_ns)
         root.rpc.controller_commit.create("device", data="*")
         root.rpc.controller_commit.create("push", data="COMMIT")
         root.rpc.controller_commit.create("actions", data="NONE")
         root.rpc.controller_commit.create("source", data="ds:running")
     elif rpc_type == RPCTypes.PULL:
-        root.rpc.create("config-pull",
-                        attributes={"xmlns": "http://clicon.org/controller"})
+        root.rpc.create("config-pull", attributes=controller_ns)
         root.rpc.config_pull.create("devname", data="*")
 
     return root
@@ -169,8 +195,12 @@ def rpc_header_get(rpc_type: object, user: str,
 def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Element:
     """
     Create a RPC subscription element.
+
     :param stream: Stream name
+    :type stream: str
     :return: RPC element
+    :rtype: Element
+
     """
 
     attributes = {
@@ -195,9 +225,14 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     """
     Parse the XML string and raise an exception if an error is found.
+
     :param xmlstr: XML string
+    :type xmlstr: str
     :param standalone: Standalone mode
+    :type standalone: bool
     :return: None
+    :rtype: None
+
     """
     try:
         root = parse_string(xmlstr)

@@ -25,10 +25,17 @@ events = RPCEventHandler()
 
 @events.register("*<services-commit*>*</services-commit>*")
 def services_commit_cb(*args, **kwargs) -> None:
-    # Callback for services commit
-    # :param args: Arguments
-    # :param kwargs: Keyword arguments
-    # :return: None
+    """
+    Callback for services commit
+
+    :param args: Arguments
+    :type args: list
+    :param kwargs: Keyword arguments
+    :type kwargs: dict
+    :return: None
+    :rtype: None
+
+    """
 
     data = kwargs["data"]
     sock = kwargs["sock"]
@@ -105,10 +112,17 @@ def services_commit_cb(*args, **kwargs) -> None:
 
 @events.register("*")
 def rpc_error_cb(*args, **kwargs) -> None:
-    # Callback for RPC error checking
-    # :param args: Arguments
-    # :param kwargs: Keyword arguments
-    # :return: None
+    """
+    Callback for RPC errors
+
+    :param args: Arguments
+    :type args: list
+    :param kwargs: Keyword arguments
+    :type kwargs: dict
+    :return: None
+    :rtype: None
+
+    """
 
     data = kwargs["data"]
 
@@ -116,10 +130,18 @@ def rpc_error_cb(*args, **kwargs) -> None:
 
 
 def enable_service_notify(sock: socket, pp: bool) -> None:
-    # Enable service notifications
-    # :param sock: Socket
-    # :param pp: Pretty print
-    # :return: None
+    """
+
+    Enable service notifications
+
+    :param sock: Socket
+    :type sock: socket
+    :param pp: Pretty print
+    :type pp: bool
+    :return: None
+    :rtype: None
+
+    """
 
     rpc = rpc_subscription_create()
     send(sock, rpc, pp)
@@ -129,10 +151,18 @@ def enable_service_notify(sock: socket, pp: bool) -> None:
 
 
 def enable_transaction_notify(sock: socket, pp: bool) -> None:
-    # Enable transaction notifications
-    # :param sock: Socket
-    # :param pp: Pretty print
-    # :return: None
+    """
+
+    Enable transaction notifications
+
+    :param sock: Socket
+    :type sock: socket
+    :param pp: Pretty print
+    :type pp: bool
+    :return: None
+    :rtype: None
+
+    """
 
     rpc = rpc_subscription_create("controller-transaction")
     send(sock, rpc, pp)
@@ -144,10 +174,16 @@ def enable_transaction_notify(sock: socket, pp: bool) -> None:
 def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
     """
     Read loop for the client.
+
     :param sockpath: Path to the socket
+    :type sockpath: str
     :param modules: List of modules to run
+    :type modules: list
     :param pp: Pretty print
+    :type pp: bool
     :return: None
+    :rtype: None
+
     """
 
     logger.debug("Starting read loop")

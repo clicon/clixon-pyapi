@@ -1,11 +1,19 @@
 import setuptools
+import os
+
+import clixon.version
+
+if "VERSION" in os.environ:
+    version = os.environ["VERSION"]
+else:
+    version = clixon.version.__version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="clixon-pyapi",
-    version="0.0.1",
+    version=version,
     author="Kristofer Hallin, Olof Hagsand",
     author_email="clixon-pyapi@8n1.se",
     description="Clixon Python API",

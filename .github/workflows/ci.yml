@@ -17,17 +17,10 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
           cache: 'pip'
-            #- name: Install dependencies
-            #  # Are we using wheel?
-            #  run: python -m pip install --upgrade pip setuptools wheel
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
+          python -m pip install --upgrade pip setuptools wheel pytest
           pip install -r requirements.txt
-      - name: Create folder
-        run: |
-          sudo mkdir -p /usr/local/share/clixon/controller/modules/
       - name: Test with pytest
         run: |
           pytest

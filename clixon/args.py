@@ -1,17 +1,45 @@
 import argparse
+import logging
 import os
 import signal
 import sys
 from typing import Optional
 
+from clixon.log import get_log_factory
 import clixon.parser as parser
+from clixon.version import __version__
+
+
+def __update_from_configfile(opt: Optional[str] = None):
+    """
+    Update global arguments from configuration file.
+
+    :param opt: Option
+    :type opt: str
+    :return: None
+    :rtype: None
+
+    """
+    if not global_args.get("configfile"):
+        return
+
+    sockpath, modulepaths, modulefilter, pidfile = __parse_config(
+        global_args.get("configfile"), opt)
+    global_args["sockpath"] = sockpath
+    global_args["modulepaths"] = modulepaths
+    global_args["modulefilter"] = modulefilter
+    global_args["pidfile"] = pidfile
 
 
 def __kill(pidfile: str) -> None:
     """
     Kill daemon.
+
     :param pidfile: Pidfile
+    :type pidfile: str
     :return: None
+    :rtype: None
+
     """
 
     try:
@@ -28,8 +56,13 @@ def __parse_config_file(configfile: str) -> tuple:
     Parse configuration variables
         sockpath, modulepaths, modulefilter, pidfile
     from file.
+
     :param configfile: Configuration file
-    :return: Tuple with parsed configuration
+    :type configfile: str
+    :param argname: Argument name
+    :type argname: str
+    :return: Tuple with configuration
+    :rtype: tuple
     """
 
     # Jupyter sucks
@@ -64,7 +97,10 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
     Parse command line arguments.
 
     :param cli_args: List of command line arguments
+    :type cli_args: list
     :return: Tuple with configuration
+    :rtype: tuple
+
     """
     global global_args
 
@@ -95,10 +131,22 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
                         help="Log on (s)yslog, std(o)ut")
     parser.add_argument("-z", "--kill-daemon", action="store_true",
                         help="Kill daemon")
+    parser.add_argument("-V", "--version", action="store_true",
+                        help="Print version")
     args = parser.parse_args(cli_args)
 
     if args.kill_daemon:
         __kill(args.pidfile)
+
+    if args.version:
+        print(__version__)
+        sys.exit(0)
+
+    if args.modulepaths is None:
+        args.modulepaths = [default_mpath]
+
+    if not all(map(os.path.exists, args.modulepaths)):
+        print(f"Module path {args.modulepaths} does not exist")
         sys.exit(0)
 
     if args.configfile is not None and not os.path.exists(args.configfile):
@@ -142,13 +190,47 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
             args.debug)
 
 
+def get_sockpath() -> str:
+    """
+    Get socket path.
+
+    :return: Socket path
+    :rtype: str
+
+    """
+
+    return get_arg("sockpath")
+
+
+def get_prettyprint() -> bool:
+    """
+    Get prettyprint flag.
+
+    :return: Prettyprint flag
+    :rtype: bool
+
+    """
+
+    return get_arg("pp")
+
+
 def get_arg(opt: str):
     """
     Get CLI argument.
 
     :param opt: Key of option to get.
+    :type opt: str
     :return: Value of key
+    :rtype: str
+
     """
+
+    if "sphinx-build" in sys.argv[0]:
+        return
+
+    if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
+        __update_from_configfile(opt)
+
     if opt in global_args.keys():
         return global_args.get(opt)
 

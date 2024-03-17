@@ -21,10 +21,16 @@ def run_modules(modules: List, service_name: str,
                 instance: str) -> Optional[Exception]:
     """
     Run all modules in the list.
+
     :param modules: List of modules to run
+    :type modules: List
     :param service_name: Name of the service to run modules for
+    :type service_name: str
     :param instance: Instance of the service to run modules for
+    :type instance: str
     :return: None if all modules ran successfully, otherwise the exception
+    :rtype: Optional[Exception]
+
     """
     logger.debug(f"Modules: {modules}")
 
@@ -54,9 +60,14 @@ def run_modules(modules: List, service_name: str,
 
 def find_modules(modulespath: str) -> List[str]:
     """
+
     Find all modules in the modulespath.
+
     :param modulespath: Path to the modules
+    :type modulespath: str
     :return: List of modules
+    :rtype: List[str]
+
     """
 
     modules = []
@@ -77,7 +88,7 @@ def find_modules(modulespath: str) -> List[str]:
     modules.reverse()
 
     if modules:
-        logger.info("Modules found: " + str(modules))
+        logger.debug("Modules found: " + str(modules))
 
     return modules
 
@@ -85,9 +96,14 @@ def find_modules(modulespath: str) -> List[str]:
 def load_modules(modulespath: str, modulefilter: str) -> List:
     """
     Load all modules in the modulespath.
+
     :param modulespath: Path to the modules
+    :type modulespath: str
     :param modulefilter: Comma separated list of modules to skip
+    :type modulefilter: str
     :return: List of loaded modules
+    :rtype: List
+
     """
 
     loaded_modules = []
@@ -102,7 +118,7 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
             continue
         modulename = os.path.splitext(modulefile)[0].split("/")[-1]
 
-        logger.info(f"Importing module {modulename}")
+        logger.debug(f"Importing module {modulename}")
         try:
             spec = importlib.util.spec_from_file_location(
                 modulename, modulefile)
@@ -111,12 +127,12 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
             spec.loader.exec_module(module)
 
             if not hasattr(module, "SERVICE"):
-                logger.info(
+                logger.debug(
                     f"Failed to load module, {modulename} does not have SERVICE attribute")
                 continue
 
             if not hasattr(module, "setup"):
-                logger.info(
+                logger.debug(
                     f"Failed to load module, {modulename} does not have setup function")
                 continue
         except Exception as e:
