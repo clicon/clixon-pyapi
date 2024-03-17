@@ -1,34 +1,11 @@
 import argparse
-import logging
 import os
 import signal
 import sys
 from typing import Optional
 
-from clixon.log import get_log_factory
 import clixon.parser as parser
 from clixon.version import __version__
-
-
-def __update_from_configfile(opt: Optional[str] = None):
-    """
-    Update global arguments from configuration file.
-
-    :param opt: Option
-    :type opt: str
-    :return: None
-    :rtype: None
-
-    """
-    if not global_args.get("configfile"):
-        return
-
-    sockpath, modulepaths, modulefilter, pidfile = __parse_config(
-        global_args.get("configfile"), opt)
-    global_args["sockpath"] = sockpath
-    global_args["modulepaths"] = modulepaths
-    global_args["modulefilter"] = modulefilter
-    global_args["pidfile"] = pidfile
 
 
 def __kill(pidfile: str) -> None:
@@ -112,14 +89,13 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
     parser = argparse.ArgumentParser(description="clixon PyAPI")
     parser.add_argument("-f", "--configfile",
                         help="Clixon controller configuration file")
-    parser.add_argument("-m", "--modulepaths", action="append", default=[],
+    parser.add_argument("-m", "--modulepaths", action="append",
                         help="Modules path")
     parser.add_argument("-e", "--modulefilter", default="",
                         help="Comma separated list of modules to exclude")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable verbose debug logging")
-    parser.add_argument("-s", "--sockpath",
-                        default=default_sockpath,
+    parser.add_argument("-s", "--sockpath", default=default_sockpath,
                         help="Clixon socket path")
     parser.add_argument("-p", "--pidfile", default=default_pidfile,
                         help="Pidfile for Python server")
@@ -135,19 +111,16 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
                         help="Print version")
     args = parser.parse_args(cli_args)
 
-    if args.kill_daemon:
-        __kill(args.pidfile)
-
     if args.version:
         print(__version__)
         sys.exit(0)
 
+    if args.kill_daemon:
+        __kill(args.pidfile)
+        sys.exit(0)
+
     if args.modulepaths is None:
         args.modulepaths = [default_mpath]
-
-    if not all(map(os.path.exists, args.modulepaths)):
-        print(f"Module path {args.modulepaths} does not exist")
-        sys.exit(0)
 
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
@@ -168,10 +141,6 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
 
         args.modulefilter = modulefilter
         args.pidfile = pidfile
-
-    if len(args.modulepaths) == 0:
-        args.modulepaths = [default_mpath]
-    args.modulepaths = list(set(args.modulepaths))
 
     if not all(map(os.path.exists, args.modulepaths)):
         print(f"Module path {args.modulepaths} contains non-existing paths")
@@ -227,9 +196,6 @@ def get_arg(opt: str):
 
     if "sphinx-build" in sys.argv[0]:
         return
-
-    if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
-        __update_from_configfile(opt)
 
     if opt in global_args.keys():
         return global_args.get(opt)
