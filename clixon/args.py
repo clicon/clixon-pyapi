@@ -69,7 +69,7 @@ def __parse_config_file(configfile: str) -> tuple:
 global_args = {}
 
 
-def parse_args(cli_args: Optional[list] = None) -> tuple:
+def parse_args(cli_args: Optional[list] = []) -> tuple:
     """
     Parse command line arguments.
 
@@ -119,12 +119,12 @@ def parse_args(cli_args: Optional[list] = None) -> tuple:
         __kill(args.pidfile)
         sys.exit(0)
 
-    if args.modulepaths is None:
-        args.modulepaths = [default_mpath]
-
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
+
+    if args.modulepaths is None:
+        args.modulepaths = [default_mpath]
 
     # Load
     #   sockpath, conf_mpath, modulefilter, pidfile
