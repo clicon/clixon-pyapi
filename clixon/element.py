@@ -5,8 +5,13 @@ import xmltodict
 
 
 class Element(object):
-    def __init__(self, name: str, attributes: Optional[dict] = {},
-                 cdata: Optional[str] = "", data: Optional[str] = "") -> None:
+    def __init__(
+        self,
+        name: Optional[str] = "root",
+        attributes: Optional[dict] = {},
+        cdata: Optional[str] = "",
+        data: Optional[str] = "",
+    ) -> None:
         """
         Create a new element.
 
@@ -67,10 +72,14 @@ class Element(object):
             return self._name
         return self._origname
 
-    def create(self, name: str, attributes: Optional[dict] = {},
-               cdata: Optional[str] = "",
-               data: Optional[str] = "",
-               element: Optional[object] = None) -> None:
+    def create(
+        self,
+        name: str,
+        attributes: Optional[dict] = {},
+        cdata: Optional[str] = "",
+        data: Optional[str] = "",
+        element: Optional[object] = None,
+    ) -> None:
         """
         Create a new element.
 
@@ -100,7 +109,7 @@ class Element(object):
         self._children.append(element)
 
         return element
-        
+
     def rename(self, name: str, origname: str) -> None:
         """
         Rename the element.
@@ -206,8 +215,7 @@ class Element(object):
             return self.attributes.get(key)
         return self.attributes
 
-    def get_elements(self, name: Optional[str] = "",
-                     data: Optional[str] = "") -> list:
+    def get_elements(self, name: Optional[str] = "", data: Optional[str] = "") -> list:
         """
         Return the children of the element.
 
@@ -245,7 +253,7 @@ class Element(object):
         if self.attributes and self.attributes != {}:
             for key in self.attributes.keys():
                 value = self.attributes[key]
-                attr_string += f" {key}=\"{value}\""
+                attr_string += f' {key}="{value}"'
         return attr_string
 
     def set_data(self, data: str) -> None:
@@ -355,8 +363,7 @@ class Element(object):
                 self.__dict__[key] = matching_children
                 return matching_children
         else:
-            raise AttributeError(
-                "'%s' has no attribute '%s'" % (self._name, key))
+            raise AttributeError("'%s' has no attribute '%s'" % (self._name, key))
 
     def __hasattribute__(self, name: str) -> bool:
         """

@@ -25,8 +25,12 @@ class RPCError(Exception):
     pass
 
 
-def rpc_config_get(user: Optional[str] = "root",
-                   source: Optional[str] = "actions") -> Element:
+CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
+
+
+def rpc_config_get(
+    user: Optional[str] = "root", source: Optional[str] = "actions"
+) -> Element:
     """
     Create a get-config RPC element.
 
@@ -39,27 +43,26 @@ def rpc_config_get(user: Optional[str] = "root",
 
     """
     attributes = {}
-    xpath_attributes = {
-        "nc:type": "xpath",
-        "nc:select": "/"
-    }
+    xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
 
     if source == "actions":
-        attributes = {"xmlns": "http://clicon.org/controller"}
+        attributes = CONTROLLER_NS
 
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
     root.rpc.get_config.create("source")
-    root.rpc.get_config.source.create(
-        source, attributes=attributes)
+    root.rpc.get_config.source.create(source, attributes=attributes)
     root.rpc.get_config.create("nc:filter", attributes=xpath_attributes)
 
     return root
 
 
-def rpc_config_set(config: Element, user: Optional[str] = "root",
-                   device: Optional[bool] = False,
-                   target: Optional[str] = "actions",
-                   target_attributes: Optional[dict] = {}) -> Element:
+def rpc_config_set(
+    config: Element,
+    user: Optional[str] = "root",
+    device: Optional[bool] = False,
+    target: Optional[str] = "actions",
+    target_attributes: Optional[dict] = {},
+) -> Element:
     """
     Create a RPC config set element.
 
@@ -78,22 +81,19 @@ def rpc_config_set(config: Element, user: Optional[str] = "root",
 
     """
 
-    controller_ns = {"xmlns": "http://clicon.org/controller"}
-
     if target_attributes == {} and target == "actions":
-        target_attributes = controller_ns
+        target_attributes = CONTROLLER_NS
 
     root = rpc_header_get(RPCTypes.EDIT_CONFIG, user)
     root.rpc.edit_config.create("target")
-    root.rpc.edit_config.target.create(
-        target, attributes=target_attributes)
+    root.rpc.edit_config.target.create(target, attributes=target_attributes)
     root.rpc.edit_config.create("default-operation")
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
     if device:
         root.rpc.edit_config.config.delete("services")
-        root.rpc.edit_config.config.create("devices", attributes=controller_ns)
+        root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
         root.rpc.edit_config.config.devices.add(config)
     else:
         for node in config.get_elements():
@@ -140,8 +140,9 @@ def rpc_pull() -> Element:
     return rpc_header_get(RPCTypes.PULL, "root")
 
 
-def rpc_header_get(rpc_type: object, user: str,
-                   attributes: Optional[dict] = None) -> Element:
+def rpc_header_get(
+    rpc_type: object, user: str, attributes: Optional[dict] = None
+) -> Element:
     """
     Create a RPC header element.
 
@@ -156,14 +157,12 @@ def rpc_header_get(rpc_type: object, user: str,
 
     """
 
-    controller_ns = {"xmlns": "http://clicon.org/controller"}
-
     if attributes is None:
         attributes = {
             "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
             "username": user,
             "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
-            "message-id": 42
+            "message-id": 42,
         }
 
     root = Element("root", {})
@@ -176,17 +175,17 @@ def rpc_header_get(rpc_type: object, user: str,
     elif rpc_type == RPCTypes.COMMIT:
         root.rpc.create("commit")
     elif rpc_type == RPCTypes.TRANSACTION_DONE:
-        root.rpc.create("transaction-actions-done", attributes=controller_ns)
+        root.rpc.create("transaction-actions-done", attributes=CONTROLLER_NS)
     elif rpc_type == RPCTypes.TRANSACTION_ERROR:
-        root.rpc.create("transaction-error", attributes=controller_ns)
+        root.rpc.create("transaction-error", attributes=CONTROLLER_NS)
     elif rpc_type == RPCTypes.PUSH_COMMIT:
-        root.rpc.create("controller-commit", attributes=controller_ns)
+        root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
         root.rpc.controller_commit.create("device", data="*")
         root.rpc.controller_commit.create("push", data="COMMIT")
         root.rpc.controller_commit.create("actions", data="NONE")
         root.rpc.controller_commit.create("source", data="ds:running")
     elif rpc_type == RPCTypes.PULL:
-        root.rpc.create("config-pull", attributes=controller_ns)
+        root.rpc.create("config-pull", attributes=CONTROLLER_NS)
         root.rpc.config_pull.create("devname", data="*")
 
     return root
@@ -203,21 +202,15 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 
     """
 
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
-    }
+    attributes = {"xmlns": "urn:ietf:params:xml:ns:netmod:notification"}
 
-    rpcattrs = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42"
-    }
+    rpcattrs = {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0", "message-id": "42"}
 
     root = rpc_header_get("", "root", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
-    root.rpc.create_subscription.create(
-        "filter", {"type": "xpath", "select": ""})
+    root.rpc.create_subscription.create("filter", {"type": "xpath", "select": ""})
 
     return root
 
@@ -256,22 +249,102 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             return None
     elif "error-path" in xmlstr:
         try:
-            message = root.rpc_reply.rpc_error.error_app_tag.cdata + \
-                ": " + root.rpc_reply.rpc_error.error_path.cdata
+            message = (
+                root.rpc_reply.rpc_error.error_app_tag.cdata
+                + ": "
+                + root.rpc_reply.rpc_error.error_path.cdata
+            )
             raise RPCError(message)
         except AttributeError:
             return None
     elif "non-unique" in xmlstr:
         try:
-            message = root.rpc_reply.rpc_error.error_app_tag.cdata + \
-                ": " + root.rpc_reply.rpc_error.error_info.non_unique.cdata
+            message = (
+                root.rpc_reply.rpc_error.error_app_tag.cdata
+                + ": "
+                + root.rpc_reply.rpc_error.error_info.non_unique.cdata
+            )
             raise RPCError(message)
         except AttributeError:
             return None
     elif "rpc-error" in xmlstr:
         try:
-            message = root.rpc_reply.rpc_error.error_tag.cdata + \
-                ": " + root.rpc_reply.rpc_error.error_message.cdata
+            message = (
+                root.rpc_reply.rpc_error.error_tag.cdata
+                + ": "
+                + root.rpc_reply.rpc_error.error_message.cdata
+            )
             raise RPCError(message)
         except AttributeError:
             return None
+    elif "<result>FAILED</result>" in xmlstr:
+        try:
+            message = root.notification.controller_transaction.reason
+            raise RPCError(message)
+        except AttributeError:
+            return None
+
+
+def rpc_service_apply(
+    service: str, instance: str, diff: Optional[bool] = True
+) -> Element:
+    """
+    Create a RPC service-apply element.
+
+    :param service: Service name
+    :type service: str
+    :param instance: Instance name
+    :type instance: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42",
+        "username": "root",
+    }
+
+    if diff:
+        action = "NONE"
+    else:
+        action = "COMMIT"
+
+    instance = f"{service}[service-name='{instance}']"
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
+    root.rpc.controller_commit.create("device", data="*")
+    root.rpc.controller_commit.create("push", data=action)
+    root.rpc.controller_commit.create("actions", data="FORCE")
+    root.rpc.controller_commit.create("service-instance", data=instance)
+    root.rpc.controller_commit.create("source", data="ds:candidate")
+
+    return root
+
+
+def rpc_datastore_diff():
+    """
+    Create a RPC datastore-diff element.
+
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42",
+        "username": "root",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("datastore-diff", attributes=CONTROLLER_NS)
+    root.rpc.datastore_diff.create("devname", data="*")
+    root.rpc.datastore_diff.create("config-type1", data="RUNNING")
+    root.rpc.datastore_diff.create("config-type2", data="ACTIONS")
+
+    return root
