@@ -15,6 +15,7 @@ from clixon.netconf import (
 )
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
+from clixon.helpers import timeout
 
 
 sockpath = get_arg("sockpath")
@@ -124,15 +125,12 @@ class Clixon:
                 logger.debug(f"Configure {device.name} with target {self.__target}")
 
                 config = rpc_config_set(device, device=True, target=self.__target)
-
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp, standalone=self.__standalone)
-
                 self.__handle_errors(data)
 
                 if self.__commit:
                     self.commit()
-
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
@@ -180,6 +178,7 @@ class Clixon:
 
         return self.__root
 
+    @timeout(30)
     def __wait_for_notification(self) -> None:
         """
         Wait for the pull/push notification.

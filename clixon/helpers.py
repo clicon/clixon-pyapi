@@ -1,10 +1,36 @@
 import re
 from clixon.element import Element
 from typing import List, Optional, Iterable
+import signal
+import time
 
 
-def get_service_instance(root: Element, service_name: str,
-                         **kwargs: dict) -> Element:
+class TimeoutException(Exception):
+    pass
+
+
+def timeout(seconds=10):
+    def decorator(func):
+        def __handle_timeout__(signum, frame):
+            raise TimeoutException(
+                "%s timed out after %d seconds" % (func.__name__, seconds)
+            )
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, __handle_timeout__)
+            signal.alarm(seconds)
+
+            try:
+                func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+
+        return wrapper
+
+    return decorator
+
+
+def get_service_instance(root: Element, service_name: str, **kwargs: dict) -> Element:
     """
     Returns the service instance.
 
@@ -57,10 +83,13 @@ def get_devices_from_group(root: Element, device_group_name: str) -> List[str]:
     return devices
 
 
-def get_openconfig_interface_address(root: Element, interface_name: str,
-                                     interface_unit: str,
-                                     device_name: str,
-                                     family: Optional[str] = "") -> str:
+def get_openconfig_interface_address(
+    root: Element,
+    interface_name: str,
+    interface_unit: str,
+    device_name: str,
+    family: Optional[str] = "",
+) -> str:
     """
     Returns the IP address of an interface.
 
@@ -136,8 +165,9 @@ def get_device(root: Element, name: str) -> Element:
     return None
 
 
-def get_devices_configuration(root: Element,
-                              name: Optional[str] = "") -> Iterable[Element]:
+def get_devices_configuration(
+    root: Element, name: Optional[str] = ""
+) -> Iterable[Element]:
     """
     Returns an iterable of devices configuration.
 
@@ -196,8 +226,10 @@ def is_juniper(device: Element) -> bool:
     :rtype: bool
     """
     try:
-        if device.config.configuration.get_attributes("xmlns") == \
-           "http://yang.juniper.net/junos/conf/root":
+        if (
+            device.config.configuration.get_attributes("xmlns")
+            == "http://yang.juniper.net/junos/conf/root"
+        ):
             return True
     except AttributeError:
         return False
@@ -232,7 +264,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         parameter = None
         value = None
 
-        arg = re.search(r'\[(.*?)\]', node)
+        arg = re.search(r"\[(.*?)\]", node)
 
         if arg:
             if arg.group(1).isdigit():
@@ -247,8 +279,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
                     parameter = parameter.replace("-", "_")
                     value = match.group(2)
 
-                    node = node.replace(
-                        f"[{match.group(1)}='{match.group(2)}']", "")
+                    node = node.replace(f"[{match.group(1)}='{match.group(2)}']", "")
                     node = node.replace("-", "_")
 
                 except AttributeError:
@@ -294,8 +325,12 @@ def get_path(root: Element, path: str) -> Optional[Element]:
     return new_root
 
 
-def get_value(element: Element, val: str, required: Optional[bool] = False,
-              default: Optional[str] = "") -> str:
+def get_value(
+    element: Element,
+    val: str,
+    required: Optional[bool] = False,
+    default: Optional[str] = "",
+) -> str:
     """
     Returns the value of an element.
 
@@ -349,10 +384,14 @@ def get_service_instances(root: Element, service_name: str) -> List[Element]:
     return instances
 
 
-def set_creator_attributes(root: Element, service_name: str,
-                           instance_name: Optional[str] = "",
-                           operation: Optional[str] = "create",
-                           *args, **kwargs):
+def set_creator_attributes(
+    root: Element,
+    service_name: str,
+    instance_name: Optional[str] = "",
+    operation: Optional[str] = "create",
+    *args,
+    **kwargs,
+):
     """
     Sets the creator attributes.
 
@@ -381,7 +420,7 @@ def set_creator_attributes(root: Element, service_name: str,
     creator_attr = {
         "cl:creator": f"{service_name}[service-name='{instance_name}']",
         "nc:operation": operation,
-        "xmlns:cl": "http://clicon.org/lib"
+        "xmlns:cl": "http://clicon.org/lib",
     }
 
     if not isinstance(root, Element):
@@ -390,10 +429,14 @@ def set_creator_attributes(root: Element, service_name: str,
     root.update_attributes(creator_attr)
 
 
-def get_junos_interface_address(root: Element, device: str, interface: str,
-                                unit: str,
-                                family: Optional[str] = "inet",
-                                primary: Optional[bool] = True):
+def get_junos_interface_address(
+    root: Element,
+    device: str,
+    interface: str,
+    unit: str,
+    family: Optional[str] = "inet",
+    primary: Optional[bool] = True,
+):
     """
     Get the addresses of a Junos interface.
 
