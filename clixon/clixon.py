@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 from clixon.args import get_arg
+from clixon.helpers import timeout
 from clixon.netconf import (
     rpc_commit,
     rpc_config_get,
@@ -10,7 +11,9 @@ from clixon.netconf import (
     rpc_error_get,
     rpc_pull,
     rpc_push,
-    rpc_subscription_create
+    rpc_subscription_create,
+    rpc_apply_service,
+    rpc_datastore_diff,
 )
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
@@ -22,16 +25,19 @@ logger = getLogger(__name__)
 default_sockpath = "/usr/local/var/run/controller.sock"
 
 
-class Clixon():
-    def __init__(self, sockpath: Optional[str] = "",
-                 commit: Optional[bool] = False,
-                 push: Optional[bool] = False,
-                 pull: Optional[bool] = False,
-                 source: Optional[str] = "actions",
-                 target: Optional[str] = "actions",
-                 cron: Optional[bool] = False,
-                 read_only: Optional[bool] = False,
-                 user: Optional[str] = "root") -> None:
+class Clixon:
+    def __init__(
+        self,
+        sockpath: Optional[str] = "",
+        commit: Optional[bool] = False,
+        push: Optional[bool] = False,
+        pull: Optional[bool] = False,
+        source: Optional[str] = "actions",
+        target: Optional[str] = "actions",
+        cron: Optional[bool] = False,
+        read_only: Optional[bool] = False,
+        user: Optional[str] = "root",
+    ) -> None:
         """
         Create a Clixon object.
 
@@ -121,18 +127,13 @@ class Clixon():
                     f"Configure {device.name} with target {self.__target}")
 
                 config = rpc_config_set(
-                    device, device=True,
-                    target=self.__target
-                )
-
+                    device, device=True, target=self.__target)
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp, standalone=self.__standalone)
-
                 self.__handle_errors(data)
 
                 if self.__commit:
                     self.commit()
-
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
@@ -170,9 +171,7 @@ class Clixon():
         """
         logger.debug("Updating root object")
 
-        config = rpc_config_get(user=self.__user,
-                                source=self.__source
-                                )
+        config = rpc_config_get(user=self.__user, source=self.__source)
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)
@@ -182,7 +181,8 @@ class Clixon():
 
         return self.__root
 
-    def __wait_for_pull_push_notification(self) -> None:
+    @timeout(30)
+    def __wait_for_notification(self) -> None:
         """
         Wait for the pull/push notification.
 
@@ -193,17 +193,20 @@ class Clixon():
 
         data = read(self.__socket, pp, standalone=self.__standalone)
 
-        rpc_error_get(data, standalone=self.__standalone)
+        self.__handle_errors(data)
 
         idx = 0
         while True:
+            logger.debug(f"Waiting for notification {idx} of 5")
+
             if "notification" in data and "SUCCESS" in data:
                 break
 
             idx += 1
 
             if idx > 5:
-                raise ValueError("Push timeout")
+                raise ValueError(
+                    "Read too many messages without notification success")
 
             data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -243,7 +246,7 @@ class Clixon():
         pull = rpc_pull()
         send(self.__socket, pull, pp)
 
-        self.__wait_for_pull_push_notification()
+        self.__wait_for_notification()
 
     def push(self) -> None:
         """
@@ -272,7 +275,7 @@ class Clixon():
 
         send(self.__socket, push, pp)
 
-        self.__wait_for_pull_push_notification()
+        self.__wait_for_notification()
 
     def set_root(self, root: object) -> None:
         """
@@ -306,9 +309,57 @@ class Clixon():
         """
         return self.__logger
 
+    def apply_service(
+        self, service: str, instance: str, diff: Optional[bool] = True
+    ) -> str:
+        """
+        Apply a service.
 
-def rpc(sockpath: Optional[str] = sockpath,
-        commit: Optional[bool] = False) -> object:
+        :param service: Service name
+        :type service: str
+        :param instance: Instance name
+        :type instance: str
+        :param diff: Diff
+        :type diff: bool
+        :return: None
+        :rtype: None
+
+        """
+
+        if self.__read_only and not diff:
+            raise ValueError(
+                "Apply: Read only mode enabled, can only apply diff")
+
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
+        send(self.__socket, enable_transaction_notify, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        rpc_apply = rpc_apply_service(service, instance, diff)
+        send(self.__socket, rpc_apply, pp)
+
+        self.__wait_for_notification()
+
+        rpc_diff = rpc_datastore_diff()
+        send(self.__socket, rpc_diff, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        # Remove the rpc-reply tag and make the output more readable
+        data = data.replace("&lt;", "<").replace("&gt;", ">")
+        data = data.replace("</diff><diff", "</diff>\n<diff")
+        data = data.replace("</rpc-reply>", "")
+        data = data.replace(
+            """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
+        )
+
+        return data
+
+
+def rpc(sockpath: Optional[str] = sockpath, commit: Optional[bool] = False) -> object:
     """
     Decorator to create a Clixon object.
 
@@ -320,9 +371,12 @@ def rpc(sockpath: Optional[str] = sockpath,
     :rtype: object
 
     """
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             with Clixon(sockpath, commit=commit) as root:
                 return func(root, logger, **kwargs)
+
         return wrapper
+
     return decorator

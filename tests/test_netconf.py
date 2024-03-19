@@ -133,3 +133,27 @@ def test_rpc_error_get():
 
     with pytest.raises(netconf.RPCError):
         netconf.rpc_error_get(xmlstr2)
+
+
+def test_rpc_apply_service():
+    """
+    Test the rpc_apply_service function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>NONE</push><actions>FORCE</actions><service-instance>foo[service-name=\'bar\']</service-instance><source>ds:candidate</source></controller-commit></rpc>"""
+
+    root = netconf.rpc_apply_service("foo", "bar")
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_datastore_diff():
+    """
+    Test the rpc_datastore_diff function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><devname>*</devname><config-type1>RUNNING</config-type1><config-type2>ACTIONS</config-type2></datastore-diff></rpc>"""
+
+    root = netconf.rpc_datastore_diff()
+
+    assert root.dumps() == xmlstr
