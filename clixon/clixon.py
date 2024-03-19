@@ -10,7 +10,7 @@ from clixon.netconf import (
     rpc_pull,
     rpc_push,
     rpc_subscription_create,
-    rpc_service_apply,
+    rpc_apply_service,
     rpc_datastore_diff,
 )
 from clixon.parser import parse_string
@@ -329,7 +329,7 @@ class Clixon:
 
         self.__handle_errors(data)
 
-        rpc_apply = rpc_service_apply(service, instance, diff)
+        rpc_apply = rpc_apply_service(service, instance, diff)
         send(self.__socket, rpc_apply, pp)
 
         self.__wait_for_notification()

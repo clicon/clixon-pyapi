@@ -285,7 +285,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             return None
 
 
-def rpc_service_apply(
+def rpc_apply_service(
     service: str, instance: str, diff: Optional[bool] = True
 ) -> Element:
     """
