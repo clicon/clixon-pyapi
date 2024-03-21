@@ -171,6 +171,22 @@ class Element(object):
                 del self._children[index]
             index += 1
 
+    def replace(self, name: str, element: object) -> None:
+        """
+        Replace an element in the children of the element.
+
+        :param name: The name of the element to replace.
+        :type name: str
+        :param element: The element to replace.
+        :type element: object
+        :return: None
+        :rtype: None
+
+        """
+
+        self.delete(name)
+        self.add(element)
+
     def set_attributes(self, attributes: dict) -> None:
         """
         Set the attributes of the element.
