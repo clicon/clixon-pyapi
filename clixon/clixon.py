@@ -367,11 +367,12 @@ class Clixon:
 
         # Remove the rpc-reply tag and make the output more readable
         data = data.replace("&lt;", "<").replace("&gt;", ">")
-        data = data.replace("</diff><diff", "</diff>\n<diff")
-        data = data.replace("</rpc-reply>", "")
+        data = data.replace('<diff xmlns="http://clicon.org/controller">', "")
+        data = data.replace("</diff>", "")
         data = data.replace(
             """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
         )
+        data = data.replace("</rpc-reply>", "")
 
         return data
 
