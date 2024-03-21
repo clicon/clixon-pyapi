@@ -350,6 +350,31 @@ class Clixon:
 
         return data
 
+    def show_compare(self) -> str:
+        """
+        Show the compare.
+
+        :return: Compare
+        :rtype: str
+
+        """
+
+        rpc_show_compare = rpc_datastore_diff(compare=True)
+        send(self.__socket, rpc_show_compare, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        # Remove the rpc-reply tag and make the output more readable
+        data = data.replace("&lt;", "<").replace("&gt;", ">")
+        data = data.replace("</diff><diff", "</diff>\n<diff")
+        data = data.replace("</rpc-reply>", "")
+        data = data.replace(
+            """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
+        )
+
+        return data
+
 
 def rpc(sockpath: Optional[str] = sockpath, commit: Optional[bool] = False) -> object:
     """

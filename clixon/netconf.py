@@ -325,7 +325,7 @@ def rpc_apply_service(
     return root
 
 
-def rpc_datastore_diff():
+def rpc_datastore_diff(compare: bool = False) -> Element:
     """
     Create a RPC datastore-diff element.
 
@@ -343,8 +343,14 @@ def rpc_datastore_diff():
     root = Element()
     root.create("rpc", attributes=attributes)
     root.rpc.create("datastore-diff", attributes=CONTROLLER_NS)
-    root.rpc.datastore_diff.create("devname", data="*")
-    root.rpc.datastore_diff.create("config-type1", data="RUNNING")
-    root.rpc.datastore_diff.create("config-type2", data="ACTIONS")
+
+    if compare:
+        root.rpc.datastore_diff.create("format", data="text")
+        root.rpc.datastore_diff.create("dsref1", data="ds:running")
+        root.rpc.datastore_diff.create("dsref2", data="ds:candidate")
+    else:
+        root.rpc.datastore_diff.create("devname", data="*")
+        root.rpc.datastore_diff.create("config-type1", data="RUNNING")
+        root.rpc.datastore_diff.create("config-type2", data="ACTIONS")
 
     return root
