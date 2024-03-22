@@ -286,7 +286,9 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        send(self.__socket, root, pp)
+        config = rpc_config_set(root, device=False, target=self.__target)
+
+        send(self.__socket, config, pp)
         data = read(self.__socket, pp)
         self.__handle_errors(data)
 
