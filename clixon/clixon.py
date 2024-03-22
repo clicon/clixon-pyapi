@@ -352,7 +352,7 @@ class Clixon:
 
         return data
 
-    def show_compare(self) -> str:
+    def show_compare(self, set_root: Optional[bool] = False) -> str:
         """
         Show the compare.
 
@@ -360,6 +360,9 @@ class Clixon:
         :rtype: str
 
         """
+
+        if set_root:
+            self.set_root(self.__root)
 
         rpc_show_compare = rpc_datastore_diff(compare=True)
         send(self.__socket, rpc_show_compare, pp)
