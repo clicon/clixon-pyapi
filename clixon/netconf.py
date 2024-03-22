@@ -165,6 +165,9 @@ def rpc_header_get(
             "message-id": 42,
         }
 
+    if rpc_type == RPCTypes.EDIT_CONFIG:
+        attributes["xmlns:cl"] = "http://clicon.org/lib"
+
     root = Element("root", {})
     root.create("rpc", attributes=attributes)
 
@@ -227,6 +230,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     :rtype: None
 
     """
+
     try:
         root = parse_string(xmlstr)
     except SAXParseException:
@@ -246,7 +250,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
             raise RPCError(message)
         except AttributeError:
-            return None
+            raise RPCError(f"Unknown error: {xmlstr}")
     elif "error-path" in xmlstr:
         try:
             message = (
@@ -256,7 +260,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             )
             raise RPCError(message)
         except AttributeError:
-            return None
+            raise RPCError(f"Unknown error: {xmlstr}")
     elif "non-unique" in xmlstr:
         try:
             message = (
@@ -266,7 +270,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             )
             raise RPCError(message)
         except AttributeError:
-            return None
+            raise RPCError(f"Unknown error: {xmlstr}")
     elif "rpc-error" in xmlstr:
         try:
             message = (
@@ -276,7 +280,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             )
             raise RPCError(message)
         except AttributeError:
-            return None
+            raise RPCError(f"Unknown error: {xmlstr}")
     elif "<result>FAILED</result>" in xmlstr:
         try:
             message = root.notification.controller_transaction.reason
