@@ -6,6 +6,7 @@ from clixon.element import Element
 from clixon.parser import parse_string
 from clixon.args import get_logger
 
+import os
 import sys
 
 logger = get_logger()
@@ -29,7 +30,7 @@ CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
 
 
 def rpc_config_get(
-    user: Optional[str] = "root", source: Optional[str] = "actions"
+    user: Optional[str] = "", source: Optional[str] = "actions"
 ) -> Element:
     """
     Create a get-config RPC element.
@@ -45,6 +46,9 @@ def rpc_config_get(
     attributes = {}
     xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
 
+    if not user:
+        user = os.getlogin()
+
     if source == "actions":
         attributes = CONTROLLER_NS
 
@@ -58,7 +62,7 @@ def rpc_config_get(
 
 def rpc_config_set(
     config: Element,
-    user: Optional[str] = "root",
+    user: Optional[str] = "",
     device: Optional[bool] = False,
     target: Optional[str] = "actions",
     target_attributes: Optional[dict] = {},
@@ -81,6 +85,9 @@ def rpc_config_set(
 
     """
 
+    if not user:
+        user = os.getlogin()
+
     if target_attributes == {} and target == "actions":
         target_attributes = CONTROLLER_NS
 
@@ -102,7 +109,7 @@ def rpc_config_set(
     return root
 
 
-def rpc_commit(user: Optional[str] = "root") -> Element:
+def rpc_commit(user: Optional[str] = "") -> Element:
     """
     Create a RPC commit element.
 
@@ -112,6 +119,9 @@ def rpc_commit(user: Optional[str] = "root") -> Element:
     :rtype: Element
 
     """
+
+    if not user:
+        user = os.getlogin()
 
     return rpc_header_get(RPCTypes.COMMIT, user)
 
@@ -125,7 +135,7 @@ def rpc_push() -> Element:
 
     """
 
-    return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
+    return rpc_header_get(RPCTypes.PUSH_COMMIT, os.getlogin())
 
 
 def rpc_pull() -> Element:
@@ -137,11 +147,11 @@ def rpc_pull() -> Element:
 
     """
 
-    return rpc_header_get(RPCTypes.PULL, "root")
+    return rpc_header_get(RPCTypes.PULL, os.getlogin())
 
 
 def rpc_header_get(
-    rpc_type: object, user: str, attributes: Optional[dict] = None
+    rpc_type: object, user: Optional[str] = "", attributes: Optional[dict] = None
 ) -> Element:
     """
     Create a RPC header element.
@@ -164,6 +174,9 @@ def rpc_header_get(
             "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
             "message-id": 42,
         }
+
+    if not user:
+        user = os.getlogin()
 
     if rpc_type == RPCTypes.EDIT_CONFIG:
         attributes["xmlns:cl"] = "http://clicon.org/lib"
@@ -209,7 +222,7 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 
     rpcattrs = {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0", "message-id": "42"}
 
-    root = rpc_header_get("", "root", rpcattrs)
+    root = rpc_header_get("", "", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
@@ -307,7 +320,7 @@ def rpc_apply_service(
     attributes = {
         "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
         "message-id": "42",
-        "username": "root",
+        "username": os.getlogin(),
     }
 
     if diff:
@@ -341,7 +354,7 @@ def rpc_datastore_diff(compare: bool = False) -> Element:
     attributes = {
         "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
         "message-id": "42",
-        "username": "root",
+        "username": os.getlogin(),
     }
 
     root = Element()

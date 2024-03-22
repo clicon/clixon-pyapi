@@ -35,7 +35,7 @@ class Clixon:
         target: Optional[str] = "actions",
         cron: Optional[bool] = False,
         read_only: Optional[bool] = False,
-        user: Optional[str] = "root",
+        user: Optional[str] = "",
     ) -> None:
         """
         Create a Clixon object.
