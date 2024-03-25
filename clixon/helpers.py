@@ -2,7 +2,6 @@ import re
 from clixon.element import Element
 from typing import List, Optional, Iterable
 import signal
-import time
 
 
 class TimeoutException(Exception):
