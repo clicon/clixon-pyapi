@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clixon-pyapi"
+authors = [
+    {name = "Kristofer Hallin"},
+    {name = "Olof Hagsand"},
+    {email = "clixon-pyapi@8n1.se"},
+]
+maintainers = [
+  {name = "Kristofer Hallin"},
+]
+description = "Clixon Python API"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["clixon"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+license = {text = "Apache-2.0"}
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://clixon-controller-docs.readthedocs.io/en/latest/index.html"
+Repository = "https://github.com/clicon/clixon-pyapi"
+
+[project.scripts]
+"clixon_server.py" = "clixon.clixon_server:cli"
+
+[tool.setuptools]
+packages = ["clixon"]
+
+[tool.setuptools.dynamic]
+version = {attr = "clixon.version.__version__"}

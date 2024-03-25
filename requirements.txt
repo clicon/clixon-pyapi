@@ -31,3 +31,4 @@ sphinxcontrib-serializinghtml==1.1.10
 tomli==2.0.1
 urllib3==2.2.1
 xmltodict==0.13.0
+build==0.7.0
