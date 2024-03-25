@@ -77,6 +77,7 @@ class Clixon:
         self.__user = user
         self.__standalone = False
         self.__read_only = read_only
+        self.__transaction_notify = False
 
         if cron:
             self.__commit = True
@@ -242,6 +243,22 @@ class Clixon:
 
         return data
 
+    def __enable_transaction_notify(self) -> None:
+        """
+        Enable transaction notifications.
+
+        :return: None
+        :rtype: None
+        """
+
+        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+
+        send(self.__socket, enable_transaction_notify, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+        self.__transaction_notify = True
+
     def pull(
         self, device: Optional[bool] = "*", transient: Optional[bool] = False
     ) -> None:
@@ -253,13 +270,10 @@ class Clixon:
 
         """
 
-        logger.info("Pulling config")
+        logger.info(f"Pulling config for device {device}")
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
-        send(self.__socket, enable_transaction_notify, pp)
-        data = read(self.__socket, pp, standalone=self.__standalone)
-
-        self.__handle_errors(data)
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
 
         pull = rpc_pull(transient=transient, device=device)
         send(self.__socket, pull, pp)
@@ -281,11 +295,8 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
-        send(self.__socket, enable_transaction_notify, pp)
-        data = read(self.__socket, pp, standalone=self.__standalone)
-
-        self.__handle_errors(data)
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
 
         logger.debug("Pushing commit")
         push = rpc_push()
@@ -409,6 +420,9 @@ class Clixon:
         self.__handle_errors(data)
 
         data = self.__strip_rpc_reply(data)
+
+        if not data:
+            return None
 
         if dict_format:
             # Create a dict structure where crpd1 and crpd2 are the keys
