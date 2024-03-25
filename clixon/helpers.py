@@ -257,6 +257,9 @@ def get_path(root: Element, path: str) -> Optional[Element]:
     if path.startswith("/"):
         path = path[1:]
 
+    # Replace any [key="value"] with [key='value']
+    path = re.sub(r'(\[.*?)"(.*?)"', r"\1'\2'", path)
+
     new_root = None
 
     for node in path.split("/"):
