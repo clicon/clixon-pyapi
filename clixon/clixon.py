@@ -221,7 +221,28 @@ class Clixon:
 
         rpc_error_get(data, standalone=self.__standalone)
 
-    def pull(self) -> None:
+    def __strip_rpc_reply(self, data: str) -> str:
+        """
+        Strip the rpc-reply tags and make the output readable.
+
+        :param data: Data
+        :type data: str
+        :return: Stripped data
+        :rtype: str
+        """
+
+        # Remove the rpc-reply tag and make the output more readable
+        data = data.replace("&lt;", "<").replace("&gt;", ">")
+        data = data.replace('<diff xmlns="http://clicon.org/controller">', "")
+        data = data.replace("</diff>", "")
+        data = data.replace(
+            """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
+        )
+        data = data.replace("</rpc-reply>", "")
+
+        return data
+
+    def pull(self, transient: Optional[bool] = False) -> None:
         """
         Send a pull request.
 
@@ -238,7 +259,7 @@ class Clixon:
 
         self.__handle_errors(data)
 
-        pull = rpc_pull()
+        pull = rpc_pull(transient=True)
         send(self.__socket, pull, pp)
 
         self.__wait_for_notification()
@@ -342,13 +363,7 @@ class Clixon:
 
         self.__handle_errors(data)
 
-        # Remove the rpc-reply tag and make the output more readable
-        data = data.replace("&lt;", "<").replace("&gt;", ">")
-        data = data.replace("</diff><diff", "</diff>\n<diff")
-        data = data.replace("</rpc-reply>", "")
-        data = data.replace(
-            """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
-        )
+        data = self.__strip_rpc_reply(data)
 
         return data
 
@@ -369,15 +384,54 @@ class Clixon:
         data = read(self.__socket, pp, standalone=self.__standalone)
 
         self.__handle_errors(data)
+        data = self.__strip_rpc_reply(data)
 
-        # Remove the rpc-reply tag and make the output more readable
-        data = data.replace("&lt;", "<").replace("&gt;", ">")
-        data = data.replace('<diff xmlns="http://clicon.org/controller">', "")
-        data = data.replace("</diff>", "")
-        data = data.replace(
-            """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">""", ""
-        )
-        data = data.replace("</rpc-reply>", "")
+        return data
+
+    def show_devices_diff(self, dict_format: Optional[bool] = False) -> str:
+        """
+        Show the devices diff.
+
+        :return: Devices diff
+        :rtype: str
+
+        """
+
+        self.pull(transient=True)
+
+        rpc_show_devices_diff = rpc_datastore_diff(transient=True)
+
+        send(self.__socket, rpc_show_devices_diff, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        data = self.__strip_rpc_reply(data)
+
+        if dict_format:
+            # Create a dict structure where crpd1 and crpd2 are the keys
+            # and the diff is the value
+            # crpd1:
+            #       <system xmlns="http://yang.juniper.net/junos/conf/root">
+            # -       <host-name>foobar</host-name>
+            # +       <host-name>TW6A3ZM3</host-name>
+            #       </system>
+            # crpd2:
+            #       <system xmlns="http://yang.juniper.net/junos/conf/root">
+            # -       <host-name>kalas</host-name>
+            # +       <host-name>crpd2</host-name>
+            #       </system>
+            diff = dict()
+
+            for line in data.split("\n"):
+                if line.endswith(":") and "<" not in line and ">" not in line:
+                    key = line[:-1]
+                else:
+                    if key not in diff:
+                        diff[key] = ""
+                    diff[key] += line + "\n"
+
+            return diff
 
         return data
 

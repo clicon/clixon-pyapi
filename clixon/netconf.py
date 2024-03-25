@@ -128,7 +128,7 @@ def rpc_push() -> Element:
     return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
 
 
-def rpc_pull() -> Element:
+def rpc_pull(transient: Optional[bool] = False) -> Element:
     """
     Create a RPC pull element.
 
@@ -137,7 +137,12 @@ def rpc_pull() -> Element:
 
     """
 
-    return rpc_header_get(RPCTypes.PULL, "root")
+    rpc = rpc_header_get(RPCTypes.PULL, "root")
+
+    if transient:
+        rpc.rpc.config_pull.create("transient", data="true")
+
+    return rpc
 
 
 def rpc_header_get(
@@ -329,7 +334,9 @@ def rpc_apply_service(
     return root
 
 
-def rpc_datastore_diff(compare: bool = False) -> Element:
+def rpc_datastore_diff(
+    compare: Optional[bool] = False, transient: Optional[bool] = False
+) -> Element:
     """
     Create a RPC datastore-diff element.
 
@@ -353,8 +360,15 @@ def rpc_datastore_diff(compare: bool = False) -> Element:
         root.rpc.datastore_diff.create("dsref1", data="ds:running")
         root.rpc.datastore_diff.create("dsref2", data="ds:candidate")
     else:
+        if transient:
+            config_type1 = "TRANSIENT"
+            config_type2 = "RUNNING"
+        else:
+            config_type1 = "RUNNING"
+            config_type2 = "ACTIONS"
+
         root.rpc.datastore_diff.create("devname", data="*")
-        root.rpc.datastore_diff.create("config-type1", data="RUNNING")
-        root.rpc.datastore_diff.create("config-type2", data="ACTIONS")
+        root.rpc.datastore_diff.create("config-type1", data=config_type1)
+        root.rpc.datastore_diff.create("config-type2", data=config_type2)
 
     return root

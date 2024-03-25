@@ -157,3 +157,23 @@ def test_rpc_datastore_diff():
     root = netconf.rpc_datastore_diff()
 
     assert root.dumps() == xmlstr
+
+
+def test_rpc_datastore_diff_transient():
+    """
+    Test the rpc_datastore_diff transient function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><devname>*</devname><config-type1>TRANSIENT</config-type1><config-type2>RUNNING</config-type2></datastore-diff></rpc>"""
+
+    assert netconf.rpc_datastore_diff(transient=True).dumps() == xmlstr
+
+
+def test_rpc_datastore_diff_compare():
+    """
+    Test the rpc_datastore_diff compare function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><format>text</format><dsref1>ds:running</dsref1><dsref2>ds:candidate</dsref2></datastore-diff></rpc>"""
+
+    assert netconf.rpc_datastore_diff(compare=True).dumps() == xmlstr
