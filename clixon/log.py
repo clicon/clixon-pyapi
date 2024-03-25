@@ -4,10 +4,11 @@ from typing import Optional
 import os
 
 
-def get_log_factory(output: Optional[str] = "s",
-                    debug: Optional[bool] = False) -> logging.Logger:
+def init_root_logger(
+        output: Optional[str] = "s",
+        debug: Optional[bool] = False) -> logging.Logger:
     """
-    Get logger for the application.
+    Initialize root logger for the application.
 
     :param output: Output type. "s" for syslog anything else for stdout
     :type output: str
@@ -18,9 +19,10 @@ def get_log_factory(output: Optional[str] = "s",
 
     """
 
-    logger = logging.getLogger("pyserver")
+    logger = logging.getLogger()
     if not logger.handlers:
-        formatter = logging.Formatter("%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s")
+        formatter = logging.Formatter(
+            "[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
 
         if output == "s":
             if os.path.exists("/dev/log"):

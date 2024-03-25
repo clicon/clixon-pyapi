@@ -1,11 +1,13 @@
-from socket import socket
+from logging import getLogger
 import re
+from socket import socket
+import struct
 import sys
 import time
 import traceback
 from typing import Optional
-import struct
-from clixon.args import get_logger
+
+from clixon.event import RPCEventHandler
 from clixon.modules import run_modules
 from clixon.netconf import (
     RPCTypes,
@@ -15,9 +17,9 @@ from clixon.netconf import (
 )
 from clixon.parser import parse_string
 from clixon.sock import read, send, create_socket
-from clixon.event import RPCEventHandler
 
-logger = get_logger()
+
+logger = getLogger(__name__)
 events = RPCEventHandler()
 
 

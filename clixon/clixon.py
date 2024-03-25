@@ -1,7 +1,9 @@
+from logging import getLogger
 import os
 from typing import Optional
 
-from clixon.args import get_arg, get_logger
+from clixon.args import get_arg
+from clixon.helpers import timeout
 from clixon.netconf import (
     rpc_commit,
     rpc_config_get,
@@ -15,12 +17,11 @@ from clixon.netconf import (
 )
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
-from clixon.helpers import timeout
 
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
-logger = get_logger()
+logger = getLogger(__name__)
 default_sockpath = "/usr/local/var/run/controller.sock"
 
 
@@ -122,9 +123,11 @@ class Clixon:
                 if device.get_name() != "device":
                     continue
 
-                logger.debug(f"Configure {device.name} with target {self.__target}")
+                logger.debug(
+                    f"Configure {device.name} with target {self.__target}")
 
-                config = rpc_config_set(device, device=True, target=self.__target)
+                config = rpc_config_set(
+                    device, device=True, target=self.__target)
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp, standalone=self.__standalone)
                 self.__handle_errors(data)
@@ -202,7 +205,8 @@ class Clixon:
             idx += 1
 
             if idx > 5:
-                raise ValueError("Read too many messages without notification success")
+                raise ValueError(
+                    "Read too many messages without notification success")
 
             data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -232,7 +236,8 @@ class Clixon:
 
         logger.info("Pulling config")
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -258,7 +263,8 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -323,9 +329,11 @@ class Clixon:
         """
 
         if self.__read_only and not diff:
-            raise ValueError("Apply: Read only mode enabled, can only apply diff")
+            raise ValueError(
+                "Apply: Read only mode enabled, can only apply diff")
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 

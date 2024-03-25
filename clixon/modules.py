@@ -1,14 +1,16 @@
 import importlib.util
+from logging import getLogger
 import os
 import sys
 import traceback
 from typing import List, Optional
 
-from clixon.args import get_logger, get_sockpath
+from clixon.args import get_arg
 from clixon.clixon import Clixon
 
-logger = get_logger()
-sockpath = get_sockpath()
+
+logger = getLogger(__name__)
+sockpath = get_arg("sockpath")
 
 
 class ModuleError(Exception):

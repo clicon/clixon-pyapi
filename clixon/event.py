@@ -1,8 +1,6 @@
-from typing import Callable as function, Optional
 from fnmatch import fnmatch
-from clixon.args import get_logger
-
-logger = get_logger()
+from logging import getLogger
+from typing import Callable as function, Optional
 
 
 class RPCEventHandler():
@@ -19,6 +17,7 @@ class RPCEventHandler():
         """
 
         self.events = {}
+        self.logger = getLogger(__name__)
 
     def register(self, event: str) -> None:
         """
@@ -45,7 +44,7 @@ class RPCEventHandler():
                 self.events[event] = []
             self.events[event].append(callback)
 
-            logger.debug(f"Registered {callback} to {event}")
+            self.logger.debug(f"Registered {callback} to {event}")
 
             return callback
         return decorator
@@ -64,7 +63,7 @@ class RPCEventHandler():
         if event in self.events:
             self.events[event].remove(callback)
 
-            logger.debug(f"Unregistered {callback} from {event}")
+            self.logger.debug(f"Unregistered {callback} from {event}")
 
     def emit(self, event: str, not_found_error: Optional[bool] = False,
              *args: Optional[dict],
@@ -88,7 +87,7 @@ class RPCEventHandler():
         for k, v in self.events.items():
             if fnmatch(event, k):
                 for callback in v:
-                    logger.debug(f"Emitting {event} to {callback}")
+                    self.logger.debug(f"Emitting {event} to {callback}")
                     callback(*args, **kwargs)
         else:
             if not_found_error:

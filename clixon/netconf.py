@@ -1,14 +1,14 @@
 from enum import Enum
+from logging import getLogger
+import sys
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
 
 from clixon.element import Element
 from clixon.parser import parse_string
-from clixon.args import get_logger
 
-import sys
 
-logger = get_logger()
+logger = getLogger(__name__)
 
 
 class RPCTypes(Enum):

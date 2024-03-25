@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
-from clixon.version import __version__
-from clixon.modules import load_modules
-from clixon.client import readloop
-from clixon.args import parse_args, get_logger
-from daemonize import Daemonize
-import sys
 import os
+import sys
 
-(sockpath, mpath, mfilter, pidfile, foreground,
- pp, _, _) = parse_args(sys.argv[1:])
+from daemonize import Daemonize
 
-logger = get_logger()
+from clixon.args import parse_args
+from clixon.client import readloop
+from clixon.log import init_root_logger
+from clixon.modules import load_modules
+
+(
+    sockpath,
+    mpath,
+    mfilter,
+    pidfile,
+    foreground,
+    pp,
+    log,
+    debug
+) = parse_args(sys.argv[1:])
+
+logger = init_root_logger(log, debug)
 lockfd = None
 
 

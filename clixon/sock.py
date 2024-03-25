@@ -1,15 +1,14 @@
+from logging import getLogger
 import re
-import socket
-from clixon.args import get_logger
-from typing import Optional
 import select
-import struct
+import socket
+from typing import Optional
+
 from clixon.element import Element
-from clixon.netconf import rpc_error_get
 from clixon.parser import dump_string
 
 
-logger = get_logger()
+logger = getLogger(__name__)
 hdrlen = 8
 
 

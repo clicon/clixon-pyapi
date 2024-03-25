@@ -1,84 +1,125 @@
-from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
-import sys
+from pytest import raises
+import tempfile
+
+from clixon.args import parse_args, get_arg
 
 
-@patch("sys.argv", [
-    "test", "-s", "/test/socket", "-p", "/test/pidfile", "-m", "./modules/",
-    "-l" "o", "-F", "-d", "-P"])
-def test_parse_args():
+def test_parse_args(mocker):
     """
     Test that the arguments are parsed correctly.
     """
 
-    sys.argv = [
-        "test",
-        "-m", "/tmp",
-        "-s", "/test/socket",
-        "-p", "/test/pidfile",
-        "-F",
-        "-P",
-        "-l", "o",
-        "-d"
-    ]
+    mocker.patch("os.path.exists").return_value = True
 
-    (
-        sockpath,
-        modulepaths,
-        modulefilter,
-        pidfile,
-        foreground,
-        pp,
-        log,
-        debug
-    ) = parse_args()
+    with tempfile.TemporaryDirectory() as tmp_file:
+        (
+            sockpath,
+            modulepaths,
+            modulefilter,
+            pidfile,
+            foreground,
+            pp,
+            log,
+            debug
+        ) = parse_args([
+            "-m", tmp_file,
+            "-s", "/test/socket",
+            "-p", "/test/pidfile",
+            "-F",
+            "-P",
+            "-l", "o",
+            "-d"
+        ])
 
-    assert sockpath == "/test/socket"
-    for m_path in modulepaths:
-        assert m_path == "/tmp"
-    assert modulefilter == ""
-    assert pidfile == "/test/pidfile"
-    assert foreground is True
-    assert pp is True
-    assert log == "o"
-    assert debug is True
-
-
-@patch("sys.argv", ["test"])
-def test_get_logger():
-    """
-    Test that the logger is created correctly.
-    """
-
-    logger = get_logger()
-
-    assert logger is not None
+        assert sockpath == "/test/socket"
+        for m_path in modulepaths:
+            assert m_path in [tmp_file]
+        assert modulefilter == ""
+        assert pidfile == "/test/pidfile"
+        assert foreground is True
+        assert pp is True
+        assert log == "o"
+        assert debug is True
 
 
-@patch("sys.argv", ["test", "-s", "/test/socket"])
-def test_get_sockpath():
+def test_get_sockpath(mocker):
     """
     Test that the socket path is returned correctly.
     """
 
-    assert get_sockpath() == '/test/socket'
+    mocker.patch("os.path.exists").return_value = True
+
+    parse_args(["-s", "/test/socket"])
+    assert get_arg("sockpath") == '/test/socket'
 
 
-@patch("sys.argv", ["test", "-P"])
-def test_get_prettyprint():
+def test_get_prettyprint(mocker):
     """
-    Test that the prettyprint flag is returned correctly.
+    Test that the pretty print is returned correctly.
     """
 
-    assert get_prettyprint() is True
+    mocker.patch("os.path.exists").return_value = True
+
+    parse_args(["-P"])
+    assert get_arg("pp") is True
 
 
-@patch('sys.exit')
-@patch('builtins.print')
-def test_usage(mock_print, mock_exit):
+def test_modulepath_default(mocker):
+    """
+    Test that default module path is added when no modulepath is provided.
+    """
+
+    mocker.patch("os.path.exists").return_value = True
+
+    parse_args()
+    mpaths = get_arg("modulepaths")
+    default_mpath = "/usr/local/share/clixon/controller/modules"
+    assert mpaths == [default_mpath]
+    assert len(mpaths) == 1
+
+
+def test_modulepath_argument(mocker):
+    """
+    Test that
+    - argument is added,
+    - fallback module path is not added.
+    """
+
+    mocker.patch("os.path.exists").return_value = True
+
+    parse_args(["-m", "/tmp"])
+    mpaths = get_arg("modulepaths")
+    assert mpaths == ["/tmp"]
+    assert len(mpaths) == 1
+
+
+def test_modulepath_configfile(mocker):
+    """
+    Test that both configfile modulpath and default module path is added.
+    """
+    mocker.patch("os.path.exists").return_value = True
+    mocker.patch("clixon.args.__parse_config_file").return_value = (
+        "a", ["/tmp/conf_file_mpath"], "b", "c"
+    )
+
+    parse_args(["-f", "dummy_config_file"])
+    mpaths = get_arg("modulepaths")
+
+    assert len(mpaths) == 2
+    for m_path in mpaths:
+        assert m_path in [
+                "/tmp/conf_file_mpath",
+                "/usr/local/share/clixon/controller/modules"
+        ]
+
+
+def test_usage(capsys):
     """
     Test that the usage function prints the correct message and exits.
     """
 
-    parse_args(["--help"])
-    mock_exit.assert_called_with(0)
+    with raises(SystemExit) as e:
+        parse_args(["--help"])
+    assert e.type == SystemExit
+    out, _ = capsys.readouterr()
+    assert "show this help message and exit" in out
