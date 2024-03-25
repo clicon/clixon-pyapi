@@ -128,7 +128,7 @@ def rpc_push() -> Element:
     return rpc_header_get(RPCTypes.PUSH_COMMIT, "root")
 
 
-def rpc_pull(transient: Optional[bool] = False) -> Element:
+def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False) -> Element:
     """
     Create a RPC pull element.
 
@@ -137,7 +137,7 @@ def rpc_pull(transient: Optional[bool] = False) -> Element:
 
     """
 
-    rpc = rpc_header_get(RPCTypes.PULL, "root")
+    rpc = rpc_header_get(RPCTypes.PULL, user="root", device=device)
 
     if transient:
         rpc.rpc.config_pull.create("transient", data="true")
@@ -146,7 +146,10 @@ def rpc_pull(transient: Optional[bool] = False) -> Element:
 
 
 def rpc_header_get(
-    rpc_type: object, user: str, attributes: Optional[dict] = None
+    rpc_type: object,
+    user: str,
+    attributes: Optional[dict] = None,
+    device: Optional[str] = "*",
 ) -> Element:
     """
     Create a RPC header element.
@@ -188,13 +191,13 @@ def rpc_header_get(
         root.rpc.create("transaction-error", attributes=CONTROLLER_NS)
     elif rpc_type == RPCTypes.PUSH_COMMIT:
         root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
-        root.rpc.controller_commit.create("device", data="*")
+        root.rpc.controller_commit.create("device", data=device)
         root.rpc.controller_commit.create("push", data="COMMIT")
         root.rpc.controller_commit.create("actions", data="NONE")
         root.rpc.controller_commit.create("source", data="ds:running")
     elif rpc_type == RPCTypes.PULL:
         root.rpc.create("config-pull", attributes=CONTROLLER_NS)
-        root.rpc.config_pull.create("devname", data="*")
+        root.rpc.config_pull.create("devname", data=device)
 
     return root
 

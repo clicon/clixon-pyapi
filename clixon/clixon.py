@@ -242,7 +242,9 @@ class Clixon:
 
         return data
 
-    def pull(self, transient: Optional[bool] = False) -> None:
+    def pull(
+        self, device: Optional[bool] = "*", transient: Optional[bool] = False
+    ) -> None:
         """
         Send a pull request.
 
@@ -259,7 +261,7 @@ class Clixon:
 
         self.__handle_errors(data)
 
-        pull = rpc_pull(transient=True)
+        pull = rpc_pull(transient=transient, device=device)
         send(self.__socket, pull, pp)
 
         self.__wait_for_notification()
