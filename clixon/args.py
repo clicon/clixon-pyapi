@@ -23,7 +23,8 @@ def __update_from_configfile(opt: Optional[str] = None):
         return
 
     sockpath, modulepaths, modulefilter, pidfile = __parse_config(
-        global_args.get("configfile"), opt)
+        global_args.get("configfile"), opt
+    )
     global_args["sockpath"] = sockpath
     global_args["modulepaths"] = modulepaths
     global_args["modulefilter"] = modulefilter
@@ -69,7 +70,8 @@ def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
             print("Looks like you are running this from Jupyter.")
             print(
                 "I'll fall back to the default configuration file",
-                "since Jupyter messes with sys.argv.")
+                "since Jupyter messes with sys.argv.",
+            )
         configfile = "/usr/local/etc/clixon/controller.xml"
 
     config = parser.parse_file(configfile)
@@ -110,29 +112,38 @@ def parse_args(cli_args: Optional = None) -> tuple:
     default_log = "s"
 
     parser = argparse.ArgumentParser(description="clixon PyAPI")
-    parser.add_argument("-f", "--configfile",
-                        help="Clixon controller configuration file")
-    parser.add_argument("-m", "--modulepaths", action="append",
-                        help="Modules path")
-    parser.add_argument("-e", "--modulefilter", default="",
-                        help="Comma separated list of modules to exclude")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Enable verbose debug logging")
-    parser.add_argument("-s", "--sockpath",
-                        default=default_sockpath,
-                        help="Clixon socket path")
-    parser.add_argument("-p", "--pidfile", default=default_pidfile,
-                        help="Pidfile for Python server")
-    parser.add_argument("-F", "--foreground", action="store_true",
-                        help="Run in foreground")
-    parser.add_argument("-P", "--pp", action="store_true",
-                        help="Prettyprint XML")
-    parser.add_argument("-l", "--log", choices=["s", "o"], default=default_log,
-                        help="Log on (s)yslog, std(o)ut")
-    parser.add_argument("-z", "--kill-daemon", action="store_true",
-                        help="Kill daemon")
-    parser.add_argument("-V", "--version", action="store_true",
-                        help="Print version")
+    parser.add_argument(
+        "-f", "--configfile", help="Clixon controller configuration file"
+    )
+    parser.add_argument("-m", "--modulepaths", action="append", help="Modules path")
+    parser.add_argument(
+        "-e",
+        "--modulefilter",
+        default="",
+        help="Comma separated list of modules to exclude",
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable verbose debug logging"
+    )
+    parser.add_argument(
+        "-s", "--sockpath", default=default_sockpath, help="Clixon socket path"
+    )
+    parser.add_argument(
+        "-p", "--pidfile", default=default_pidfile, help="Pidfile for Python server"
+    )
+    parser.add_argument(
+        "-F", "--foreground", action="store_true", help="Run in foreground"
+    )
+    parser.add_argument("-P", "--pp", action="store_true", help="Prettyprint XML")
+    parser.add_argument(
+        "-l",
+        "--log",
+        choices=["s", "o"],
+        default=default_log,
+        help="Log on (s)yslog, std(o)ut",
+    )
+    parser.add_argument("-z", "--kill-daemon", action="store_true", help="Kill daemon")
+    parser.add_argument("-V", "--version", action="store_true", help="Print version")
     args = parser.parse_args(cli_args)
 
     if args.version:
@@ -158,8 +169,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     #   sockpath, conf_mpath, modulefilter, pidfile
     # from config file
     if args.configfile:
-        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(
-            args.configfile)
+        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(args.configfile)
         args.sockpath = sockpath
 
         for path in conf_mpath:
@@ -173,14 +183,16 @@ def parse_args(cli_args: Optional = None) -> tuple:
     # Save args is global scope
     global_args = vars(args)
 
-    return (args.sockpath,
-            args.modulepaths,
-            args.modulefilter,
-            args.pidfile,
-            args.foreground,
-            args.pp,
-            args.log,
-            args.debug)
+    return (
+        args.sockpath,
+        args.modulepaths,
+        args.modulefilter,
+        args.pidfile,
+        args.foreground,
+        args.pp,
+        args.log,
+        args.debug,
+    )
 
 
 def get_logger() -> logging.Logger:
@@ -236,6 +248,9 @@ def get_arg(opt: str):
     """
 
     if "sphinx-build" in sys.argv[0]:
+        return
+
+    if "NO_CLIXON_ARGS" in os.environ:
         return
 
     if opt in ["sockpath", "modulepaths", "modulefilter", "pidfile"]:
