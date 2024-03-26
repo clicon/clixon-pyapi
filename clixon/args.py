@@ -131,13 +131,10 @@ def parse_args(cli_args: Optional = None) -> tuple:
                         help="Log on (s)yslog, std(o)ut")
     parser.add_argument("-z", "--kill-daemon", action="store_true",
                         help="Kill daemon")
-    parser.add_argument("-V", "--version", action="store_true",
+    parser.add_argument("-V", "--version", action="version",
+                        version=__version__,
                         help="Print version")
     args = parser.parse_args(cli_args)
-
-    if args.version:
-        print(__version__)
-        sys.exit(0)
 
     if args.modulepaths is None:
         args.modulepaths = [default_mpath]

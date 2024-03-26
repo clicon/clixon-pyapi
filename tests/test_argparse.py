@@ -1,6 +1,9 @@
+from pytest import  raises
 from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
 import sys
+
+from clixon import __version__
+from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
 
 
 @patch("sys.argv", [
@@ -82,3 +85,15 @@ def test_usage(mock_print, mock_exit):
 
     parse_args(["--help"])
     mock_exit.assert_called_with(0)
+
+
+def test_version(capsys):
+    """
+    Test version prints and exits.
+    """
+    with raises(SystemExit) as exc_info:
+        parse_args(["--version"])
+    assert exc_info.value.code == 0
+    out, err = capsys.readouterr()
+    assert out.strip() == __version__
+    assert err == ""
