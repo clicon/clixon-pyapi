@@ -422,6 +422,8 @@ class Clixon:
         data = self.__strip_rpc_reply(data)
 
         if not data:
+            if dict_format:
+                return dict()
             return None
 
         if dict_format:
