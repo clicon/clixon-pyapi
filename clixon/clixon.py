@@ -359,11 +359,8 @@ class Clixon:
         if self.__read_only and not diff:
             raise ValueError("Apply: Read only mode enabled, can only apply diff")
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
-        send(self.__socket, enable_transaction_notify, pp)
-        data = read(self.__socket, pp, standalone=self.__standalone)
-
-        self.__handle_errors(data)
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
 
         rpc_apply = rpc_apply_service(service, instance, diff)
         send(self.__socket, rpc_apply, pp)
