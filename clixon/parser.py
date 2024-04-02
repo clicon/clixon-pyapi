@@ -51,6 +51,7 @@ class Handler(handler.ContentHandler):
         else:
             self.root.add(element)
 
+        element._parent = self.elements[-1] if len(self.elements) > 0 else None
         self.elements.append(element)
 
     def endElement(self, name: str) -> None:
@@ -88,8 +89,7 @@ class Handler(handler.ContentHandler):
             return
 
         # Escape special characters
-        cdata = cdata.replace("&", "&amp;").replace(
-            ">", "&gt;").replace("<", "&lt;")
+        cdata = cdata.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
         self.elements[-1].cdata += cdata
         self.last_cdata = cdata
@@ -180,7 +180,8 @@ def parse_template(template: str, **kwargs: dict) -> str:
     """
 
     vars_re = re.compile(
-        r"\${([a-zA-Z0-9_\-]+)}|\{\{([a-zA-Z0-9_\-]+)\}\}", re.MULTILINE)
+        r"\${([a-zA-Z0-9_\-]+)}|\{\{([a-zA-Z0-9_\-]+)\}\}", re.MULTILINE
+    )
     matches = re.findall(vars_re, template)
     vars_list = [match[0] if match[0] else match[1] for match in matches]
 

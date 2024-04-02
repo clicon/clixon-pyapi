@@ -45,6 +45,7 @@ class Element(object):
             name = name.replace(":", "_")
 
         self._name = name
+        self._parent = None
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -107,6 +108,7 @@ class Element(object):
                 element.cdata = cdata
 
         self._children.append(element)
+        self._parent = self
 
         return element
 
@@ -150,7 +152,9 @@ class Element(object):
         self._children.append(element)
 
     def delete(
-        self, name: Optional[str] = "", element: Optional[object] = None
+        self,
+        name: Optional[str] = "",
+        element: Optional[object] = None,
     ) -> None:
         """
         Delete an element from the children of the element.
@@ -161,6 +165,10 @@ class Element(object):
         :rtype: None
 
         """
+
+        if not name and not element:
+            self._parent.delete(element=self)
+
         if element:
             index = 0
             for child in self._children:
