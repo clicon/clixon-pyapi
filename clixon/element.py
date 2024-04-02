@@ -149,7 +149,9 @@ class Element(object):
 
         self._children.append(element)
 
-    def delete(self, name: str) -> None:
+    def delete(
+        self, name: Optional[str] = "", element: Optional[object] = None
+    ) -> None:
         """
         Delete an element from the children of the element.
 
@@ -159,17 +161,22 @@ class Element(object):
         :rtype: None
 
         """
-
-        index = 0
+        if element:
+            index = 0
+            for child in self._children:
+                if child == element:
+                    del self._children[index]
+                    index += 1
 
         if name == "*":
             self._children = []
             return
-
-        for child in self._children:
-            if child._origname == name:
-                del self._children[index]
-            index += 1
+        elif name != "" and name != "*":
+            index = 0
+            for child in self._children:
+                if child._origname == name:
+                    del self._children[index]
+                index += 1
 
     def replace(self, name: str, element: object) -> None:
         """
