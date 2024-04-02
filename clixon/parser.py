@@ -26,6 +26,7 @@ class Handler(handler.ContentHandler):
         self.root.is_root = True
         self.elements = []
         self.last_cdata = ""
+        self._parent = None
 
     def startElement(self, name: str, attributes: str) -> None:
         """

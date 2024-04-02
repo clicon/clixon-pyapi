@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, Generator
 
 import xmltodict
 
@@ -360,6 +360,20 @@ class Element(object):
         json_data = json.dumps(data_dict)
 
         return json_data
+
+    def parents(self) -> Generator:
+        """
+        Return the parents of the element.
+
+        :return: The parents of the element.
+        :rtype: Generator
+
+        """
+
+        parent = self._parent
+        while parent:
+            yield parent
+            parent = parent._parent
 
     def __getitem__(self, key: str) -> Optional[dict]:
         """
