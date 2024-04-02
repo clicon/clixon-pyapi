@@ -361,6 +361,17 @@ class Element(object):
 
         return json_data
 
+    def parent(self) -> object:
+        """
+        Return the parent of the element.
+
+        :return: The parent of the element.
+        :rtype: object
+
+        """
+
+        return self._parent
+
     def parents(self) -> Generator:
         """
         Return the parents of the element.
