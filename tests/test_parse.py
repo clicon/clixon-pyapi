@@ -24,8 +24,7 @@ def test_add_node():
     """
 
     root = parse_string(xmlstr_1)
-    root.rpc_reply.create(
-        "foo-bar", {"xmlns": "foo:bar:test:1"}, cdata="test data")
+    root.rpc_reply.create("foo-bar", {"xmlns": "foo:bar:test:1"}, cdata="test data")
 
 
 def test_del_node():
@@ -177,7 +176,9 @@ def test_junos_decodes():
     Test that Junos specific encoding is decoded correctly.
     """
 
-    xmlstr1 = """<apply-path>protocols bgp group &lt;*&gt; neighbor &lt;*&gt;</apply-path>"""
+    xmlstr1 = (
+        """<apply-path>protocols bgp group &lt;*&gt; neighbor &lt;*&gt;</apply-path>"""
+    )
     xmlstr2 = """<apply-path>protocols bgp group &lt;*&gt; neighbor  &lt;  *  &gt;  </apply-path>"""
     xmlstr3 = """<apply-path>  protocols bgp group &lt; * &gt; neighbor  &lt;  *  &gt;  </apply-path>"""
 
@@ -189,3 +190,38 @@ def test_junos_decodes():
 
     root = parse_string(xmlstr3)
     assert root.dumps() == xmlstr3
+
+
+def test_delete_parse():
+    """
+    Test that elements can be deleted using Element.delete() from a parsed string.
+    """
+
+    xmlstr_1 = """<foo><bar><baz>1</baz><baz>2</baz></bar></foo>"""
+
+    root = parse_string(xmlstr_1)
+    root.foo.bar.baz[0].delete()
+
+    assert root.dumps() == """<foo><bar><baz>2</baz></bar></foo>"""
+
+    root.foo.bar.delete()
+
+    assert root.dumps() == """<foo></foo>"""
+
+
+def test_delete_parse():
+    """
+    Test that elements can be deleted using Element.delete() from a created tree.
+    """
+
+    root = Element("root")
+    root.create("foo").create("bar").create("baz", data="1")
+    root.foo.bar.create("baz", data="2")
+
+    root.foo.bar.baz[0].delete()
+
+    assert root.dumps() == """<foo><bar><baz>2</baz></bar></foo>"""
+
+    root.foo.bar.delete()
+
+    assert root.dumps() == """<foo/>"""
