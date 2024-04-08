@@ -11,6 +11,7 @@ class Element(object):
         attributes: Optional[dict] = {},
         cdata: Optional[str] = "",
         data: Optional[str] = "",
+        parent: Optional[object] = None,
     ) -> None:
         """
         Create a new element.
@@ -46,6 +47,9 @@ class Element(object):
 
         self._name = name
         self._parent = None
+
+        if parent:
+            self._parent = parent
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -100,7 +104,7 @@ class Element(object):
         """
 
         if not element:
-            element = Element(name, attributes)
+            element = Element(name, attributes, parent=self)
 
             if data != "":
                 element.cdata = data
@@ -108,7 +112,6 @@ class Element(object):
                 element.cdata = cdata
 
         self._children.append(element)
-        self._parent = self
 
         return element
 
