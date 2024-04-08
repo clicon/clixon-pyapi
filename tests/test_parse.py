@@ -209,7 +209,7 @@ def test_delete_parse():
     assert root.dumps() == """<foo></foo>"""
 
 
-def test_delete_parse():
+def test_delete_create():
     """
     Test that elements can be deleted using Element.delete() from a created tree.
     """
