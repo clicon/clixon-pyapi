@@ -206,7 +206,7 @@ def test_delete_parse():
 
     root.foo.bar.delete()
 
-    assert root.dumps() == """<foo></foo>"""
+    assert root.dumps() == """<foo/>"""
 
 
 def test_delete_create():

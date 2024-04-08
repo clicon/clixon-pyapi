@@ -249,7 +249,13 @@ class Element(object):
             return self.attributes.get(key)
         return self.attributes
 
-    def get_elements(self, name: Optional[str] = "", data: Optional[str] = "") -> list:
+    def get_elements(
+        self,
+        name: Optional[str] = "",
+        data: Optional[str] = "",
+        elements: Optional[list] = [],
+        recursive: Optional[bool] = False,
+    ) -> list:
         """
         Return the children of the element.
 
@@ -264,10 +270,22 @@ class Element(object):
 
         name = name.replace("-", "_")
 
-        if name:
-            elements = [e for e in self._children if e._name == name]
+        if recursive:
+            for child in self.get_elements():
+                if name != "":
+                    if child._name == name:
+                        elements.append(child)
+                else:
+                    elements.append(child)
+
+                elements = child.get_elements(
+                    name=name, data=data, elements=elements, recursive=recursive
+                )
         else:
-            elements = self._children
+            if name != "":
+                elements = [e for e in self._children if e._name == name]
+            else:
+                elements = self._children
 
         if data:
             return [e for e in elements if e.get_data() == data]
