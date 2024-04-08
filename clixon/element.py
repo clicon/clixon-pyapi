@@ -407,6 +407,19 @@ class Element(object):
             yield parent
             parent = parent._parent
 
+    def findall(self, name: str) -> list:
+        """
+        Return all the elements with the name.
+
+        :param name: The name of the elements to return.
+        :type name: str
+        :return: The elements with the name.
+        :rtype: list
+
+        """
+
+        return self.get_elements(name=name, recursive=True)
+
     def __getitem__(self, key: str) -> Optional[dict]:
         """
         Return the attributes of the element.
