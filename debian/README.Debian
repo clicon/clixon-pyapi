@@ -29,10 +29,18 @@ git commit -m "<version>"
 DIST=<distribution> git-pbuilder create
 ```
 
+**Note**: If building for a Debian distribution on an Ubuntu machine, use
+
+```
+DIST=<distribution> git-pbuilder create \
+  --mirror http://deb.debian.org/debian/ \
+  --debootstrapopts --keyring=/usr/share/keyrings/debian-archive-keyring.gpg
+```
+
 5. Build package
 
 ```
-gbp buildpackage
+gbp buildpackage --git-dist=<distribution>
 ```
 
 *Note*: Built package ends up in directory `export-dir` specified in **debian/gbp.conf**.
