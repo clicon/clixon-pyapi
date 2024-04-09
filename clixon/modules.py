@@ -15,8 +15,7 @@ class ModuleError(Exception):
     pass
 
 
-def run_modules(modules: List, service_name: str,
-                instance: str) -> Optional[Exception]:
+def run_modules(modules: List, service_name: str, instance: str) -> Optional[Exception]:
     """
     Run all modules in the list.
 
@@ -40,8 +39,7 @@ def run_modules(modules: List, service_name: str,
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
-                    logger.debug(
-                        f"Skipping module {module} for service {service_name}")
+                    logger.debug(f"Skipping module {module} for service {service_name}")
                     continue
 
             try:
@@ -111,27 +109,29 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
         modulespath = modulespath + "/"
 
     for modulefile in find_modules(modulespath):
-        if modulefile in filtered:
-            logger.debug(f"Skipping module: {modulefile}")
-            continue
         modulename = os.path.splitext(modulefile)[0].split("/")[-1]
+
+        if modulename in filtered:
+            logger.info(f"Skipping module: {modulename}")
+            continue
 
         logger.debug(f"Importing module {modulename}")
         try:
-            spec = importlib.util.spec_from_file_location(
-                modulename, modulefile)
+            spec = importlib.util.spec_from_file_location(modulename, modulefile)
             module = importlib.util.module_from_spec(spec)
             sys.modules[modulename] = module
             spec.loader.exec_module(module)
 
             if not hasattr(module, "SERVICE"):
                 logger.debug(
-                    f"Failed to load module, {modulename} does not have SERVICE attribute")
+                    f"Failed to load module, {modulename} does not have SERVICE attribute"
+                )
                 continue
 
             if not hasattr(module, "setup"):
                 logger.debug(
-                    f"Failed to load module, {modulename} does not have setup function")
+                    f"Failed to load module, {modulename} does not have setup function"
+                )
                 continue
         except Exception as e:
             logger.error(f"Failed to load module {modulefile}: {e}")
