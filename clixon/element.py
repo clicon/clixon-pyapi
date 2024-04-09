@@ -407,6 +407,24 @@ class Element(object):
             yield parent
             parent = parent._parent
 
+    def find(self, name: str) -> Optional[object]:
+        """
+        Return the first element with the name.
+
+        :param name: The name of the element to return.
+        :type name: str
+        :return: The first element with the name.
+        :rtype: object
+
+        """
+
+        found = self.get_elements(name=name, recursive=False)
+
+        if found:
+            return found[0]
+
+        return None
+
     def findall(self, name: str) -> list:
         """
         Return all the elements with the name.
