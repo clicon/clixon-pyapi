@@ -363,6 +363,15 @@ def get_value(
     return str(element.get_elements(val)[0])
 
 
+def get_data(
+    element: Element,
+    val: str,
+    required: Optional[bool] = False,
+    default: Optional[str] = "",
+) -> str:
+    return get_value(element, val, required, default)
+
+
 def get_service_instances(root: Element, service_name: str) -> List[Element]:
     """
     Returns a list of service instances.
