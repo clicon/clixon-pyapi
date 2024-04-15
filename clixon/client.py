@@ -11,7 +11,7 @@ from clixon.netconf import (
     RPCTypes,
     rpc_header_get,
     rpc_subscription_create,
-    rpc_error_get
+    rpc_error_get,
 )
 from clixon.parser import parse_string
 from clixon.sock import read, send, create_socket
@@ -47,10 +47,8 @@ def services_commit_cb(*args, **kwargs) -> None:
     notification = reply.notification
     tid = str(notification.services_commit.tid.cdata)
 
-    rpc = rpc_header_get(
-        RPCTypes.TRANSACTION_DONE, "root")
-    rpc.rpc.transaction_actions_done.create(
-        "tid", cdata=tid)
+    rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
+    rpc.rpc.transaction_actions_done.create("tid", cdata=tid)
 
     try:
         services = notification.services_commit.service
@@ -71,7 +69,8 @@ def services_commit_cb(*args, **kwargs) -> None:
 
             if not match:
                 raise ValueError(
-                    f"Invalid command, could not parse service: {service.cdata}")
+                    f"Invalid command, could not parse service: {service.cdata}"
+                )
 
             service_name = match.group(1)
             instance = match.group(2)
@@ -214,9 +213,7 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
         while True:
             try:
                 data = read(sock, pp)
-                events.emit(event=data, data=data, sock=sock,
-                            modules=modules,
-                            pp=pp)
+                events.emit(event=data, data=data, sock=sock, modules=modules, pp=pp)
             except struct.error:
                 logger.error("Socket closed, backend probably died")
                 sys.exit(1)
@@ -225,4 +222,3 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                 logger.error(traceback.print_exc())
 
                 time.sleep(3)
-                break
