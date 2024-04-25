@@ -3,9 +3,7 @@ import socket
 from clixon.args import get_logger
 from typing import Optional
 import select
-import struct
 from clixon.element import Element
-from clixon.netconf import rpc_error_get
 from clixon.parser import dump_string
 
 
@@ -33,8 +31,9 @@ def create_socket(sockpath: str) -> socket.socket:
     return sock
 
 
-def read(sock: socket.socket, pp: Optional[bool] = False,
-         standalone: Optional[bool] = False) -> str:
+def read(
+    sock: socket.socket, pp: Optional[bool] = False, standalone: Optional[bool] = False
+) -> str:
     """
     Read from the socket and return the data.
 
