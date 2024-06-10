@@ -229,3 +229,38 @@ def test14():
     )
 
     assert str(e) == "2000"
+
+
+def test_15():
+    """
+    Test get_path function with a path that contains values with backslash.
+    """
+
+    xmlstr = """
+<interfaces>
+    <interface>
+        <name>et-0/0/0</name>
+        <description>My first interface</description>
+    </interface>
+    <interface>
+        <name>et-1</name>
+        <description>My second interface</description>
+    </interface>
+</interfaces>
+"""
+
+    root = parse_string(xmlstr)
+
+    e = get_path(
+        root,
+        """/interfaces/interface[name='et-0/0/0']/description""",
+    )
+
+    assert str(e) == "My first interface"
+
+    e = get_path(
+        root,
+        """/interfaces/interface[name='et-1']/description""",
+    )
+
+    assert str(e) == "My second interface"

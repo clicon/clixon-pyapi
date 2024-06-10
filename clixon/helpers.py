@@ -258,10 +258,13 @@ def get_path(root: Element, path: str) -> Optional[Element]:
 
     # Replace any [key="value"] with [key='value']
     path = re.sub(r'(\[.*?)"(.*?)"', r"\1'\2'", path)
+    node_re = r"([^\/\[\]]+|\[[^\]]+\])+"
 
     new_root = None
+    nodes = re.finditer(node_re, path)
 
-    for node in path.split("/"):
+    for m in nodes:
+        node = m.group()
         index = None
         parameter = None
         value = None
@@ -272,7 +275,6 @@ def get_path(root: Element, path: str) -> Optional[Element]:
             if arg.group(1).isdigit():
                 index = int(arg.group(1))
                 node = node.replace(f"[{index}]", "")
-
             else:
                 match = re.match(r"(\S+)='(\S+)'", arg.group(1))
 
@@ -280,7 +282,6 @@ def get_path(root: Element, path: str) -> Optional[Element]:
                     parameter = match.group(1)
                     parameter = parameter.replace("-", "_")
                     value = match.group(2)
-
                     node = node.replace(f"[{match.group(1)}='{match.group(2)}']", "")
                     node = node.replace("-", "_")
 
