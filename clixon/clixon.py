@@ -38,6 +38,7 @@ class Clixon:
         cron: Optional[bool] = False,
         read_only: Optional[bool] = False,
         user: Optional[str] = "root",
+        standalone: Optional[bool] = False,
     ) -> None:
         """
         Create a Clixon object.
@@ -80,6 +81,7 @@ class Clixon:
         self.__standalone = False
         self.__read_only = read_only
         self.__transaction_notify = False
+        self.__standalone = standalone
 
         if cron:
             self.__commit = True
