@@ -177,3 +177,31 @@ def test_rpc_datastore_diff_compare():
     xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><format>text</format><dsref1>ds:running</dsref1><dsref2>ds:candidate</dsref2></datastore-diff></rpc>"""
 
     assert netconf.rpc_datastore_diff(compare=True).dumps() == xmlstr
+
+
+def test_rpc_lock():
+    """
+    Test the rpc_lock function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><lock><target><candidate/></target></lock></rpc>"""
+
+    assert netconf.rpc_lock().dumps() == xmlstr
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><lock><target><foobar/></target></lock></rpc>"""
+
+    assert netconf.rpc_lock("foobar").dumps() == xmlstr
+
+
+def test_rpc_unlock():
+    """
+    Test the rpc_unlock function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><unlock><target><candidate/></target></unlock></rpc>"""
+
+    assert netconf.rpc_unlock().dumps() == xmlstr
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><unlock><target><foobar/></target></unlock></rpc>"""
+
+    assert netconf.rpc_unlock("foobar").dumps() == xmlstr
