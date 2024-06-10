@@ -12,6 +12,8 @@ from clixon.netconf import (
     rpc_subscription_create,
     rpc_apply_service,
     rpc_datastore_diff,
+    rpc_lock,
+    rpc_unlock,
 )
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
@@ -449,6 +451,44 @@ class Clixon:
             return diff
 
         return data
+
+    def lock(self, target: Optional[str] = "candidate") -> None:
+        """
+        Lock the configuration.
+
+        :param target: Target
+        :type target: str
+        :return: None
+        :rtype: None
+
+        """
+
+        logger.info(f"Locking configuration for target {target}")
+
+        rpc = rpc_lock(target)
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp)
+
+        self.__handle_errors(data)
+
+    def unlock(self, target: Optional[str] = "candidate") -> None:
+        """
+        Unlock the configuration.
+
+        :param target: Target
+        :type target: str
+        :return: None
+        :rtype: None
+
+        """
+
+        logger.info(f"Unlocking configuration for target {target}")
+
+        rpc = rpc_unlock(target)
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp)
+
+        self.__handle_errors(data)
 
 
 def rpc(sockpath: Optional[str] = sockpath, commit: Optional[bool] = False) -> object:

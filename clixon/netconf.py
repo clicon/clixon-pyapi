@@ -375,3 +375,47 @@ def rpc_datastore_diff(
         root.rpc.datastore_diff.create("config-type2", data=config_type2)
 
     return root
+
+
+def rpc_lock(target: Optional[str] = "candidate") -> Element:
+    """
+    Create a RPC lock element.
+
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42",
+        "username": "root",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("lock").create("target").create(target)
+
+    return root
+
+
+def rpc_unlock(target: Optional[str] = "candidate") -> Element:
+    """
+    Create a RPC unlock element.
+
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42",
+        "username": "root",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("unlock").create("target").create(target)
+
+    return root
