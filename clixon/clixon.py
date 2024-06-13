@@ -78,7 +78,6 @@ class Clixon:
         self.__source = source
         self.__target = target
         self.__user = user
-        self.__standalone = False
         self.__read_only = read_only
         self.__transaction_notify = False
         self.__standalone = standalone
