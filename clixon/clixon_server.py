@@ -7,8 +7,16 @@ from daemonize import Daemonize
 import sys
 import os
 
-(sockpath, mpath, mfilter, pidfile, foreground,
- pp, _, _) = parse_args(sys.argv[1:])
+(
+    sockpath,
+    mpath,
+    mfilter,
+    pidfile,
+    foreground,
+    pp,
+    _,
+    _
+) = parse_args(sys.argv[1:])
 
 logger = get_logger()
 lockfd = None
@@ -39,13 +47,19 @@ def main() -> None:
         logger.info("\nGoodbye.")
 
 
-if __name__ == "__main__":
+def cli():
+    if "-V" in sys.argv or "--version" in sys.argv:
+        print(__version__)
+        sys.exit(0)
+
     if foreground:
         main()
     else:
-        daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
-                           logger=logger,
-                           foreground=foreground,
-                           verbose=True,
-                           chdir=os.getcwd())
+        daemon = Daemonize(
+            app="clixon_server", pid=pidfile, action=main,
+            logger=logger,
+            foreground=foreground,
+            verbose=True,
+            chdir=os.getcwd()
+        )
         daemon.start()
