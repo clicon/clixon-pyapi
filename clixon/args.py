@@ -91,6 +91,12 @@ def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     return sockpath, [modulepath], modulefilter, pidfile
 
 
+def __sanitize_paths(paths: Optional[list]) -> [os.path]:
+    """Expands paths and removes duplicates."""
+    paths_normalized = map(os.path.realpath, paths)
+    return list(set(paths_normalized))
+
+
 global_args = {}
 
 
@@ -153,10 +159,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
     if args.modulepaths is None:
         args.modulepaths = [default_mpath]
 
-    if not all(map(os.path.exists, args.modulepaths)):
-        print(f"Module path {args.modulepaths} does not exist")
-        sys.exit(0)
-
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
@@ -179,6 +181,11 @@ def parse_args(cli_args: Optional = None) -> tuple:
 
         args.modulefilter = modulefilter
         args.pidfile = pidfile
+
+    args.modulepaths = __sanitize_paths(args.modulepaths)
+    if not all(map(os.path.exists, args.modulepaths)):
+        print(f"Module path {args.modulepaths} contains non-existing paths")
+        sys.exit(0)
 
     # Save args is global scope
     global_args = vars(args)
