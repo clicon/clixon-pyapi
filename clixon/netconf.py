@@ -249,7 +249,16 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
         logger.error("XML parse error, XML was: %s", xmlstr)
         raise RPCError("XML parse error, XML was: %s", xmlstr)
 
-    if "error-message" in xmlstr:
+    if "notification xmlns" in xmlstr:
+        try:
+            message = str(root.notification.controller_transaction.reason.cdata)
+            if standalone:
+                logger.error(f"Error in notification: {message}")
+
+            logger.error(message)
+        except AttributeError:
+            logger.error(f"Unknown notification error: {xmlstr}")
+    elif "error-message" in xmlstr:
         try:
             message = str(root.rpc_reply.rpc_error.error_message.cdata)
             if standalone:
