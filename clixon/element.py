@@ -383,9 +383,9 @@ class Element(object):
             xmlstr = f"<{child.origname()}>" + child.dumps() + f"</{child.origname()}>"
 
             data_dict = xmltodict.parse(xmlstr)
-            json_data.append(json.dumps(data_dict))
+            json_data.append(data_dict)
 
-        return json_data
+        return json.dumps(json_data)
 
     def parent(self) -> object:
         """
