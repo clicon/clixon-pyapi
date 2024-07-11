@@ -377,8 +377,13 @@ class Element(object):
 
         """
 
-        data_dict = xmltodict.parse(self.dumps())
-        json_data = json.dumps(data_dict)
+        json_data = []
+
+        for child in self.get_elements():
+            xmlstr = f"<{child.origname()}>" + child.dumps() + f"</{child.origname()}>"
+
+            data_dict = xmltodict.parse(xmlstr)
+            json_data.append(json.dumps(data_dict))
 
         return json_data
 
