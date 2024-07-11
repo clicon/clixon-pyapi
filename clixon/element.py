@@ -2,6 +2,7 @@ import json
 from typing import Optional, Generator
 
 import xmltodict
+import yaml
 
 
 class Element(object):
@@ -386,6 +387,25 @@ class Element(object):
             json_data.append(data_dict)
 
         return json.dumps(json_data)
+
+    def dumpy(self) -> str:
+        """
+
+        Return the YAML string of the element and its children.
+
+        :return: The YAML string of the element and its children.
+        :rtype: str
+
+        """
+        yaml_data = []
+
+        for child in self.get_elements():
+            xmlstr = f"<{child.origname()}>" + child.dumps() + f"</{child.origname()}>"
+
+            data_dict = xmltodict.parse(xmlstr)
+            yaml_data.append(data_dict)
+
+        return yaml.dump(yaml_data)
 
     def parent(self) -> object:
         """
