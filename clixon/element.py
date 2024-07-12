@@ -1,5 +1,5 @@
 import json
-from typing import Optional, Generator
+from typing import Optional, Generator, Any
 
 import xmltodict
 import yaml
@@ -321,7 +321,7 @@ class Element(object):
 
         self.cdata = data
 
-    def get_data(self) -> str:
+    def get_data(self, cast: Optional[Any] = None) -> str:
         """
 
         Return the data of the element.
@@ -330,6 +330,9 @@ class Element(object):
         :rtype: str
 
         """
+
+        if cast:
+            return cast(self.cdata)
 
         return self.cdata
 
