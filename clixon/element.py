@@ -321,7 +321,7 @@ class Element(object):
 
         self.cdata = data
 
-    def get_data(self, cast: Optional[Any] = None) -> str:
+    def get_data(self, typecast: Optional[Any] = None) -> str:
         """
 
         Return the data of the element.
@@ -331,8 +331,8 @@ class Element(object):
 
         """
 
-        if cast:
-            return cast(self.cdata)
+        if typecast:
+            return typecast(self.cdata)
 
         return self.cdata
 
