@@ -493,10 +493,8 @@ class Element(object):
         matching_children = [x for x in self._children if x._name == key]
         if matching_children:
             if len(matching_children) == 1:
-                self.__dict__[key] = matching_children[0]
                 return matching_children[0]
             else:
-                self.__dict__[key] = matching_children
                 return matching_children
         else:
             raise AttributeError("'%s' has no attribute '%s'" % (self._name, key))
