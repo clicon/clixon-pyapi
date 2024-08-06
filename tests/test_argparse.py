@@ -1,6 +1,13 @@
 from unittest.mock import patch
-from clixon.args import parse_args, get_logger, get_sockpath, get_prettyprint
 import sys
+
+from clixon.args import (
+    get_logger,
+    get_sockpath,
+    get_prettyprint,
+    parse_args,
+    __sanitize_paths
+)
 
 
 @patch("sys.argv", [
@@ -82,3 +89,12 @@ def test_usage(mock_print, mock_exit):
 
     parse_args(["--help"])
     mock_exit.assert_called_with(0)
+
+
+def test_sanitize_paths():
+    paths = ["/usr/bin", "/usr/bin/", "/var/run", "/var/run"]
+    normalized = __sanitize_paths(paths)
+
+    assert len(normalized) == 2
+    for m_path in normalized:
+        assert m_path in ["/usr/bin", "/run"]
