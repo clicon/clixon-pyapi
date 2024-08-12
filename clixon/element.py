@@ -9,7 +9,7 @@ class Element(object):
     def __init__(
         self,
         name: Optional[str] = "root",
-        attributes: Optional[dict] = {},
+        attributes: Optional[dict] = None,
         cdata: Optional[str] = "",
         data: Optional[str] = "",
         parent: Optional[object] = None,
@@ -30,7 +30,11 @@ class Element(object):
 
         """
 
-        self.attributes = attributes
+        if attributes:
+            self.attributes = attributes.copy()
+        else:
+            self.attributes = dict()
+
         self._children = []
         self._is_root = False
 
@@ -153,6 +157,7 @@ class Element(object):
 
         """
 
+        element._parent = self
         self._children.append(element)
 
     def delete(
@@ -520,6 +525,8 @@ class Element(object):
         return self.cdata.strip()
 
     def __repr__(self) -> str:
+        if self.cdata.strip() == '':
+            return self._name
         return self.cdata.strip()
 
     def __bool__(self) -> bool:
