@@ -14,7 +14,7 @@ from clixon.netconf import (
     rpc_error_get,
 )
 from clixon.parser import parse_string
-from clixon.sock import read, send, create_socket
+from clixon.sock import read, send, create_socket, SocketClosedError
 from clixon.event import RPCEventHandler
 
 logger = get_logger()
@@ -215,6 +215,9 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
                 data = read(sock, pp)
                 events.emit(event=data, data=data, sock=sock, modules=modules, pp=pp)
             except struct.error:
+                logger.error("Socket closed, backend probably died")
+                sys.exit(1)
+            except SocketClosedError:
                 logger.error("Socket closed, backend probably died")
                 sys.exit(1)
             except Exception:
