@@ -11,6 +11,14 @@ logger = get_logger()
 hdrlen = 8
 
 
+class SocketClosedError(Exception):
+    """
+    Raised when the socket is closed.
+    """
+
+    pass
+
+
 def create_socket(sockpath: str) -> socket.socket:
     """
     Create a socket and connect to the socket path.
@@ -66,7 +74,12 @@ def read(
                 logger.debug(f"Found chunk length: {chunk_len}")
                 data = b""
             else:
-                data += sock.recv(1)
+                tmpdata = sock.recv(1)
+
+                if not tmpdata:
+                    raise SocketClosedError("Socket closed")
+
+                data += tmpdata
         else:
             if len(data) < int(chunk_len):
                 data += sock.recv(chunk_len - len(data) + 3)
