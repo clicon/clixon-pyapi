@@ -231,7 +231,7 @@ class Element(object):
         """
 
         old_attributes = self.get_attributes()
-        new_attributes = attributes | old_attributes
+        new_attributes = old_attributes | attributes
 
         self.set_attributes(new_attributes)
 
