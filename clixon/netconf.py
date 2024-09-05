@@ -1,12 +1,11 @@
+import sys
 from enum import Enum
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
 
+from clixon.args import get_logger
 from clixon.element import Element
 from clixon.parser import parse_string
-from clixon.args import get_logger
-
-import sys
 
 logger = get_logger()
 
@@ -257,7 +256,10 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
             logger.error(message)
         except AttributeError:
-            logger.error(f"Unknown notification error: {xmlstr}")
+            if "SUCCESS" in xmlstr:
+                pass
+            else:
+                logger.error(f"Unknown notification error: {xmlstr}")
     elif "error-message" in xmlstr:
         try:
             message = str(root.rpc_reply.rpc_error.error_message.cdata)
