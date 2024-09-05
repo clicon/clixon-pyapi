@@ -1,7 +1,8 @@
 import pytest
 from clixon.element import Element
 from clixon.helpers import (
-    set_creator_attributes, get_value,
+    set_creator_attributes,
+    get_value,
     get_path,
     get_service_instance,
     get_service_instances,
@@ -11,7 +12,7 @@ from clixon.helpers import (
     get_properties,
     get_devices_from_group,
     is_juniper,
-    get_junos_interface_address
+    get_junos_interface_address,
 )
 from clixon.parser import parse_string
 
@@ -49,7 +50,7 @@ def test_set_creator_attributes_update():
 
     set_creator_attributes(root.test, "test", "keff", "create")
 
-    xmlstr = """<test cl:creator="test[service-name='keff']" nc:operation="create" xmlns:cl="http://clicon.org/lib" test="foo"><bar/></test>"""
+    xmlstr = """<test test="foo" cl:creator="test[service-name='keff']" nc:operation="create" xmlns:cl="http://clicon.org/lib"><bar/></test>"""
 
     assert root.dumps() == xmlstr
 
@@ -63,8 +64,7 @@ def test_get_value():
 
     root = parse_string(xmlstr_1)
 
-    value1_path = get_path(
-        root, "/rpc-reply/data/table/parameter[name='name1']")
+    value1_path = get_path(root, "/rpc-reply/data/table/parameter[name='name1']")
 
     value1 = get_value(value1_path, "value")
 
@@ -106,14 +106,12 @@ def test_get_service_instance():
 
     root = parse_string(xmlstr)
 
-    instance = get_service_instance(
-        root, "as-path-filter", instance="as-test1")
+    instance = get_service_instance(root, "as-path-filter", instance="as-test1")
 
     assert instance.service_name == "as-test1"
     assert instance.filter_name == "as-test1"
 
-    instance = get_service_instance(
-        root, "as-path-filter", instance="as-test2")
+    instance = get_service_instance(root, "as-path-filter", instance="as-test2")
 
     assert instance.service_name == "as-test2"
     assert instance.filter_name == "as-test2"
@@ -356,38 +354,36 @@ def test_get_junos_interface_address():
 
     root = parse_string(xmlstr)
 
-    addresses = get_junos_interface_address(
-        root, "juniper1", "lo0", "0", primary=True)
+    addresses = get_junos_interface_address(root, "juniper1", "lo0", "0", primary=True)
 
-    assert (len(addresses) == 1)
-    assert (addresses == ["1.1.1.1/32"])
+    assert len(addresses) == 1
+    assert addresses == ["1.1.1.1/32"]
 
-    addresses = get_junos_interface_address(
-        root, "juniper1", "lo0", "0", primary=False)
+    addresses = get_junos_interface_address(root, "juniper1", "lo0", "0", primary=False)
 
-    assert (len(addresses) == 2)
-    assert (addresses == ["1.1.1.1/32", "1.1.1.2/32"])
+    assert len(addresses) == 2
+    assert addresses == ["1.1.1.1/32", "1.1.1.2/32"]
 
-    addresses = get_junos_interface_address(
-        root, "juniper2", "lo0", "0", primary=True)
+    addresses = get_junos_interface_address(root, "juniper2", "lo0", "0", primary=True)
 
-    assert (len(addresses) == 0)
-    assert (addresses == [])
+    assert len(addresses) == 0
+    assert addresses == []
 
-    addresses = get_junos_interface_address(
-        root, "juniper2", "lo0", "0", primary=False)
+    addresses = get_junos_interface_address(root, "juniper2", "lo0", "0", primary=False)
 
-    assert (len(addresses) == 2)
-    assert (addresses == ["2.2.2.2/32", "2.2.2.3/32"])
+    assert len(addresses) == 2
+    assert addresses == ["2.2.2.2/32", "2.2.2.3/32"]
 
     addresses = get_junos_interface_address(
-        root, "juniper1", "lo0", "0", family="inet6", primary=True)
+        root, "juniper1", "lo0", "0", family="inet6", primary=True
+    )
 
-    assert (len(addresses) == 1)
-    assert (addresses == ["dead:beef::1/64"])
+    assert len(addresses) == 1
+    assert addresses == ["dead:beef::1/64"]
 
     addresses = get_junos_interface_address(
-        root, "juniper1", "lo0", "0", family="inet6", primary=False)
+        root, "juniper1", "lo0", "0", family="inet6", primary=False
+    )
 
-    assert (len(addresses) == 2)
-    assert (addresses == ["dead:beef::1/64", "dead:beef::2/64"])
+    assert len(addresses) == 2
+    assert addresses == ["dead:beef::1/64", "dead:beef::2/64"]
