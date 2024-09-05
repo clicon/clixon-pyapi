@@ -6,6 +6,7 @@ import yaml
 
 
 class Element(object):
+    _creatortag = None
     def __init__(
         self,
         name: Optional[str] = "root",
@@ -466,6 +467,30 @@ class Element(object):
 
         return self.get_elements(name=name, recursive=True)
 
+    def set_creator(self,creator: str) -> None:
+        """
+        Set the creator tag to all class instances
+        :creator string: Valid XPath creator tag
+        :return: None
+        :rtype: None
+
+        """
+        Element._creatortag = creator
+
+    def tag_creator(self) -> None:
+        """
+        Apply creator tag to Element
+        :return: self
+        :rtype: Element
+        """
+        if Element._creatortag:
+            attribs = self.get_attributes()
+            attribs['cl:creator'] = Element._creatortag
+            self.set_attributes(attribs)
+            return self
+        else:
+            raise("Creator tag not defined")
+
     def __getitem__(self, key: str) -> Optional[dict]:
         """
         Return the attributes of the element.
@@ -493,10 +518,8 @@ class Element(object):
         matching_children = [x for x in self._children if x._name == key]
         if matching_children:
             if len(matching_children) == 1:
-                self.__dict__[key] = matching_children[0]
                 return matching_children[0]
             else:
-                self.__dict__[key] = matching_children
                 return matching_children
         else:
             raise AttributeError("'%s' has no attribute '%s'" % (self._name, key))
