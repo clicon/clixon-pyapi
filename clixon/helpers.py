@@ -49,8 +49,14 @@ def get_service_instance(root: Element, service_name: str, **kwargs: dict) -> El
         services = root.services.get_elements(service_name)
 
         for service in services:
-            if str(service.service_name) == kwargs["instance"]:
-                return service
+            if service.get_elements("service-name"):
+                if str(service.service_name) == kwargs["instance"]:
+                    return service
+            elif service.get_elements("instance"):
+                if str(service.instance) == kwargs["instance"]:
+                    return service
+            else:
+                continue
     except AttributeError:
         return None
 

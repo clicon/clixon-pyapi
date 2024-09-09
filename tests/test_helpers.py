@@ -101,6 +101,14 @@ def test_get_service_instance():
       <irr-sources>irr.ntt.org</irr-sources>
       <devices>crpd1</devices>
    </as-path-filter>
+   <as-path-filter xmlns="http://nordu.net/ns/clixon/as-path-filter">
+      <instance>as-test3</instance>
+      <filter-name>as-test3</filter-name>
+      <manual-as-numbers>1111</manual-as-numbers>
+      <as-macro>AS-KTH</as-macro>
+      <irr-sources>irr.ntt.org</irr-sources>
+      <devices>crpd1</devices>
+   </as-path-filter>
 </services>
     """
 
@@ -115,6 +123,11 @@ def test_get_service_instance():
 
     assert instance.service_name == "as-test2"
     assert instance.filter_name == "as-test2"
+
+    instance = get_service_instance(root, "as-path-filter", instance="as-test3")
+
+    assert instance.instance == "as-test3"
+    assert instance.filter_name == "as-test3"
 
 
 def test_get_service_instances():
