@@ -15,7 +15,48 @@ class ModuleError(Exception):
     pass
 
 
-def run_modules(modules: List, service_name: str, instance: str) -> Optional[Exception]:
+def run_hooks(modules: List, service_name: str, instance: str, result: str) -> None:
+    if modules == []:
+        logger.info("No modules found.")
+        return
+
+    with Clixon(sockpath=sockpath) as cd:
+        for module in modules:
+            if service_name:
+                if module.SERVICE != service_name:
+                    logger.debug(f"Skipping module {module} for service {service_name}")
+                    continue
+
+            try:
+                logger.info(f"Running hooks for module {module}")
+                logger.debug(f"Module {module} is getting config")
+                root = cd.get_root()
+
+                print(f"Running hooks for module {module} with result {result}")
+
+                if hasattr(module, "hook_pre_commit") and result == "pre-commit":
+                    module.hook_pre_commit(root, logger, instance=instance)
+
+                if hasattr(module, "hook_post_commit_success") and result == "SUCCESS":
+                    module.hook_post_commit_success(
+                        root, logger, instance=instance, result=result
+                    )
+
+                if hasattr(module, "hook_post_commit_failed") and result == "FAILED":
+                    module.hook_post_commit_failed(
+                        root, logger, instance=instance, result=result
+                    )
+
+            except Exception as e:
+                logger.error(f"Module {module} failed with exception: {e}")
+                logger.error(traceback.format_exc())
+
+                raise ModuleError(e)
+
+
+def run_modules(
+    modules: List, service_name: str, instance: str, service_diff: bool
+) -> Optional[Exception]:
     """
     Run all modules in the list.
 
@@ -25,6 +66,8 @@ def run_modules(modules: List, service_name: str, instance: str) -> Optional[Exc
     :type service_name: str
     :param instance: Instance of the service to run modules for
     :type instance: str
+    :param service_diff: Run modules only if service is different
+    :type service_diff: bool
     :return: None if all modules ran successfully, otherwise the exception
     :rtype: Optional[Exception]
 
@@ -46,7 +89,7 @@ def run_modules(modules: List, service_name: str, instance: str) -> Optional[Exc
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
                 root = cd.get_root()
-                module.setup(root, logger, instance=instance)
+                module.setup(root, logger, instance=instance, diff=service_diff)
             except Exception as e:
                 logger.error(f"Module {module} failed with exception: {e}")
                 logger.error(traceback.format_exc())

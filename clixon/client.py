@@ -6,12 +6,11 @@ import traceback
 from typing import Optional
 import struct
 from clixon.args import get_logger
-from clixon.modules import run_modules
+from clixon.modules import run_modules, run_hooks
 from clixon.netconf import (
     RPCTypes,
     rpc_header_get,
     rpc_subscription_create,
-    rpc_error_get,
 )
 from clixon.parser import parse_string
 from clixon.sock import read, send, create_socket, SocketClosedError
@@ -19,6 +18,46 @@ from clixon.event import RPCEventHandler
 
 logger = get_logger()
 events = RPCEventHandler()
+transactions = {}
+
+
+@events.register("*<controller-transaction*>*</controller-transaction>*")
+def controller_transaction_cb(*args, **kwargs) -> None:
+    """
+    Callback for controller transaction
+
+    :param args: Arguments
+    :type args: list
+    :param kwargs: Keyword arguments
+    :type kwargs: dict
+    :return: None
+    :rtype: None
+
+    """
+
+    data = kwargs["data"]
+    modules = kwargs["modules"]
+    notification = parse_string(data)
+    tid = str(notification.notification.controller_transaction.tid)
+    result = str(notification.notification.controller_transaction.result)
+
+    if tid not in transactions:
+        logger.error(f"Transaction {tid} not found")
+
+    for service in transactions[tid]:
+        match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
+
+        if not match:
+            raise ValueError(
+                f"Invalid command, could not parse service: {service.cdata}"
+            )
+
+        service_name = match.group(1)
+        instance = match.group(2)
+
+        run_hooks(modules, service_name, instance, result)
+
+        # run_hooks(modules, service, result)
 
 
 @events.register("*<services-commit*>*</services-commit>*")
@@ -40,6 +79,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     modules = kwargs["modules"]
     pp = kwargs["pp"]
     service_name = ""
+    service_diff = False
 
     logger.debug("Received service notify")
 
@@ -63,6 +103,13 @@ def services_commit_cb(*args, **kwargs) -> None:
 
             return
 
+        if "<diff>true</diff>" in data:
+            logger.info("Service diff detected")
+            service_diff = True
+        else:
+            logger.info("No service diff detected")
+            transactions[tid] = services
+
         finished_services = []
         for service in services:
             match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
@@ -75,7 +122,10 @@ def services_commit_cb(*args, **kwargs) -> None:
             service_name = match.group(1)
             instance = match.group(2)
 
-            run_modules(modules, service_name, instance)
+            if not service_diff:
+                run_hooks(modules, service_name, instance, "pre-commit")
+
+            run_modules(modules, service_name, instance, service_diff)
 
             if service_name not in finished_services:
                 finished_services.append(service_name)
@@ -105,25 +155,6 @@ def services_commit_cb(*args, **kwargs) -> None:
             rpc.rpc.transaction_actions_done.create("service", cdata=service)
 
     send(sock, rpc, pp)
-
-
-@events.register("*")
-def rpc_error_cb(*args, **kwargs) -> None:
-    """
-    Callback for RPC errors
-
-    :param args: Arguments
-    :type args: list
-    :param kwargs: Keyword arguments
-    :type kwargs: dict
-    :return: None
-    :rtype: None
-
-    """
-
-    data = kwargs["data"]
-
-    rpc_error_get(data)
 
 
 def enable_service_notify(sock: socket, pp: bool) -> None:
