@@ -95,7 +95,12 @@ def rpc_config_set(
         root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
         root.rpc.edit_config.config.devices.add(config)
     else:
-        for node in config.get_elements():
+        if type(config) is list:
+            elements = config
+        else:
+            elements = config.get_elements()
+
+        for node in elements:
             root.rpc.edit_config.config.add(node)
 
     return root
