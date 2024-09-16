@@ -122,19 +122,16 @@ class Clixon:
             if self.__root is None:
                 self.__root = self.get_root()
 
-            for device in self.__root.devices.get_elements():
-                if device.get_name() != "device":
-                    continue
-
-                logger.debug(f"Configure {device.name} with target {self.__target}")
-
-                config = rpc_config_set(device, device=True, target=self.__target)
+            for child in self.__root:
+                config = rpc_config_set(child, target=self.__target)
                 send(self.__socket, config, pp)
-                data = read(self.__socket, pp, standalone=self.__standalone)
+                data = read(self.__socket, pp)
+
                 self.__handle_errors(data)
 
-                if self.__commit:
-                    self.commit()
+            if self.__commit:
+                self.commit()
+
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
