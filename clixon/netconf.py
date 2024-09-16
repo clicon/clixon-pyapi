@@ -88,20 +88,13 @@ def rpc_config_set(
     root.rpc.edit_config.target.create(target, attributes=target_attributes)
     root.rpc.edit_config.create("default-operation")
     root.rpc.edit_config.default_operation.cdata = "none"
-    root.rpc.edit_config.create("config")
 
     if device:
         root.rpc.edit_config.config.delete("services")
         root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
         root.rpc.edit_config.config.devices.add(config)
     else:
-        if type(config) is list:
-            elements = config
-        else:
-            elements = config.get_elements()
-
-        for node in elements:
-            root.rpc.edit_config.config.add(node)
+        root.rpc.edit_config.add(config.config)
 
     return root
 

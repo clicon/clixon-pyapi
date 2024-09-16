@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
@@ -118,27 +119,20 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        try:
-            if self.__root is None:
-                self.__root = self.get_root()
+        if self.__root is None:
+            self.__root = self.get_root()
 
-            for child in self.__root:
-                config = rpc_config_set(child, target=self.__target)
+        stripped_config = "<config>" + self.__strip_config(self.__root) + "</config>"
+        stripped_data = parse_string(stripped_config)
 
-                for device in config.rpc.edit_config.config.devices.device:
-                    device = parse_string(self.__strip_config(device))
+        config = rpc_config_set(stripped_data, target=self.__target)
+        send(self.__socket, config, pp)
+        data = read(self.__socket, pp)
 
-                send(self.__socket, config, pp)
-                data = read(self.__socket, pp)
+        self.__handle_errors(data)
 
-                self.__handle_errors(data)
-
-            if self.__commit:
-                self.commit()
-
-        except Exception as e:
-            logger.error(f"Got exception from Clixon.__exit__: {e}")
-            raise Exception(f"{e}")
+        if self.__commit:
+            self.commit()
 
     def __strip_config(self, root) -> str:
         """
@@ -151,20 +145,38 @@ class Clixon:
 
         """
 
-        tmpconf = root.xml_start()
+        tmpconf = ""
+        new_config = root.dumps()
 
-        for node in root.config.get_elements():
-            tmpstr = node.xml_start() + node.dumps() + node.xml_end()
+        # Remove everything inside <device> tags
+        new_config = re.sub(
+            r"<devices.*?>.*?</devices>", "", new_config, flags=re.DOTALL
+        )
 
-            if "nc:operation" not in tmpstr:
-                logger.debug("Discarding node: " + node.get_name())
-                continue
-            else:
-                tmpconf += tmpstr
+        new_config += '<devices xmlns="http://clicon.org/controller">'
 
-        tmpconf += root.xml_end()
+        for device in root.devices.device:
+            device_xml = re.sub(r"<config.*?>.*?</config>$", "", device.dumps())
+            device_xml = "<device>" + device_xml
 
-        return tmpconf
+            for node in device.config.get_elements():
+                tmpstr = node.xml_start() + node.dumps() + node.xml_end()
+
+                if "nc:operation" not in tmpstr:
+                    logger.debug("Discarding node: " + node.get_name())
+                    continue
+                else:
+                    device_xml += "<config>" + tmpstr + "</config>"
+
+            device_xml += "</device>"
+
+            new_config += device_xml
+
+        new_config += "</devices>"
+
+        # print(new_config)
+
+        return new_config
 
     def commit(self) -> None:
         """
