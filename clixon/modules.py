@@ -29,23 +29,26 @@ def run_hooks(modules: List, service_name: str, instance: str, result: str) -> N
 
             try:
                 logger.info(f"Running hooks for module {module}")
-                logger.debug(f"Module {module} is getting config")
                 root = cd.get_root()
-
-                print(f"Running hooks for module {module} with result {result}")
-
-                if hasattr(module, "hook_pre_commit") and result == "pre-commit":
-                    module.hook_pre_commit(root, logger, instance=instance)
-
-                if hasattr(module, "hook_post_commit_success") and result == "SUCCESS":
-                    module.hook_post_commit_success(
-                        root, logger, instance=instance, result=result
-                    )
-
-                if hasattr(module, "hook_post_commit_failed") and result == "FAILED":
-                    module.hook_post_commit_failed(
-                        root, logger, instance=instance, result=result
-                    )
+                match result:
+                    case "pre-commit":
+                        logger.debug(f"Running pre-commit hook for module {module}")
+                        if hasattr(module, "setup_pre_commit"):
+                            module.setup_pre_commit(root, logger, instance=instance)
+                    case "SUCCESS":
+                        logger.debug(f"Running post-commit hook for module {module}")
+                        if hasattr(module, "setup_post_commit"):
+                            module.setup_post_commit(
+                                root, logger, instance=instance, result=result
+                            )
+                    case "FAILED":
+                        logger.debug(
+                            f"Running post-commit-failed hook for module {module}"
+                        )
+                        if hasattr(module, "setup_post_commit_failed"):
+                            module.setup_post_commit_failed(
+                                root, logger, instance=instance, result=result
+                            )
 
             except Exception as e:
                 logger.error(f"Module {module} failed with exception: {e}")

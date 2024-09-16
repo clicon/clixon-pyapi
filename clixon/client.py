@@ -42,7 +42,7 @@ def controller_transaction_cb(*args, **kwargs) -> None:
     result = str(notification.notification.controller_transaction.result)
 
     if tid not in transactions:
-        logger.error(f"Transaction {tid} not found")
+        return
 
     for service in transactions[tid]:
         match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
