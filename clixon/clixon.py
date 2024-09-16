@@ -124,6 +124,10 @@ class Clixon:
 
             for child in self.__root:
                 config = rpc_config_set(child, target=self.__target)
+
+                for device in config.rpc.edit_config.config.devices.device:
+                    device = parse_string(self.__strip_config(device))
+
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp)
 
@@ -135,6 +139,32 @@ class Clixon:
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
+
+    def __strip_config(self, root) -> str:
+        """
+        Strip the rpc-reply tags and make the output readable.
+
+        :param config: Config
+        :type config: str
+        :return: Stripped config
+        :rtype: str
+
+        """
+
+        tmpconf = root.xml_start()
+
+        for node in root.config.get_elements():
+            tmpstr = node.xml_start() + node.dumps() + node.xml_end()
+
+            if "nc:operation" not in tmpstr:
+                logger.debug("Discarding node: " + node.get_name())
+                continue
+            else:
+                tmpconf += tmpstr
+
+        tmpconf += root.xml_end()
+
+        return tmpconf
 
     def commit(self) -> None:
         """

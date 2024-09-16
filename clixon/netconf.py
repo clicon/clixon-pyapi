@@ -186,7 +186,9 @@ def rpc_header_get(
     if rpc_type == RPCTypes.GET_CONFIG:
         root.rpc.create("get-config")
     elif rpc_type == RPCTypes.EDIT_CONFIG:
-        root.rpc.create("edit-config")
+        root.rpc.create(
+            "edit-config",
+        )
     elif rpc_type == RPCTypes.COMMIT:
         root.rpc.create("commit")
     elif rpc_type == RPCTypes.TRANSACTION_DONE:

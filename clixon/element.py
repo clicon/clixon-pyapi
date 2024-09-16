@@ -336,7 +336,22 @@ class Element(object):
 
         return self.cdata
 
-    def dumps(self) -> str:
+    def xml_start(self) -> str:
+        """
+        Get the tag and attribute of the current node.
+        """
+
+        attr_string = self.get_attributes_str()
+        return f"<{self._name}{attr_string}>"
+
+    def xml_end(self) -> str:
+        """
+        Get the closing tag of the current node.
+        """
+
+        return f"</{self._name}>"
+
+    def dumps(self, strip=False) -> str:
         """
 
         Return the XML string of the element and its children.
