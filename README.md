@@ -1,3 +1,4 @@
+# Clixon Python API
 <div align="center">
   <img src="https://www.clicon.org/Clixon_logga_liggande_med-ikon.png" width="400">
 </div>
@@ -8,14 +9,31 @@ Clixon Python API is a network services API for [Clixon controller](https://gith
 
 See [User guide](https://clixon-controller-docs.readthedocs.io/en/latest/) and [Clixon controller FAQ](https://github.com/clicon/clixon-controller/blob/main/FAQ.md).
 
+## Installation
+To install first install the dependencies either using Pip or, if you are using Ubuntu or Debian, use the requirements-apt.sh script.
 
-To install:
+Pip:
+
 ```
 $ pip3 install -r requirements.txt
-$ ./install.sh
 ```
 
-The Clixon controller Python API is open-source Apache License, Version 2.0, see [LICENSE](https://github.com/clicon/clixon-pyapi/blob/main/LICENSE).
+Ubuntu or Debian:
+
+```
+$ ./requirements-apt.sh
+```
+
+Then install the Clixon Python API:
+
+```
+./install.sh
+```
+
+## License
+License The Clixon controller Python API is open-source Apache
+License, Version 2.0, see
+[LICENSE](https://github.com/clicon/clixon-pyapi/blob/main/LICENSE).
 
 The controller has a main branch continuously tested with CI.
 
