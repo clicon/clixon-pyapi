@@ -15,7 +15,9 @@ class ModuleError(Exception):
     pass
 
 
-def run_hooks(modules: List, service_name: str, instance: str, result: str) -> None:
+def run_hooks(
+    modules: List, service_name: str, instance: str, diff: bool, result: str
+) -> None:
     if modules == []:
         logger.info("No modules found.")
         return
@@ -34,12 +36,18 @@ def run_hooks(modules: List, service_name: str, instance: str, result: str) -> N
                     case "pre-commit":
                         logger.debug(f"Running pre-commit hook for module {module}")
                         if hasattr(module, "setup_pre_commit"):
-                            module.setup_pre_commit(root, logger, instance=instance)
+                            module.setup_pre_commit(
+                                root, logger, instance=instance, diff=diff
+                            )
                     case "SUCCESS":
                         logger.debug(f"Running post-commit hook for module {module}")
                         if hasattr(module, "setup_post_commit"):
                             module.setup_post_commit(
-                                root, logger, instance=instance, result=result
+                                root,
+                                logger,
+                                instance=instance,
+                                result=result,
+                                diff=diff,
                             )
                     case "FAILED":
                         logger.debug(
@@ -47,7 +55,11 @@ def run_hooks(modules: List, service_name: str, instance: str, result: str) -> N
                         )
                         if hasattr(module, "setup_post_commit_failed"):
                             module.setup_post_commit_failed(
-                                root, logger, instance=instance, result=result
+                                root,
+                                logger,
+                                instance=instance,
+                                result=result,
+                                diff=diff,
                             )
 
             except Exception as e:

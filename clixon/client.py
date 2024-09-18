@@ -55,9 +55,7 @@ def controller_transaction_cb(*args, **kwargs) -> None:
         service_name = match.group(1)
         instance = match.group(2)
 
-        run_hooks(modules, service_name, instance, result)
-
-        # run_hooks(modules, service, result)
+        run_hooks(modules, service_name, instance, False, result)
 
 
 @events.register("*<services-commit*>*</services-commit>*")
@@ -122,8 +120,7 @@ def services_commit_cb(*args, **kwargs) -> None:
             service_name = match.group(1)
             instance = match.group(2)
 
-            if not service_diff:
-                run_hooks(modules, service_name, instance, "pre-commit")
+            run_hooks(modules, service_name, instance, service_diff, "pre-commit")
 
             run_modules(modules, service_name, instance, service_diff)
 
