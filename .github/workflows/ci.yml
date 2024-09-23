@@ -45,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
+      VERSION: "1.1.0"
     steps:      
       - uses: actions/checkout@v4
         with:
