@@ -60,4 +60,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python3-clixon-pyapi_${{env.VERSION}}_${{env.RUN_NUMBER}}-1_all.deb
-          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{env.VERSION}}_${{env.RUN_NUMBER}}-1_all.deb
+          path: ${{ github.workspace }}/python3-clixon-pyapi_${{env.VERSION}}_${{env.RUN_NUMBER}}-1_all.deb
