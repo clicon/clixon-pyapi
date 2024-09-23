@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VERSION: "1.1.0"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -24,3 +26,22 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      - name: install stdeb
+        run: sudo apt install python3-stdeb
+      - name: build Debian package
+        run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
+      - name: Create deb packet
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{env.VERSION}}_${{env.RUN_NUMBER}}
+          release_name: clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}
+          draft: false
+          prerelease: false
+      - name: Upload artefact (clixon)
+        uses: actions/upload-artifact@v4
+        with:
+          name: python3-clixon-pyapi_${{env.VERSION}}-1_all.deb
+          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{env.VERSION}}-1_all.deb
