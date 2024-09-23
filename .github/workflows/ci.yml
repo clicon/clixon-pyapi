@@ -2,7 +2,9 @@ name: Clixon PyAPI CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - test-actions
   pull_request:
     branches: [ main ]
 
