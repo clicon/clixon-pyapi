@@ -44,13 +44,14 @@ jobs:
   create-package:
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ $(git tag --sort=committerdate | tail -1) }}
       RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
-    steps:
+    steps:      
       - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
+      - name: Set version
+        run: echo "VERSION=$(git tag --sort=committerdate | tail -1) >> $GITHUB_ENV"
       - name: install deps
         run: ./requirements-apt.sh
       - name: install setup tools
