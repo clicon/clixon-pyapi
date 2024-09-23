@@ -50,19 +50,16 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      - name: Get latest tag pushed
-        id: tag
-        uses: 32teeth/action-github-tag@v2
       - name: install deps
         run: ./requirements-apt.sh
       - name: install setup tools
         run: sudo apt install -y python3-setuptools python3-stdeb
       - name: create package
-        run: DEB_BUILD_OPTIONS=nocheck VERSION=${{ steps.tag.outputs.tag }} python3 setup.py --command-packages=stdeb.command bdist_deb
+        run: DEB_BUILD_OPTIONS=nocheck VERSION=$GITHUB_REF_NAME python3 setup.py --command-packages=stdeb.command bdist_deb
       - name: show version
-        run: ${{ steps.tag.outputs.tag }}
+        run: echo "$GITHUB_REF_NAME"
       - name: Upload artefact (clixon)
         uses: actions/upload-artifact@v4
         with:
-          name: python3-clixon-pyapi_${{ steps.tag.outputs.tag }}-1_all.deb
-          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{ steps.tag.outputs.tag }}-1_all.deb
+          name: python3-clixon-pyapi_$GITHUB_REF_NAME-1_all.deb
+          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_$GITHUB_REF_NAME-1_all.deb
