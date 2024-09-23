@@ -22,7 +22,7 @@ jobs:
           architecture: 'x64'
           cache: 'pip'
       - name: Install dependencies
-        run: apt install -y python3 pythpn3-pip python3-setuptools python3-wheel python3-pytest python3-stdeb
+        run: sudo apt install -y python3 pythpn3-pip python3-setuptools python3-wheel python3-pytest python3-stdeb
       - name: Install requirements
         run: ./requirements-apt.sh
       - name: Test with pytest
