@@ -55,11 +55,11 @@ jobs:
       - name: install setup tools
         run: sudo apt install -y python3-setuptools python3-stdeb
       - name: create package
-        run: DEB_BUILD_OPTIONS=nocheck VERSION=$GITHUB_REF_NAME python3 setup.py --command-packages=stdeb.command bdist_deb
+        run: DEB_BUILD_OPTIONS=nocheck VERSION=${{env.VERSION}} python3 setup.py --command-packages=stdeb.command bdist_deb
       - name: show version
         run: echo "$GITHUB_REF_NAME"
       - name: Upload artefact (clixon)
         uses: actions/upload-artifact@v4
         with:
-          name: python3-clixon-pyapi_$GITHUB_REF_NAME-1_all.deb
-          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_$GITHUB_REF_NAME-1_all.deb
+          name: python3-clixon-pyapi_${{env.VERSION}}-1_all.deb
+          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{env.VERSION}}-1_all.deb
