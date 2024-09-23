@@ -4,9 +4,10 @@ import os
 import signal
 import sys
 from typing import Optional
-from clixon.version import __version__
+
 import clixon.parser as parser
 from clixon.log import get_log_factory
+from clixon.version import __version__
 
 
 def __update_from_configfile(opt: Optional[str] = None):
