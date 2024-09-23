@@ -44,7 +44,7 @@ jobs:
   create-package:
     runs-on: ubuntu-latest
     env:
-      VERSION: $(git tag --sort=committerdate | tail -1)
+      VERSION: ${{ $(git tag --sort=committerdate | tail -1) }}
       RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
     steps:
       - uses: actions/checkout@v4
