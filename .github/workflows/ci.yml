@@ -39,7 +39,7 @@ jobs:
       - name: install deps
         run: ./requirements-apt.sh
       - name: install setup tools
-        run: python3-setuptools python3-stdeb
+        run: apt install -y python3-setuptools python3-stdeb
       - name: create package
         run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
       - name: Store deb packet
