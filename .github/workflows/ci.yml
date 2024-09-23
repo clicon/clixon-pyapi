@@ -52,7 +52,7 @@ jobs:
           fetch-depth: 0
       - name: Get latest tag pushed
         id: tag
-        uses: 32teeth/action-github-tag
+        uses: 32teeth/action-github-tag@v2
       - name: install deps
         run: ./requirements-apt.sh
       - name: install setup tools
