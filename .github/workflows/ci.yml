@@ -22,14 +22,11 @@ jobs:
           architecture: 'x64'
           cache: 'pip'
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel pytest
-          pip install -r requirements.txt
+        run: apt install -y python3 pythpn3-pip python3-setuptools python3-wheel python3-pytest python3-stdeb
+      - name: Install requirements
+        run: ./requirements-apt.sh
       - name: Test with pytest
-        run: |
-          pytest
-      - name: install stdeb
-        run: sudo apt install python3-stdeb
+        run: pytest
       - name: build Debian package
         run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
       - name: Create deb packet
