@@ -28,10 +28,10 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-      - name: install stdeb
-        run: sudo apt install python3-stdeb
-      - name: build Debian package
-        run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
+
+  create-package:
+    runs-on: ubuntu-latest
+    steps:
       - name: Create deb packet
         id: create_release
         uses: actions/create-release@v1
@@ -42,6 +42,10 @@ jobs:
           release_name: clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}
           draft: false
           prerelease: false
+      - name: install deps
+        run: ./requirements-apt.sh
+      - name: install setup tools
+        run: python3-setuptools python3-stdeb
       - name: Upload artefact (clixon)
         uses: actions/upload-artifact@v4
         with:
