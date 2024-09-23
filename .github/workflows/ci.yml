@@ -9,7 +9,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  unit-tests:
     runs-on: ubuntu-latest
     env:
       VERSION: "1.1.0"
@@ -29,6 +29,9 @@ jobs:
         run: pytest
       - name: build Debian package
         run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
+
+  create-package:
+    steps:
       - name: Create deb packet
         id: create_release
         uses: actions/create-release@v1
