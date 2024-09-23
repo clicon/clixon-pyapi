@@ -29,8 +29,23 @@ jobs:
         run: |
           pytest
 
+  reset-run-number:
+    runs-on: ubuntu-latest
+    outputs:
+      run-number: ${{ steps.get-build.outputs.build-number }}
+    steps:
+      - name: Get build number and reset it
+        id: get-build
+        uses: mlilback/build-number@v1
+        with:
+          base: 0 # Update this number to reset counter
+          run-id: ${{ github.run_number }}
+
   create-package:
     runs-on: ubuntu-latest
+    env:
+      VERSION: $(git tag --sort=committerdate | tail -1)
+      RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
     steps:
       - uses: actions/checkout@v4
         with:
