@@ -31,6 +31,7 @@ jobs:
         run: DEB_BUILD_OPTIONS=nocheck python3 setup.py --command-packages=stdeb.command bdist_deb
 
   create-package:
+    runs-on: ubuntu-latest
     steps:
       - name: Create deb packet
         id: create_release
