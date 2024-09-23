@@ -11,8 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      VERSION: "1.1.0"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -42,6 +40,7 @@ jobs:
           run-id: ${{ github.run_number }}
 
   create-package:
+    needs: reset-run-number
     runs-on: ubuntu-latest
     env:
       RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
