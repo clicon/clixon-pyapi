@@ -26,6 +26,11 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License"
         "Operating System :: OS Independent",
     ],
+    install_requires=[
+        'yaml',
+        'daemonize',
+        'xmltodict'
+    ],
     license="Apache-2.0",
     python_requires='>=3.11',
     scripts=["clixon_server.py"],
