@@ -14,13 +14,6 @@ To install first install the dependencies either using Pip or, if you are using 
 
 Pip:
 
-<<<<<<< HEAD
-=======
-To install first install the dependencies either using Pip or, if you are using Ubuntu or Debian, use the requirements-apt.sh script.
-
-Pip:
-
->>>>>>> 64d1e1c (Updated README.)
 ```
 $ pip3 install -r requirements.txt
 ```
@@ -37,11 +30,8 @@ Then install the Clixon Python API:
 ./install.sh
 ```
 
-<<<<<<< HEAD
 ## License
-=======
 
->>>>>>> 64d1e1c (Updated README.)
 License The Clixon controller Python API is open-source Apache
 License, Version 2.0, see
 [LICENSE](https://github.com/clicon/clixon-pyapi/blob/main/LICENSE).
