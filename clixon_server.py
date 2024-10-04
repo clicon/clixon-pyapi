@@ -1,17 +1,46 @@
 #!/usr/bin/env python3
-from clixon.version import __version__
-from clixon.modules import load_modules
-from clixon.client import readloop
-from clixon.args import parse_args, get_logger
-from daemonize import Daemonize
-import sys
 import os
+import sys
+import fcntl
+from clixon.args import get_logger, parse_args
+from clixon.client import readloop
+from clixon.modules import load_modules
 
-(sockpath, mpath, mfilter, pidfile, foreground,
- pp, _, _) = parse_args(sys.argv[1:])
+(sockpath, mpath, mfilter, pidfile, pp, _, _) = parse_args(sys.argv[1:])
 
 logger = get_logger()
 lockfd = None
+
+
+class PIDLock:
+    def __init__(self, pidfile):
+        self.__pidfile = pidfile
+        self.__pidfd = None
+
+    def __enter__(self):
+        self.__pidfd = open(self.__pidfile, "a+")
+        try:
+            fcntl.flock(self.__pidfd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except IOError:
+            logger.error(f"Another instance of clixon_server is running.")
+            sys.exit(0)
+
+        self.__pidfd.seek(0)
+        self.__pidfd.truncate()
+        self.__pidfd.write(str(os.getpid()))
+        self.__pidfd.flush()
+        self.__pidfd.seek(0)
+
+        return self.__pidfd
+
+    def __exit__(self, exc_type=None, exc_value=None, exc_tb=None):
+        try:
+            self.__pidfd.close()
+        except IOError as err:
+            if err.errno != 9:
+                raise
+
+        os.remove(self.__pidfile)
 
 
 def main() -> None:
@@ -40,12 +69,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    if foreground:
-        main()
-    else:
-        daemon = Daemonize(app="clixon_server", pid=pidfile, action=main,
-                           logger=logger,
-                           foreground=foreground,
-                           verbose=True,
-                           chdir=os.getcwd())
-        daemon.start()
+    try:
+        with PIDLock(pidfile):
+            main()
+    except Exception as e:
+        logger.error(e)
