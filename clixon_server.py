@@ -73,7 +73,8 @@ if __name__ == "__main__":
         with PIDLock(pidfile):
             main()
     except Exception:
+        process_name = os.path.basename(sys.argv[0])
         logger.error(
-            "Either another instance of clixon_server is running or "
+            f"Either another instance of {process_name} is running or "
             "the PID file can not be created."
         )
