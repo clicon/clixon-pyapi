@@ -32,26 +32,6 @@ def __update_from_configfile(opt: Optional[str] = None):
     global_args["pidfile"] = pidfile
 
 
-def __kill(pidfile: str) -> None:
-    """
-    Kill daemon.
-
-    :param pidfile: Pidfile
-    :type pidfile: str
-    :return: None
-    :rtype: None
-
-    """
-
-    try:
-        with open(pidfile) as fd:
-            pid = int(fd.read())
-            print(f"Killing daemon with pid {pid}!")
-            os.kill(pid, signal.SIGTERM)
-    except FileNotFoundError:
-        print(f"Pidfile {pidfile} not found")
-
-
 def __parse_config(configfile: str, argname: Optional[bool] = "") -> tuple:
     """
     Parse configuration file.
@@ -140,7 +120,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
         default=default_log,
         help="Log on (s)yslog, std(o)ut",
     )
-    parser.add_argument("-z", "--kill-daemon", action="store_true", help="Kill daemon")
     parser.add_argument("-V", "--version", action="store_true", help="Print version")
     args = parser.parse_args(cli_args)
 
@@ -157,10 +136,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
 
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
-        sys.exit(0)
-
-    if args.kill_daemon:
-        __kill(args.pidfile)
         sys.exit(0)
 
     # Load
