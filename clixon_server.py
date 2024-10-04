@@ -72,5 +72,8 @@ if __name__ == "__main__":
     try:
         with PIDLock(pidfile):
             main()
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.error(
+            "Either another instance of clixon_server is running or "
+            "the PID file can not be created."
+        )
