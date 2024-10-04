@@ -132,9 +132,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
     parser.add_argument(
         "-p", "--pidfile", default=default_pidfile, help="Pidfile for Python server"
     )
-    parser.add_argument(
-        "-F", "--foreground", action="store_true", help="Run in foreground"
-    )
     parser.add_argument("-P", "--pp", action="store_true", help="Prettyprint XML")
     parser.add_argument(
         "-l",
@@ -189,7 +186,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
         args.modulepaths,
         args.modulefilter,
         args.pidfile,
-        args.foreground,
         args.pp,
         args.log,
         args.debug,
