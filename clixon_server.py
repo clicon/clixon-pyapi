@@ -22,7 +22,7 @@ class PIDLock:
         try:
             fcntl.flock(self.__pidfd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            logger.error(f"Another instance of clixon_server is running.")
+            logger.error("Another instance of clixon_server is running.")
             sys.exit(0)
 
         self.__pidfd.seek(0)
