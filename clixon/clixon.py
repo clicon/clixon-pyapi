@@ -145,7 +145,6 @@ class Clixon:
 
         """
 
-        tmpconf = ""
         new_config = root.dumps()
 
         # Remove everything inside <device> tags
@@ -169,12 +168,9 @@ class Clixon:
                     device_xml += "<config>" + tmpstr + "</config>"
 
             device_xml += "</device>"
-
             new_config += device_xml
 
         new_config += "</devices>"
-
-        # print(new_config)
 
         return new_config
 
