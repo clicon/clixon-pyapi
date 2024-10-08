@@ -351,7 +351,7 @@ class Element(object):
 
         return f"</{self._name}>"
 
-    def dumps(self, strip=False) -> str:
+    def dumps(self) -> str:
         """
 
         Return the XML string of the element and its children.

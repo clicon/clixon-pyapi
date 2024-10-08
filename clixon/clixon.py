@@ -145,6 +145,7 @@ class Clixon:
 
         """
 
+        start_tag = None
         new_config = root.dumps()
 
         # Remove everything inside <device> tags
@@ -158,7 +159,20 @@ class Clixon:
             device_xml = re.sub(r"<config.*?>.*?</config>$", "", device.dumps())
             device_xml = "<device>" + device_xml
 
-            for node in device.config.get_elements():
+            start_node = device.get_children()
+
+            if len(start_node.get_elements()) == 1:
+                start_tag = start_node.origname()
+                device_xml += (
+                    "<"
+                    + start_node.origname()
+                    + " "
+                    + start_node.get_attributes_str()
+                    + ">"
+                )
+                start_node = start_node.get_elements()[0]
+
+            for node in start_node:
                 tmpstr = node.xml_start() + node.dumps() + node.xml_end()
 
                 if "nc:operation" not in tmpstr:
@@ -168,6 +182,10 @@ class Clixon:
                     device_xml += "<config>" + tmpstr + "</config>"
 
             device_xml += "</device>"
+
+            if start_tag is not None:
+                device_xml += "</" + start_tag + ">"
+
             new_config += device_xml
 
         new_config += "</devices>"
