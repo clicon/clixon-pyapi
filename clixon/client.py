@@ -1,20 +1,17 @@
-from socket import socket
 import re
+import struct
 import sys
 import time
 import traceback
+from socket import socket
 from typing import Optional
-import struct
+
 from clixon.args import get_logger
-from clixon.modules import run_modules, run_hooks
-from clixon.netconf import (
-    RPCTypes,
-    rpc_header_get,
-    rpc_subscription_create,
-)
-from clixon.parser import parse_string
-from clixon.sock import read, send, create_socket, SocketClosedError
 from clixon.event import RPCEventHandler
+from clixon.modules import run_hooks, run_modules
+from clixon.netconf import RPCTypes, rpc_header_get, rpc_subscription_create
+from clixon.parser import parse_string
+from clixon.sock import SocketClosedError, create_socket, read, send
 
 logger = get_logger()
 events = RPCEventHandler()
@@ -55,9 +52,7 @@ def controller_transaction_cb(*args, **kwargs) -> None:
         service_name = match.group(1)
         instance = match.group(2)
 
-        run_hooks(modules, service_name, instance, result)
-
-        # run_hooks(modules, service, result)
+        run_hooks(modules, service_name, instance, False, result)
 
 
 @events.register("*<services-commit*>*</services-commit>*")
@@ -122,8 +117,7 @@ def services_commit_cb(*args, **kwargs) -> None:
             service_name = match.group(1)
             instance = match.group(2)
 
-            if not service_diff:
-                run_hooks(modules, service_name, instance, "pre-commit")
+            run_hooks(modules, service_name, instance, service_diff, "pre-commit")
 
             run_modules(modules, service_name, instance, service_diff)
 
@@ -131,7 +125,7 @@ def services_commit_cb(*args, **kwargs) -> None:
                 finished_services.append(service_name)
     except Exception as e:
         logger.error("Catched an module exception")
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
 
         if service_name:
             name = f" {service_name} "

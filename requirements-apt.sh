@@ -1,3 +1,3 @@
 #/bin/sh
 
-sudo apt install -y python3-attr python3-daemonize python3-iniconfig python3-packaging python3-pluggy python3-pytest python3-tomli python3-xmltodict python3-setuptools dh-python python3-yaml
+sudo apt install -y python3-xmltodict python3-setuptools dh-python python3-yaml python3-pytest

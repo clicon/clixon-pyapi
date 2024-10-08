@@ -2,7 +2,9 @@ name: Clixon PyAPI CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - test-actions
   pull_request:
     branches: [ main ]
 
@@ -24,3 +26,38 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+
+  reset-run-number:
+    runs-on: ubuntu-latest
+    outputs:
+      run-number: ${{ steps.get-build.outputs.build-number }}
+    steps:
+      - name: Get build number and reset it
+        id: get-build
+        uses: mlilback/build-number@v1
+        with:
+          base: 0 # Update this number to reset counter
+          run-id: ${{ github.run_number }}
+
+  create-package:
+    needs: reset-run-number
+    runs-on: ubuntu-latest
+    env:
+      RUN_NUMBER: ${{ needs.reset-run-number.outputs.run-number }}
+      VERSION: "1.1.0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: install deps
+        run: ./requirements-apt.sh
+      - name: install setup tools
+        run: sudo apt install -y python3-setuptools python3-stdeb
+      - name: create package
+        run: DEB_BUILD_OPTIONS=nocheck VERSION="${{env.VERSION}}_${{env.RUN_NUMBER}}" python3 setup.py --command-packages=stdeb.command bdist_deb
+      - name: Upload artefact (clixon)
+        uses: actions/upload-artifact@v4
+        with:
+          name: python3-clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}-1_all.deb
+          path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}-1_all.deb
