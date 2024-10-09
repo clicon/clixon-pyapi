@@ -145,7 +145,6 @@ class Clixon:
 
         """
 
-        start_tag = None
         new_config = root.dumps()
 
         # Remove everything inside <device> tags
@@ -156,37 +155,36 @@ class Clixon:
         new_config += '<devices xmlns="http://clicon.org/controller">'
 
         for device in root.devices.device:
-            device_xml = re.sub(r"<config.*?>.*?</config>$", "", device.dumps())
-            device_xml = "<device>" + device_xml
+            device_name = device.name.get_data()
+            device_start = re.sub(r"<config.*?>.*?</config>$", "", device.dumps())
 
-            start_node = device.get_children()
+            logger.info(f"Stripping data for device: {device_name}")
 
-            if len(start_node.get_elements()) == 1:
-                start_tag = start_node.origname()
-                device_xml += (
-                    "<"
-                    + start_node.origname()
-                    + " "
-                    + start_node.get_attributes_str()
-                    + ">"
+            if len(device.config.get_elements()) == 1:
+                device_start += "<config>" + device.config.get_elements()[0].xml_start()
+                start_node = device.config.get_elements()[0]
+                device_end = (
+                    device.config.get_elements()[0].xml_end() + "</config></device>"
                 )
-                start_node = start_node.get_elements()[0]
+            else:
+                device_start += "<config>"
+                start_node = device.config
+                device_end = "</config></device>"
 
-            for node in start_node:
+            device_xml = ""
+            for node in start_node.get_elements():
                 tmpstr = node.xml_start() + node.dumps() + node.xml_end()
 
                 if "nc:operation" not in tmpstr:
-                    logger.debug("Discarding node: " + node.get_name())
+                    logger.debug(f"{device_name} discarding node: " + node.get_name())
                     continue
                 else:
-                    device_xml += "<config>" + tmpstr + "</config>"
+                    logger.info(f"{device_name} Adding node: " + node.get_name())
+                    device_xml += tmpstr
 
-            device_xml += "</device>"
+            device_config = "<device>" + device_start + device_xml + device_end
 
-            if start_tag is not None:
-                device_xml += "</" + start_tag + ">"
-
-            new_config += device_xml
+            new_config += device_config
 
         new_config += "</devices>"
 
