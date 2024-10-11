@@ -23,7 +23,7 @@ from clixon.helpers import timeout
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
 logger = get_logger()
-default_sockpath = "/usr/local/var/run/controller.sock"
+default_sockpath = "/usr/local/var/run/controller/controller.sock"
 
 
 class Clixon:
