@@ -155,24 +155,31 @@ class Clixon:
         new_config += '<devices xmlns="http://clicon.org/controller">'
 
         for device in root.devices.device:
+            device_xml = ""
             device_name = device.name.get_data()
             device_start = re.sub(r"<config.*?>.*?</config>$", "", device.dumps())
 
             logger.info(f"Stripping data for device: {device_name}")
 
+            # On Junos, the config is wrapped in a <configuration>,
+            # walk down one more level to get to the actual config.
+            # If the node under <config> only have one child we assume that
+            # the config is wrapped in a <configuration> tag.
             if len(device.config.get_elements()) == 1:
-                device_start += "<config>" + device.config.get_elements()[0].xml_start()
-                start_node = device.config.get_elements()[0]
+                device_start += "<config>"
+                device_start += device.config.get_elements()[0].xml_start()
+                config_node = device.config.get_elements()[0]
                 device_end = (
                     device.config.get_elements()[0].xml_end() + "</config></device>"
                 )
             else:
                 device_start += "<config>"
-                start_node = device.config
+                config_node = device.config
                 device_end = "</config></device>"
 
-            device_xml = ""
-            for node in start_node.get_elements():
+            # Iterate all configuration nodes and add the ones with
+            # nc:operation to the new config.
+            for node in config_node.get_elements():
                 tmpstr = node.xml_start() + node.dumps() + node.xml_end()
 
                 if "nc:operation" not in tmpstr:
@@ -183,9 +190,7 @@ class Clixon:
                     device_xml += tmpstr
 
             device_config = "<device>" + device_start + device_xml + device_end
-
             new_config += device_config
-
         new_config += "</devices>"
 
         return new_config
