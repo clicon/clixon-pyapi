@@ -54,10 +54,17 @@ jobs:
         run: ./requirements-apt.sh
       - name: install setup tools
         run: sudo apt install -y python3-setuptools python3-stdeb
-      - name: create package
+      - name: create debian package
         run: DEB_BUILD_OPTIONS=nocheck VERSION="${{env.VERSION}}_${{env.RUN_NUMBER}}" python3 setup.py --command-packages=stdeb.command bdist_deb
-      - name: Upload artefact (clixon)
+      - name: create wheel package
+        run: DEB_BUILD_OPTIONS=nocheck VERSION="${{env.VERSION}}_${{env.RUN_NUMBER}}" python3 setup.py bdist_wheel
+      - name: Upload artefact debian package
         uses: actions/upload-artifact@v4
         with:
           name: python3-clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}-1_all.deb
           path: ${{ github.workspace }}/deb_dist/python3-clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}-1_all.deb
+      - name: Upload artefact wheel package
+        uses: actions/upload-artifact@v4
+        with:
+          name: clixon-pyapi_${{env.VERSION}}-${{env.RUN_NUMBER}}-py3-none-any.whl
+          path: ${{ github.workspace }}/dist/clixon_pyapi-${{env.VERSION}}.post${{env.RUN_NUMBER}}-py3-none-any.whl
