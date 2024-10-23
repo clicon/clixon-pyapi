@@ -37,6 +37,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Populate the build directory
 cp README.md build/
 cp -r clixon build/
 cp clixon_server.py build/
