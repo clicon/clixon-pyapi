@@ -1,0 +1,15 @@
+Source: clixon-pyapi
+Section: devel
+Priority: optional
+Maintainer: kristofer@sunet.se
+Build-Depends:
+ debhelper-compat (= 12),
+ dh-python,
+ python3-all,
+ python3-setuptools
+Standards-Version: 4.5.0
+
+Package: python-clixon-pyapi
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}
+Description: Clixon controller Python API
