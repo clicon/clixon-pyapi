@@ -1,0 +1,5 @@
+clixon-pyapi (1.1.0-1+42+g5d2af82) 1.1.0-1+42+g5d2af82 stable; urgency=medium
+
+ * Add pytest-coverage back to requirements.
+
+ -- Kristofer Hallin <kristofer@sunet.se>  Wed, 16 Oct 2024 11:34:21 +0000
