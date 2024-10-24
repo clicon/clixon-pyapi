@@ -43,8 +43,5 @@ cp -r clixon build/
 cp clixon_server.py build/
 cp setup.py build/
 
-# Set the version in version.py
-echo "__version__ = \"${VERSION}\"" > build/clixon/version.py
-
 # Build the Debian package
 (cd build && dpkg-buildpackage -us -uc)
