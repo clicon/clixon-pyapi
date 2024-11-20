@@ -297,7 +297,7 @@ def get_path(root: Element, path: str) -> Optional[Element]:
         node = node.replace("-", "_")
 
         try:
-            if not new_root:
+            if new_root is None:
                 new_root = getattr(root, node)
             else:
                 new_root = getattr(new_root, node)
