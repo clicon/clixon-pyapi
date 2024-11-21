@@ -4,8 +4,9 @@ from typing import Optional
 import os
 
 
-def get_log_factory(output: Optional[str] = "s",
-                    debug: Optional[bool] = False) -> logging.Logger:
+def get_log_factory(
+    output: Optional[str] = "s", debug: Optional[bool] = False
+) -> logging.Logger:
     """
     Get logger for the application.
 
@@ -20,7 +21,9 @@ def get_log_factory(output: Optional[str] = "s",
 
     logger = logging.getLogger("pyserver")
     if not logger.handlers:
-        formatter = logging.Formatter("%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s")
+        formatter = logging.Formatter(
+            "%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s"
+        )
 
         if output == "s":
             if os.path.exists("/dev/log"):
@@ -33,7 +36,7 @@ def get_log_factory(output: Optional[str] = "s",
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-    if debug:
+    if debug or os.environ.get("PYAPI_DEBUG") == "1":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
