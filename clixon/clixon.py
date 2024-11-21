@@ -2,23 +2,13 @@ import os
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
-from clixon.netconf import (
-    rpc_commit,
-    rpc_config_get,
-    rpc_config_set,
-    rpc_error_get,
-    rpc_pull,
-    rpc_push,
-    rpc_subscription_create,
-    rpc_apply_service,
-    rpc_datastore_diff,
-    rpc_lock,
-    rpc_unlock,
-)
+from clixon.helpers import timeout
+from clixon.netconf import (rpc_apply_service, rpc_commit, rpc_config_get,
+                            rpc_config_set, rpc_datastore_diff, rpc_error_get,
+                            rpc_lock, rpc_pull, rpc_push,
+                            rpc_subscription_create, rpc_unlock)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
-from clixon.helpers import timeout
-
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -277,7 +267,7 @@ class Clixon:
 
         """
 
-        logger.info(f"Pulling config for device {device}")
+        logger.debug(f"Pulling config for device {device}")
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
