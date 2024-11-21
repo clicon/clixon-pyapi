@@ -39,6 +39,7 @@ class Clixon:
         read_only: Optional[bool] = False,
         user: Optional[str] = "root",
         standalone: Optional[bool] = False,
+        timeout: Optional[int] = 30,
     ) -> None:
         """
         Create a Clixon object.
@@ -81,6 +82,7 @@ class Clixon:
         self.__read_only = read_only
         self.__transaction_notify = False
         self.__standalone = standalone
+        self.__timeout = timeout
 
         if cron:
             self.__commit = True
@@ -179,7 +181,6 @@ class Clixon:
 
         return self.__root
 
-    @timeout(30)
     def __wait_for_notification(self) -> None:
         """
         Wait for the pull/push notification.
@@ -189,25 +190,31 @@ class Clixon:
 
         """
 
-        data = read(self.__socket, pp, standalone=self.__standalone)
-
-        self.__handle_errors(data)
-
-        idx = 0
-        while True:
-            logger.debug(f"Waiting for notification {idx} of 5")
-
-            if "notification" in data and "SUCCESS" in data:
-                break
-
-            idx += 1
-
-            if idx > 5:
-                raise ValueError("Read too many messages without notification success")
-
+        @timeout(self.__timeout)
+        def __wait_or_timeout():
             data = read(self.__socket, pp, standalone=self.__standalone)
 
             self.__handle_errors(data)
+
+            idx = 0
+            while True:
+                logger.debug(f"Waiting for notification {idx} of 5")
+
+                if "notification" in data and "SUCCESS" in data:
+                    break
+
+                idx += 1
+
+                if idx > 5:
+                    raise ValueError(
+                        "Read too many messages without notification success"
+                    )
+
+                data = read(self.__socket, pp, standalone=self.__standalone)
+
+                self.__handle_errors(data)
+
+        __wait_or_timeout()
 
     def __handle_errors(self, data: str) -> None:
         """
