@@ -190,6 +190,7 @@ class Clixon:
 
         """
 
+        @timeout(self.__timeout)
         def __wait_or_timeout() -> str:
             data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -201,8 +202,6 @@ class Clixon:
 
                 if "notification" in data and "SUCCESS" in data:
                     self.__handle_errors(data)
-
-                    print("Returning data: " + data)
 
                     return data
 
@@ -377,7 +376,7 @@ class Clixon:
 
         rpc_reply = parse_string(data)
 
-        return rpc_reply.notification.controller_transaction
+        return rpc_reply
 
     def apply_service(
         self, service: str, instance: str, diff: Optional[bool] = True

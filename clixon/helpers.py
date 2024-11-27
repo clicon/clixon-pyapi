@@ -20,9 +20,11 @@ def timeout(seconds=10):
             signal.alarm(seconds)
 
             try:
-                func(*args, **kwargs)
+                ret = func(*args, **kwargs)
             finally:
                 signal.alarm(0)
+
+            return ret
 
         return wrapper
 
