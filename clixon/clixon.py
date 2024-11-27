@@ -3,10 +3,20 @@ from typing import Optional
 
 from clixon.args import get_arg, get_logger
 from clixon.helpers import timeout
-from clixon.netconf import (rpc_apply_service, rpc_commit, rpc_config_get,
-                            rpc_config_set, rpc_datastore_diff, rpc_error_get,
-                            rpc_lock, rpc_pull, rpc_push,
-                            rpc_subscription_create, rpc_unlock)
+from clixon.netconf import (
+    rpc_apply_service,
+    rpc_commit,
+    rpc_config_get,
+    rpc_config_set,
+    rpc_datastore_diff,
+    rpc_error_get,
+    rpc_lock,
+    rpc_pull,
+    rpc_push,
+    rpc_subscription_create,
+    rpc_unlock,
+    rpc_apply_rpc_template,
+)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
 
@@ -171,7 +181,7 @@ class Clixon:
 
         return self.__root
 
-    def __wait_for_notification(self) -> None:
+    def __wait_for_notification(self, return_data: Optional[bool] = False) -> None:
         """
         Wait for the pull/push notification.
 
@@ -180,8 +190,7 @@ class Clixon:
 
         """
 
-        @timeout(self.__timeout)
-        def __wait_or_timeout():
+        def __wait_or_timeout() -> str:
             data = read(self.__socket, pp, standalone=self.__standalone)
 
             self.__handle_errors(data)
@@ -191,7 +200,11 @@ class Clixon:
                 logger.debug(f"Waiting for notification {idx} of 5")
 
                 if "notification" in data and "SUCCESS" in data:
-                    break
+                    self.__handle_errors(data)
+
+                    print("Returning data: " + data)
+
+                    return data
 
                 idx += 1
 
@@ -202,9 +215,10 @@ class Clixon:
 
                 data = read(self.__socket, pp, standalone=self.__standalone)
 
-                self.__handle_errors(data)
+        data = __wait_or_timeout()
 
-        __wait_or_timeout()
+        if return_data:
+            return data
 
     def __handle_errors(self, data: str) -> None:
         """
@@ -335,6 +349,35 @@ class Clixon:
 
         """
         return self.__logger
+
+    def apply_rpc(self, devname: str, template: str, variables: dict) -> None:
+        """
+        <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="snc" message-id="42">
+            <device-rpc-template-apply xmlns="http://clicon.org/controller">
+                <devname>*</devname>
+                <template>bgp-neighbour</template>
+                <variables>
+                    <variable>
+                        <name>ADDRESS</name>
+                        <value>130.242.67.1</value>
+                    </variable>
+                </variables>
+            </device-rpc-template-apply>
+        </rpc>
+        """
+
+        rpc = rpc_apply_rpc_template(devname, template, variables)
+
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
+
+        send(self.__socket, rpc, pp)
+
+        data = self.__wait_for_notification(return_data=True)
+
+        rpc_reply = parse_string(data)
+
+        return rpc_reply.notification.controller_transaction
 
     def apply_service(
         self, service: str, instance: str, diff: Optional[bool] = True
