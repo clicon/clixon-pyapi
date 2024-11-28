@@ -3,20 +3,11 @@ from typing import Optional
 
 from clixon.args import get_arg, get_logger
 from clixon.helpers import timeout
-from clixon.netconf import (
-    rpc_apply_service,
-    rpc_commit,
-    rpc_config_get,
-    rpc_config_set,
-    rpc_datastore_diff,
-    rpc_error_get,
-    rpc_lock,
-    rpc_pull,
-    rpc_push,
-    rpc_subscription_create,
-    rpc_unlock,
-    rpc_apply_rpc_template,
-)
+from clixon.netconf import (rpc_apply_rpc_template, rpc_apply_service,
+                            rpc_commit, rpc_config_get, rpc_config_set,
+                            rpc_datastore_diff, rpc_error_get, rpc_lock,
+                            rpc_pull, rpc_push, rpc_subscription_create,
+                            rpc_unlock)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
 
@@ -351,18 +342,17 @@ class Clixon:
 
     def apply_rpc(self, devname: str, template: str, variables: dict) -> None:
         """
-        <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="snc" message-id="42">
-            <device-rpc-template-apply xmlns="http://clicon.org/controller">
-                <devname>*</devname>
-                <template>bgp-neighbour</template>
-                <variables>
-                    <variable>
-                        <name>ADDRESS</name>
-                        <value>130.242.67.1</value>
-                    </variable>
-                </variables>
-            </device-rpc-template-apply>
-        </rpc>
+        Apply a RPC template.
+
+
+        :param devname: Device name
+        :type devname: str
+        :param template: Template
+        :type template: str
+        :param variables: Variables
+        :type variables: dict
+        :return: None
+        :rtype: None
         """
 
         rpc = rpc_apply_rpc_template(devname, template, variables)
