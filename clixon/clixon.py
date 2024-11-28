@@ -376,6 +376,11 @@ class Clixon:
 
         rpc_reply = parse_string(data)
 
+        try:
+            return rpc_reply.notification.controller_transaction.devices.devdata
+        except AttributeError:
+            raise ValueError("No devdata in rpc-reply for apply_rpc")
+
         return rpc_reply
 
     def apply_service(
