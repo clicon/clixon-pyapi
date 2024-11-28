@@ -322,14 +322,15 @@ def rpc_apply_rpc_template(devname: str, template: str, variables: dict) -> Elem
 
     root = Element()
     root.create("rpc", attributes=attributes)
-    root.rpc.create("device-rpc-template-apply", attributes=CONTROLLER_NS)
-    root.rpc.device_rpc_template_apply.create("devname", data=devname)
-    root.rpc.device_rpc_template_apply.create("template", data=template)
+    root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
+    root.rpc.device_template_apply.create("type", data="RPC")
+    root.rpc.device_template_apply.create("devname", data=devname)
+    root.rpc.device_template_apply.create("template", data=template)
 
     if variables:
-        root.rpc.device_rpc_template_apply.create("variables")
+        root.rpc.device_template_apply.create("variables")
         for key, value in variables.items():
-            var = root.rpc.device_rpc_template_apply.variables.create("variable")
+            var = root.rpc.device_template_apply.variables.create("variable")
             var.create("name", data=key)
             var.create("value", data=value)
 
