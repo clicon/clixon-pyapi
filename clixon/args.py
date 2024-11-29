@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import signal
 import sys
 from typing import Optional
 
@@ -121,6 +120,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
         help="Log on (s)yslog, std(o)ut",
     )
     parser.add_argument("-V", "--version", action="store_true", help="Print version")
+    parser.add_argument("remaining", nargs=argparse.REMAINDER)
     args = parser.parse_args(cli_args)
 
     if args.version:
