@@ -340,7 +340,7 @@ class Clixon:
         """
         return self.__logger
 
-    def apply_rpc(self, devname: str, template: str, variables: dict) -> None:
+    def device_rpc(self, devname: str, template: str, variables: dict) -> None:
         """
         Apply a RPC template.
 
@@ -369,7 +369,7 @@ class Clixon:
         try:
             return rpc_reply.notification.controller_transaction.devices.devdata
         except AttributeError:
-            raise ValueError("No devdata in rpc-reply for apply_rpc")
+            raise ValueError("No devdata in rpc-reply for device_rpc")
 
         return rpc_reply
 
