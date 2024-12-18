@@ -459,3 +459,26 @@ def rpc_unlock(target: Optional[str] = "candidate") -> Element:
     root.rpc.create("unlock").create("target").create(target)
 
     return root
+
+
+def rpc_connection_open(device: Optional[str] = "*") -> Element:
+    """
+    Create a RPC connection-open element.
+
+    :return: RPC element
+    :rtype: Element
+
+    """
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42",
+        "username": "root",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("connection-change", attributes=CONTROLLER_NS)
+    root.rpc.connection_change.create("operation", data="OPEN")
+    root.rpc.connection_change.create("devname", data=device)
+
+    return root

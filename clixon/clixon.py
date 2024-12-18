@@ -3,11 +3,22 @@ from typing import Optional
 
 from clixon.args import get_arg, get_logger
 from clixon.helpers import timeout
-from clixon.netconf import (rpc_apply_rpc_template, rpc_apply_service,
-                            rpc_commit, rpc_config_get, rpc_config_set,
-                            rpc_datastore_diff, rpc_error_get, rpc_lock,
-                            rpc_pull, rpc_push, rpc_subscription_create,
-                            rpc_unlock)
+from clixon.netconf import (
+    rpc_apply_rpc_template,
+    rpc_apply_service,
+    rpc_commit,
+    rpc_config_get,
+    rpc_config_set,
+    rpc_datastore_diff,
+    rpc_error_get,
+    rpc_lock,
+    rpc_pull,
+    rpc_push,
+    rpc_subscription_create,
+    rpc_unlock,
+    rpc_connection_open,
+)
+
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
 
@@ -15,6 +26,10 @@ sockpath = get_arg("sockpath")
 pp = get_arg("pp")
 logger = get_logger()
 default_sockpath = "/usr/local/var/run/controller/controller.sock"
+
+
+class TransactionError(Exception):
+    pass
 
 
 class Clixon:
@@ -195,6 +210,8 @@ class Clixon:
                     self.__handle_errors(data)
 
                     return data
+                elif "notification" in data and "FAILED" in data:
+                    raise TransactionError("Transaction failed")
 
                 idx += 1
 
@@ -259,6 +276,13 @@ class Clixon:
 
         self.__handle_errors(data)
         self.__transaction_notify = True
+
+    def __set_timeout(self, timeout: int) -> None:
+        """
+        Set the timeout.
+        """
+
+        self.__timeout = timeout
 
     def pull(
         self, device: Optional[bool] = "*", transient: Optional[bool] = False
@@ -521,6 +545,35 @@ class Clixon:
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
+
+    def connection_open(self, devname: Optional[str] = "*") -> None:
+        """
+        Open a connection.
+
+        :param devname: Device name
+        :type devname: str
+        :return: None
+        :rtype: None
+
+        """
+
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
+
+        rpc = rpc_connection_open(devname)
+        send(self.__socket, rpc, pp)
+
+        try:
+            self.__wait_for_notification()
+        except Exception as e:
+            logger.error(f"Failed to open connection to {devname}: {e}")
+            return None
+
+        data = read(self.__socket, pp, standalone=self.__standalone)
+        self.__handle_errors(data)
+        data = self.__strip_rpc_reply(data)
+
+        return data
 
 
 def rpc(sockpath: Optional[str] = sockpath, commit: Optional[bool] = False) -> object:
