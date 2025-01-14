@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import fcntl
 import os
 import sys
-import fcntl
-from clixon.args import get_logger, parse_args
+
+from clixon.args import get_logger
+from clixon.args import parse_args
 from clixon.client import readloop
 from clixon.modules import load_modules
 
@@ -36,11 +38,10 @@ class PIDLock:
     def __exit__(self, exc_type=None, exc_value=None, exc_tb=None):
         try:
             self.__pidfd.close()
+            os.remove(pidfile)
         except IOError as err:
             if err.errno != 9:
                 raise
-
-        os.remove(self.__pidfile)
 
 
 def main() -> None:
