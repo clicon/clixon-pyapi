@@ -201,7 +201,7 @@ def rpc_header_get(
         root.rpc.controller_commit.create("source", data="ds:running")
     elif rpc_type == RPCTypes.PULL:
         root.rpc.create("config-pull", attributes=CONTROLLER_NS)
-        root.rpc.config_pull.create("devname", data=device)
+        root.rpc.config_pull.create("device", data=device)
 
     return root
 
@@ -324,7 +324,7 @@ def rpc_apply_rpc_template(devname: str, template: str, variables: dict) -> Elem
     root.create("rpc", attributes=attributes)
     root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
     root.rpc.device_template_apply.create("type", data="RPC")
-    root.rpc.device_template_apply.create("devname", data=devname)
+    root.rpc.device_template_apply.create("device", data=devname)
     root.rpc.device_template_apply.create("template", data=template)
 
     if variables:
@@ -410,7 +410,7 @@ def rpc_datastore_diff(
             config_type1 = "RUNNING"
             config_type2 = "ACTIONS"
 
-        root.rpc.datastore_diff.create("devname", data="*")
+        root.rpc.datastore_diff.create("device", data="*")
         root.rpc.datastore_diff.create("config-type1", data=config_type1)
         root.rpc.datastore_diff.create("config-type2", data=config_type2)
 
@@ -479,6 +479,6 @@ def rpc_connection_open(device: Optional[str] = "*") -> Element:
     root.create("rpc", attributes=attributes)
     root.rpc.create("connection-change", attributes=CONTROLLER_NS)
     root.rpc.connection_change.create("operation", data="OPEN")
-    root.rpc.connection_change.create("devname", data=device)
+    root.rpc.connection_change.create("device", data=device)
 
     return root
