@@ -1,7 +1,8 @@
-from clixon.parser import parse_string
+import pytest
+
 from clixon import netconf
 from clixon.element import Element
-import pytest
+from clixon.parser import parse_string
 
 
 def test_rpc_config_set():
@@ -64,7 +65,7 @@ def test_rpc_header_get():
     xmlstr4 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><transaction-actions-done xmlns="http://clicon.org/controller"/></rpc>"""
     xmlstr5 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><transaction-error xmlns="http://clicon.org/controller"/></rpc>"""
     xmlstr6 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>COMMIT</push><actions>NONE</actions><source>ds:running</source></controller-commit></rpc>"""
-    xmlstr7 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><devname>*</devname></config-pull></rpc>"""
+    xmlstr7 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><device>*</device></config-pull></rpc>"""
 
     root = netconf.rpc_header_get(netconf.RPCTypes(0), "root")
 
@@ -112,7 +113,7 @@ def test_rpc_pull():
     Test the rpc_pull function.
     """
 
-    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><devname>*</devname></config-pull></rpc>"""
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="root" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><device>*</device></config-pull></rpc>"""
 
     root = netconf.rpc_pull()
 
@@ -152,7 +153,7 @@ def test_rpc_datastore_diff():
     Test the rpc_datastore_diff function.
     """
 
-    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><devname>*</devname><config-type1>RUNNING</config-type1><config-type2>ACTIONS</config-type2></datastore-diff></rpc>"""
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><device>*</device><config-type1>RUNNING</config-type1><config-type2>ACTIONS</config-type2></datastore-diff></rpc>"""
 
     root = netconf.rpc_datastore_diff()
 
@@ -164,7 +165,7 @@ def test_rpc_datastore_diff_transient():
     Test the rpc_datastore_diff transient function.
     """
 
-    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><devname>*</devname><config-type1>TRANSIENT</config-type1><config-type2>RUNNING</config-type2></datastore-diff></rpc>"""
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><datastore-diff xmlns="http://clicon.org/controller"><device>*</device><config-type1>TRANSIENT</config-type1><config-type2>RUNNING</config-type2></datastore-diff></rpc>"""
 
     assert netconf.rpc_datastore_diff(transient=True).dumps() == xmlstr
 
