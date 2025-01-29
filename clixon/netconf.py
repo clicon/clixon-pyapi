@@ -1,4 +1,5 @@
 import sys
+
 from enum import Enum
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
@@ -24,7 +25,14 @@ class RPCError(Exception):
     pass
 
 
-CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
+CONTROLLER_NS = {
+    "xmlns": "http://clicon.org/controller"
+}
+BASE_ATTRIBUTES = {
+    "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "message-id": "42",
+    "username": "root"
+}
 
 
 def rpc_config_get(
@@ -183,6 +191,8 @@ def rpc_header_get(
     root = Element("root", {})
     root.create("rpc", attributes=attributes)
 
+    # This could be a match/case but keeping if-statements
+    # for Python backward compatibility.
     if rpc_type == RPCTypes.GET_CONFIG:
         root.rpc.create("get-config")
     elif rpc_type == RPCTypes.EDIT_CONFIG:
@@ -219,13 +229,15 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 
     attributes = {"xmlns": "urn:ietf:params:xml:ns:netmod:notification"}
 
-    rpcattrs = {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0", "message-id": "42"}
+    rpcattrs = {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+                "message-id": "42"}
 
     root = rpc_header_get("", "root", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
-    root.rpc.create_subscription.create("filter", {"type": "xpath", "select": ""})
+    root.rpc.create_subscription.create(
+        "filter", {"type": "xpath", "select": ""})
 
     return root
 
@@ -255,7 +267,8 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
     if "notification xmlns" in xmlstr:
         try:
-            message = str(root.notification.controller_transaction.reason.cdata)
+            message = str(
+                root.notification.controller_transaction.reason.cdata)
             if standalone:
                 logger.error(f"Error in notification: {message}")
 
@@ -314,14 +327,8 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
 
 def rpc_apply_rpc_template(devname: str, template: str, variables: dict) -> Element:
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
-
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
     root.rpc.device_template_apply.create("type", data="RPC")
     root.rpc.device_template_apply.create("device", data=devname)
@@ -352,12 +359,6 @@ def rpc_apply_service(
 
     """
 
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
-
     if diff:
         action = "NONE"
     else:
@@ -366,7 +367,7 @@ def rpc_apply_service(
     instance = f"{service}[service-name='{instance}']"
 
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
     root.rpc.controller_commit.create("device", data="*")
     root.rpc.controller_commit.create("push", data=action)
@@ -388,14 +389,8 @@ def rpc_datastore_diff(
 
     """
 
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
-
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("datastore-diff", attributes=CONTROLLER_NS)
 
     if compare:
@@ -426,14 +421,8 @@ def rpc_lock(target: Optional[str] = "candidate") -> Element:
 
     """
 
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
-
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("lock").create("target").create(target)
 
     return root
@@ -448,14 +437,8 @@ def rpc_unlock(target: Optional[str] = "candidate") -> Element:
 
     """
 
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
-
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("unlock").create("target").create(target)
 
     return root
@@ -469,14 +452,9 @@ def rpc_connection_open(device: Optional[str] = "*") -> Element:
     :rtype: Element
 
     """
-    attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42",
-        "username": "root",
-    }
 
     root = Element()
-    root.create("rpc", attributes=attributes)
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("connection-change", attributes=CONTROLLER_NS)
     root.rpc.connection_change.create("operation", data="OPEN")
     root.rpc.connection_change.create("device", data=device)
