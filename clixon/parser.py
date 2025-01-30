@@ -1,4 +1,5 @@
 import re
+
 from typing import Optional
 from xml.dom import minidom
 from xml.sax import handler
@@ -90,7 +91,8 @@ class Handler(handler.ContentHandler):
             return
 
         # Escape special characters
-        cdata = cdata.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
+        cdata = cdata.replace("&", "&amp;").replace(
+            ">", "&gt;").replace("<", "&lt;")
 
         self.elements[-1].cdata += cdata
         self.last_cdata = cdata

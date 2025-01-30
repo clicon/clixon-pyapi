@@ -2,9 +2,12 @@ import importlib.util
 import os
 import sys
 import traceback
-from typing import List, Optional
 
-from clixon.args import get_logger, get_sockpath
+from typing import List
+from typing import Optional
+
+from clixon.args import get_logger
+from clixon.args import get_sockpath
 from clixon.clixon import Clixon
 
 logger = get_logger()
@@ -113,7 +116,8 @@ def run_modules(
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
                 root = cd.get_root()
-                module.setup(root, logger, instance=instance, diff=service_diff)
+                module.setup(root, logger, instance=instance,
+                             diff=service_diff)
             except Exception as e:
                 logger.error(f"Module {module} failed with exception: {e}")
                 logger.error(traceback.format_exc())
@@ -138,16 +142,21 @@ def find_modules(modulespath: str) -> List[str]:
     for root, dirs, files in os.walk(modulespath):
         for module in files:
             forbidden = [x for x in forbidden_list if x in module]
+
             if not module.endswith(".py") or forbidden:
                 logger.debug(f"Skipping file: {module}")
                 continue
+
             logger.info(f"Added module {module}")
             modules.append(root + "/" + module)
+
             if root not in sys.path:
                 sys.path.append(root)
+
         for directory in dirs:
             dir_modules = find_modules(directory + "/")
             modules = modules + dir_modules
+
     modules.reverse()
 
     if modules:
@@ -184,7 +193,8 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
 
         logger.debug(f"Importing module {modulename}")
         try:
-            spec = importlib.util.spec_from_file_location(modulename, modulefile)
+            spec = importlib.util.spec_from_file_location(
+                modulename, modulefile)
             module = importlib.util.module_from_spec(spec)
             sys.modules[modulename] = module
             spec.loader.exec_module(module)

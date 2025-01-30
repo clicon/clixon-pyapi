@@ -1,14 +1,14 @@
 import re
-import socket
-from clixon.args import get_logger
-from typing import Optional
 import select
+import socket
+
+from clixon.args import get_logger
 from clixon.element import Element
 from clixon.parser import dump_string
+from typing import Optional
 
 
 logger = get_logger()
-hdrlen = 8
 
 
 class SocketClosedError(Exception):

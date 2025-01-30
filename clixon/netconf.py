@@ -50,7 +50,10 @@ def rpc_config_get(
 
     """
     attributes = {}
-    xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
+    xpath_attributes = {
+        "nc:type": "xpath",
+        "nc:select": "/"
+    }
 
     if source == "actions":
         attributes = CONTROLLER_NS
@@ -227,10 +230,14 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 
     """
 
-    attributes = {"xmlns": "urn:ietf:params:xml:ns:netmod:notification"}
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
+    }
 
-    rpcattrs = {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-                "message-id": "42"}
+    rpcattrs = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "message-id": "42"
+    }
 
     root = rpc_header_get("", "root", rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
