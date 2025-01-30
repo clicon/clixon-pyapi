@@ -1,5 +1,22 @@
 # Clixon Python API Changelog
 
+## 1.3.0
+30 January 2025
+
+### Features:
+* Added device_open() method.
+* Make the argument parser handle extra arguments which can be added after --
+* New rpc_apply_rpc_template method for RPC templates.
+
+### Corrected bugs:
+* Optimize hooks, make sure we don't execute the Clixon() context twice.
+* RPC apply: Only return the device data in response.
+* Remove appending class proprties to property cache.  Correct element … by @NetworkOverload in https://github.com/clicon/clixon-pyapi/pull/30
+* Element class bugfixes by @NetworkOverload in https://github.com/clicon/clixon-pyapi/pull/33
+
+### New Contributors
+* @NetworkOverload made their first contribution in https://github.com/clicon/clixon-pyapi/pull/30
+
 ## 1.1.0
 03 June 2024
 
