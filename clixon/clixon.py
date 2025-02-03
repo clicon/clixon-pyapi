@@ -475,6 +475,8 @@ class Clixon:
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
+        # If we get a tid, we need to read again to skip it. Since messages are sent asyncronously
+        # the notification status message might arrive before the transaction ID message.
         if re.search(r'<tid xmlns="http://clicon.org/controller">(\d+)</tid>', data):
             data = read(self.__socket, pp, standalone=self.__standalone)
 
