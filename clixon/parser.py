@@ -195,7 +195,7 @@ def parse_template(template: str, **kwargs: dict) -> str:
         if var not in kwargs:
             raise ValueError(f"Missing variable: {var}")
 
-        if kwargs[var] != str:
+        if kwargs[var] is not str:
             kwargs[var] = str(kwargs[var])
 
         template = template.replace("{{" + var_orig + "}}", kwargs[var])

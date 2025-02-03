@@ -33,7 +33,7 @@ class Element:
         if attributes:
             self.attributes = attributes.copy()
         else:
-            self.attributes = dict()
+            self.attributes = {}
 
         self._children = []
         self._is_root = False
@@ -502,7 +502,7 @@ class Element:
             else:
                 return matching_children
         else:
-            raise AttributeError("'%s' has no attribute '%s'" % (self._name, key))
+            raise AttributeError(f"'{self._name}' has no attribute '{key}'")
 
     def __hasattribute__(self, name: str) -> bool:
         """
