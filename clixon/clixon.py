@@ -1,6 +1,7 @@
 import os
-from typing import Optional
+import re
 
+from typing import Optional
 from clixon.args import get_arg, get_logger
 from clixon.helpers import timeout
 from clixon.netconf import (
@@ -269,7 +270,8 @@ class Clixon:
         :rtype: None
         """
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction")
 
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -415,7 +417,8 @@ class Clixon:
         """
 
         if self.__read_only and not diff:
-            raise ValueError("Apply: Read only mode enabled, can only apply diff")
+            raise ValueError(
+                "Apply: Read only mode enabled, can only apply diff")
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -472,6 +475,9 @@ class Clixon:
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
+        if re.search(r'<tid xmlns="http://clicon.org/controller">(\d+)</tid>', data):
+            data = read(self.__socket, pp, standalone=self.__standalone)
+
         self.__handle_errors(data)
 
         data = self.__strip_rpc_reply(data)
@@ -497,9 +503,12 @@ class Clixon:
             diff = dict()
 
             for line in data.split("\n"):
+                key = None
                 if line.endswith(":") and "<" not in line and ">" not in line:
                     key = line[:-1]
                 else:
+                    if not key:
+                        continue
                     if key not in diff:
                         diff[key] = ""
                     diff[key] += line + "\n"
