@@ -42,7 +42,7 @@ class Handler(handler.ContentHandler):
 
         """
 
-        attrs = dict()
+        attrs = {}
         for k, v in attributes.items():
             attrs[k] = v
 

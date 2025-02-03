@@ -486,7 +486,7 @@ class Clixon:
 
         if not data:
             if dict_format:
-                return dict()
+                return {}
             return None
 
         if dict_format:
@@ -502,7 +502,7 @@ class Clixon:
             # -       <host-name>kalas</host-name>
             # +       <host-name>crpd2</host-name>
             #       </system>
-            diff = dict()
+            diff = {}
 
             for line in data.split("\n"):
                 key = None

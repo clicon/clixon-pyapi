@@ -5,7 +5,7 @@ import xmltodict
 import yaml
 
 
-class Element(object):
+class Element:
     def __init__(
         self,
         name: Optional[str] = "root",
