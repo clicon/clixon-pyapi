@@ -1,6 +1,4 @@
 from clixon.element import Element
-import string
-import random
 from clixon.parser import parse_string, dump_string
 
 xmlstr_1 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><table xmlns="urn:example:clixon"><parameter><name>name1</name><value>value1</value></parameter><parameter><name>name2</name><value>value2</value></parameter><parameter><name>name3</name><value>value3</value></parameter></table></data></rpc-reply>"""
@@ -90,7 +88,6 @@ def test_html_encoding():
     xmlstr3 = """<description>asd &lt;*&gt; asd</description>"""
     xmlstr4 = """<description>&lt;*&gt; asd &amp; test&amp;asd</description>"""
     xmlstr5 = """<description>"'&lt;*&gt;&amp;'"</description>"""
-    xmlstr6 = """<description>&lt;*&gt; asd &amp; test&amp;asd</description>"""
 
     root = parse_string(xmlstr0)
 

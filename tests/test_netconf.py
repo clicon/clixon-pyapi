@@ -2,7 +2,6 @@ import pytest
 
 from clixon import netconf
 from clixon.element import Element
-from clixon.parser import parse_string
 
 
 def test_rpc_config_set():
@@ -127,7 +126,6 @@ def test_rpc_error_get():
 
     xmlstr1 = """client already registered"""
     xmlstr2 = """garbage"""
-    xmlstr3 = """<rpc-reply><rpc-error><error-type>application</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity><error-message>client already registered</error-message></rpc-error></rpc-reply>"""
 
     with pytest.raises(SystemExit):
         netconf.rpc_error_get(xmlstr1)

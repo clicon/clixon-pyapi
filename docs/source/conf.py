@@ -36,9 +36,3 @@ exclude_patterns = ['args.py']
 path = "../../"
 
 sys.path.insert(0, os.path.abspath(path))
-
-try:
-    import clixon
-except ImportError:
-    print("Clixon not installed")
-    sys.exit(1)
