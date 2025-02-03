@@ -231,12 +231,15 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     """
 
     attributes = {
-        "xmlns": "urn:ietf:params:xml:ns:netmod:notification"
+        "xmlns": "urn:ietf:params:xml:ns:netmod:notification",
     }
 
     rpcattrs = {
         "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "message-id": "42"
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": "debian",
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
     }
 
     root = rpc_header_get("", "root", rpcattrs)
@@ -244,7 +247,8 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
     root.rpc.create_subscription.create(
-        "filter", {"type": "xpath", "select": ""})
+        "filter", {"type": "xpath", "select": ""}
+    )
 
     return root
 
