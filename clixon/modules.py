@@ -11,7 +11,6 @@ from clixon.args import get_sockpath
 from clixon.clixon import Clixon
 
 logger = get_logger()
-sockpath = get_sockpath()
 
 
 class ModuleError(Exception):
@@ -27,14 +26,14 @@ def run_hooks(
 
     for module in modules:
         if (
-            not hasattr(modules, "setup_pre_commit")
-            and not hasattr(modules, "setup_post_commit")
-            and not hasattr(modules, "setup_post_commit_failed")
+            not hasattr(module, "setup_pre_commit")
+            and not hasattr(module, "setup_post_commit")
+            and not hasattr(module, "setup_post_commit_failed")
         ):
             logger.debug(f"Module {module} does not have any hooks")
             return
 
-    with Clixon(sockpath=sockpath) as cd:
+    with Clixon(sockpath=get_sockpath()) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
@@ -105,7 +104,7 @@ def run_modules(
         logger.info("No modules found.")
         return
 
-    with Clixon(sockpath=sockpath) as cd:
+    with Clixon(sockpath=get_sockpath()) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
