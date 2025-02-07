@@ -134,6 +134,18 @@ def test_rpc_error_get():
         netconf.rpc_error_get(xmlstr2)
 
 
+def test_rpc_apply_template():
+    """
+    Test the rpc_apply_template function.
+    """
+
+    xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><device-template-apply xmlns="http://clicon.org/controller"><type>RPC</type><device>test</device><template>test</template><variables><variable><name>test</name><value>test</value></variable></variables></device-template-apply></rpc>"""
+
+    root = netconf.rpc_apply_rpc_template("test", "test", {"test": "test"})
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_apply_service():
     """
     Test the rpc_apply_service function.
@@ -204,3 +216,15 @@ def test_rpc_unlock():
     xmlstr = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><unlock><target><foobar/></target></unlock></rpc>"""
 
     assert netconf.rpc_unlock("foobar").dumps() == xmlstr
+
+
+def test_rpc_connection_open():
+    """
+    Test the rpc_connection_open function.
+    """
+
+    xmlstr0 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><connection-change xmlns="http://clicon.org/controller"><operation>OPEN</operation><device>*</device></connection-change></rpc>"""
+    xmlstr1 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="root"><connection-change xmlns="http://clicon.org/controller"><operation>OPEN</operation><device>test</device></connection-change></rpc>"""
+
+    assert netconf.rpc_connection_open().dumps() == xmlstr0
+    assert netconf.rpc_connection_open(device="test").dumps() == xmlstr1
