@@ -3,6 +3,7 @@ from clixon.element import Element
 from clixon.helpers import (
     set_creator_attributes,
     get_value,
+    get_data,
     get_path,
     get_service_instance,
     get_service_instances,
@@ -13,6 +14,7 @@ from clixon.helpers import (
     get_devices_from_group,
     is_juniper,
     get_junos_interface_address,
+    timeout
 )
 from clixon.parser import parse_string
 
@@ -64,18 +66,26 @@ def test_get_value():
 
     root = parse_string(xmlstr_1)
 
-    value1_path = get_path(root, "/rpc-reply/data/table/parameter[name='name1']")
+    value1_path = get_path(
+        root, "/rpc-reply/data/table/parameter[name='name1']")
 
     value1 = get_value(value1_path, "value")
+    data1 = get_data(value1_path, "value")
 
     assert value1 == "value1"
+    assert data1 == "value1"
 
     value1 = get_value(value1_path, "valueX", default="value1")
+    data1 = get_data(value1_path, "valueX", default="value1")
 
     assert value1 == "value1"
+    assert data1 == "value1"
 
     with pytest.raises(Exception):
         get_value(value1_path, "valueX", required=True)
+
+    with pytest.raises(Exception):
+        get_data(value1_path, "valueX", required=True)
 
 
 def test_get_service_instance():
@@ -114,17 +124,20 @@ def test_get_service_instance():
 
     root = parse_string(xmlstr)
 
-    instance = get_service_instance(root, "as-path-filter", instance="as-test1")
+    instance = get_service_instance(
+        root, "as-path-filter", instance="as-test1")
 
     assert instance.service_name == "as-test1"
     assert instance.filter_name == "as-test1"
 
-    instance = get_service_instance(root, "as-path-filter", instance="as-test2")
+    instance = get_service_instance(
+        root, "as-path-filter", instance="as-test2")
 
     assert instance.service_name == "as-test2"
     assert instance.filter_name == "as-test2"
 
-    instance = get_service_instance(root, "as-path-filter", instance="as-test3")
+    instance = get_service_instance(
+        root, "as-path-filter", instance="as-test3")
 
     assert instance.instance == "as-test3"
     assert instance.filter_name == "as-test3"
@@ -367,22 +380,26 @@ def test_get_junos_interface_address():
 
     root = parse_string(xmlstr)
 
-    addresses = get_junos_interface_address(root, "juniper1", "lo0", "0", primary=True)
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", primary=True)
 
     assert len(addresses) == 1
     assert addresses == ["1.1.1.1/32"]
 
-    addresses = get_junos_interface_address(root, "juniper1", "lo0", "0", primary=False)
+    addresses = get_junos_interface_address(
+        root, "juniper1", "lo0", "0", primary=False)
 
     assert len(addresses) == 2
     assert addresses == ["1.1.1.1/32", "1.1.1.2/32"]
 
-    addresses = get_junos_interface_address(root, "juniper2", "lo0", "0", primary=True)
+    addresses = get_junos_interface_address(
+        root, "juniper2", "lo0", "0", primary=True)
 
     assert len(addresses) == 0
     assert addresses == []
 
-    addresses = get_junos_interface_address(root, "juniper2", "lo0", "0", primary=False)
+    addresses = get_junos_interface_address(
+        root, "juniper2", "lo0", "0", primary=False)
 
     assert len(addresses) == 2
     assert addresses == ["2.2.2.2/32", "2.2.2.3/32"]
@@ -400,3 +417,18 @@ def test_get_junos_interface_address():
 
     assert len(addresses) == 2
     assert addresses == ["dead:beef::1/64", "dead:beef::2/64"]
+
+
+def test_timeout():
+    """
+    Test the timeout decorator.
+    """
+    from clixon.helpers import timeout
+    import time
+
+    @timeout(1)
+    def test_timeout():
+        time.sleep(2)
+
+    with pytest.raises(Exception):
+        test_timeout()
