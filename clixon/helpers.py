@@ -1,11 +1,11 @@
 import re
-from clixon.element import Element
-from typing import List, Optional, Iterable
 import signal
 
-
-class TimeoutException(Exception):
-    pass
+from clixon.element import Element
+from clixon.exceptions import TimeoutException
+from typing import Iterable
+from typing import List
+from typing import Optional
 
 
 def timeout(seconds=10):

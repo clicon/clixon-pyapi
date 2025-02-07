@@ -6,6 +6,7 @@ from xml.sax._exceptions import SAXParseException
 
 from clixon.args import get_logger
 from clixon.element import Element
+from clixon.exceptions import RPCError
 from clixon.parser import parse_string
 
 logger = get_logger()
@@ -19,10 +20,6 @@ class RPCTypes(Enum):
     TRANSACTION_ERROR = 4
     PUSH_COMMIT = 5
     PULL = 6
-
-
-class RPCError(Exception):
-    pass
 
 
 CONTROLLER_NS = {

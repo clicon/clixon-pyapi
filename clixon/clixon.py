@@ -22,15 +22,12 @@ from clixon.netconf import (
 
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
+from clixon.exceptions import TransactionError
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
 logger = get_logger()
 default_sockpath = "/usr/local/var/run/controller/controller.sock"
-
-
-class TransactionError(Exception):
-    pass
 
 
 class Clixon:

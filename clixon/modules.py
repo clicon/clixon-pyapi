@@ -9,12 +9,10 @@ from typing import Optional
 from clixon.args import get_logger
 from clixon.args import get_sockpath
 from clixon.clixon import Clixon
+from clixon.exceptions import ModuleError
+
 
 logger = get_logger()
-
-
-class ModuleError(Exception):
-    pass
 
 
 def run_hooks(
