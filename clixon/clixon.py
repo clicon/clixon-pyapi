@@ -1,28 +1,17 @@
 import os
 import re
-
 from typing import Optional
-from clixon.args import get_arg, get_logger
-from clixon.helpers import timeout
-from clixon.netconf import (
-    rpc_apply_rpc_template,
-    rpc_apply_service,
-    rpc_commit,
-    rpc_config_get,
-    rpc_config_set,
-    rpc_datastore_diff,
-    rpc_error_get,
-    rpc_lock,
-    rpc_pull,
-    rpc_push,
-    rpc_subscription_create,
-    rpc_unlock,
-    rpc_connection_open,
-)
 
+from clixon.args import get_arg, get_logger
+from clixon.exceptions import TransactionError
+from clixon.helpers import timeout
+from clixon.netconf import (rpc_apply_rpc_template, rpc_apply_service,
+                            rpc_commit, rpc_config_get, rpc_config_set,
+                            rpc_connection_open, rpc_datastore_diff,
+                            rpc_error_get, rpc_lock, rpc_pull, rpc_push,
+                            rpc_subscription_create, rpc_unlock)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
-from clixon.exceptions import TransactionError
 
 sockpath = get_arg("sockpath")
 pp = get_arg("pp")
@@ -41,7 +30,7 @@ class Clixon:
         target: Optional[str] = "actions",
         cron: Optional[bool] = False,
         read_only: Optional[bool] = False,
-        user: Optional[str] = "root",
+        user: Optional[str] = None,
         standalone: Optional[bool] = False,
         timeout: Optional[int] = 30,
     ) -> None:
@@ -67,6 +56,9 @@ class Clixon:
         :return: None
         :rtype: None
         """
+
+        if not user:
+            user = os.getlogin()
 
         if sockpath == "":
             sockpath = default_sockpath
@@ -267,8 +259,7 @@ class Clixon:
         :rtype: None
         """
 
-        enable_transaction_notify = rpc_subscription_create(
-            "controller-transaction")
+        enable_transaction_notify = rpc_subscription_create("controller-transaction")
 
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -414,8 +405,7 @@ class Clixon:
         """
 
         if self.__read_only and not diff:
-            raise ValueError(
-                "Apply: Read only mode enabled, can only apply diff")
+            raise ValueError("Apply: Read only mode enabled, can only apply diff")
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
