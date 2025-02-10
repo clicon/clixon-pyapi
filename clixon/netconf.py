@@ -1,4 +1,4 @@
-import os
+import getpass
 import sys
 from enum import Enum
 from types import NoneType
@@ -27,7 +27,7 @@ CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
 BASE_ATTRIBUTES = {
     "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
     "message-id": "42",
-    "username": os.getlogin(),
+    "username": getpass.getuser(),
 }
 
 
@@ -49,7 +49,7 @@ def rpc_config_get(
     xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
 
     if not user:
-        user = os.getlogin()
+        user = getpass.getuser()
 
     if source == "actions":
         attributes = CONTROLLER_NS
@@ -88,7 +88,7 @@ def rpc_config_set(
     """
 
     if not user:
-        user = os.getlogin()
+        user = getpass.getuser()
 
     if target_attributes == {} and target == "actions":
         target_attributes = CONTROLLER_NS
@@ -128,7 +128,7 @@ def rpc_commit(user: Optional[str] = None) -> Element:
     """
 
     if not user:
-        user = os.getlogin()
+        user = getpass.getuser()
 
     return rpc_header_get(RPCTypes.COMMIT, user)
 
@@ -142,7 +142,7 @@ def rpc_push() -> Element:
 
     """
 
-    return rpc_header_get(RPCTypes.PUSH_COMMIT, os.getlogin())
+    return rpc_header_get(RPCTypes.PUSH_COMMIT, getpass.getuser())
 
 
 def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False) -> Element:
@@ -154,7 +154,7 @@ def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False) -> 
 
     """
 
-    rpc = rpc_header_get(RPCTypes.PULL, user=os.getlogin(), device=device)
+    rpc = rpc_header_get(RPCTypes.PULL, user=getpass.getuser(), device=device)
 
     if transient:
         rpc.rpc.config_pull.create("transient", data="true")
@@ -239,12 +239,12 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     rpcattrs = {
         "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
         "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "cl:username": os.getlogin(),
+        "cl:username": getpass.getuser(),
         "xmlns:cl": "http://clicon.org/lib",
         "message-id": "42",
     }
 
-    root = rpc_header_get("", os.getlogin(), rpcattrs)
+    root = rpc_header_get("", getpass.getuser(), rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream

@@ -1,10 +1,10 @@
-import os
+import getpass
 
 import pytest
 from clixon import netconf
 from clixon.element import Element
 
-user = os.getlogin()
+user = getpass.getuser()
 
 
 def test_rpc_config_set():
