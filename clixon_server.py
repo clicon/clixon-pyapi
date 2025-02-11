@@ -8,8 +8,7 @@ import fcntl
 import os
 import sys
 
-from clixon.args import get_logger
-from clixon.args import parse_args
+from clixon.args import get_logger, parse_args
 from clixon.client import readloop
 from clixon.modules import load_modules
 
@@ -64,7 +63,7 @@ def main() -> None:
         sys.path.append(path)
         modules.extend(load_modules(path, mfilter))
 
-    if modules:
+    if not modules:
         logger.error("No loadable modules found.")
         sys.exit(0)
 
