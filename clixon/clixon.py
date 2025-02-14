@@ -1,3 +1,4 @@
+import getpass
 import os
 import re
 from typing import Optional
@@ -58,7 +59,7 @@ class Clixon:
         """
 
         if not user:
-            user = os.getlogin()
+            user = getpass.getuser()
 
         if sockpath == "":
             sockpath = default_sockpath
