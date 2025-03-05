@@ -1,6 +1,7 @@
 import getpass
 
 import pytest
+
 from clixon import netconf
 from clixon.element import Element
 
@@ -12,12 +13,25 @@ def test_rpc_config_set():
     Test the rpc_config_set function.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>none</default-operation><config/></edit-config></rpc>"""
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>none</default-operation><config/></edit-config></rpc>"""
 
     config = Element("config", {})
     root = netconf.rpc_config_set(config)
 
-    assert root.dumps() == xmlstr
+    assert root.dumps() == xmlstr0
+
+
+def test_rpc_config_set_user():
+    """
+    Test the rpc_config_set function with user.
+    """
+
+    xmlstr1 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>none</default-operation><config/></edit-config></rpc>"""
+
+    config = Element("config", {})
+    root = netconf.rpc_config_set(config, user="nisse")
+
+    assert root.dumps() == xmlstr1
 
 
 def test_rpc_config_get():
@@ -28,6 +42,18 @@ def test_rpc_config_get():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get()
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_user():
+    """
+    Test the rpc_config_get function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/"/></get-config></rpc>"""
+
+    root = netconf.rpc_config_get(user="nisse")
 
     assert root.dumps() == xmlstr
 
@@ -44,6 +70,18 @@ def test_rpc_commit():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_commit_user():
+    """
+    Test the rpc_commit function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><commit/></rpc>"""
+
+    root = netconf.rpc_commit(user="nisse")
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_subscription_create():
     """
     Test the rpc_subscription_create function.
@@ -52,6 +90,18 @@ def test_rpc_subscription_create():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><create-subscription xmlns="urn:ietf:params:xml:ns:netmod:notification"><stream>services-commit</stream><filter type="xpath" select=""/></create-subscription></rpc>"""
 
     root = netconf.rpc_subscription_create()
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_subscription_create_user():
+    """
+    Test the rpc_subscription_create function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="nisse" xmlns:cl="http://clicon.org/lib" message-id="42"><create-subscription xmlns="urn:ietf:params:xml:ns:netmod:notification"><stream>services-commit</stream><filter type="xpath" select=""/></create-subscription></rpc>"""
+
+    root = netconf.rpc_subscription_create(user="nisse")
 
     assert root.dumps() == xmlstr
 
@@ -98,6 +148,48 @@ def test_rpc_header_get():
     assert root.dumps() == xmlstr7
 
 
+def test_rpc_header_get_user():
+    """
+    Test the rpc_header_get function with user.
+    """
+
+    xmlstr1 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config/></rpc>"""
+    xmlstr2 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config/></rpc>"""
+    xmlstr3 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><commit/></rpc>"""
+    xmlstr4 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><transaction-actions-done xmlns="http://clicon.org/controller"/></rpc>"""
+    xmlstr5 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><transaction-error xmlns="http://clicon.org/controller"/></rpc>"""
+    xmlstr6 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>COMMIT</push><actions>NONE</actions><source>ds:running</source></controller-commit></rpc>"""
+    xmlstr7 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><device>*</device></config-pull></rpc>"""
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(0), "nisse")
+
+    assert root.dumps() == xmlstr1
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(1), "nisse")
+
+    assert root.dumps() == xmlstr2
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(2), "nisse")
+
+    assert root.dumps() == xmlstr3
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(3), "nisse")
+
+    assert root.dumps() == xmlstr4
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(4), "nisse")
+
+    assert root.dumps() == xmlstr5
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(5), "nisse")
+
+    assert root.dumps() == xmlstr6
+
+    root = netconf.rpc_header_get(netconf.RPCTypes(6), "nisse")
+
+    assert root.dumps() == xmlstr7
+
+
 def test_rpc_push():
     """
     Test the rpc_push function.
@@ -110,6 +202,18 @@ def test_rpc_push():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_push_user():
+    """
+    Test the rpc_push function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>COMMIT</push><actions>NONE</actions><source>ds:running</source></controller-commit></rpc>"""
+
+    root = netconf.rpc_push(user="nisse")
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_pull():
     """
     Test the rpc_pull function.
@@ -118,6 +222,18 @@ def test_rpc_pull():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><device>*</device></config-pull></rpc>"""
 
     root = netconf.rpc_pull()
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_pull_user():
+    """
+    Test the rpc_pull function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><config-pull xmlns="http://clicon.org/controller"><device>*</device></config-pull></rpc>"""
+
+    root = netconf.rpc_pull(user="nisse")
 
     assert root.dumps() == xmlstr
 
@@ -149,6 +265,19 @@ def test_rpc_apply_template():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_apply_template_user():
+    """
+    Test the rpc_apply_template function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><device-template-apply xmlns="http://clicon.org/controller"><type>RPC</type><device>test</device><template>test</template><variables><variable><name>test</name><value>test</value></variable></variables></device-template-apply></rpc>"""
+
+    root = netconf.rpc_apply_rpc_template(
+        "test", "test", {"test": "test"}, user="nisse")
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_apply_service():
     """
     Test the rpc_apply_service function.
@@ -157,6 +286,18 @@ def test_rpc_apply_service():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>NONE</push><actions>FORCE</actions><service-instance>foo[service-name=\'bar\']</service-instance><source>ds:candidate</source></controller-commit></rpc>"""
 
     root = netconf.rpc_apply_service("foo", "bar")
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_apply_service_user():
+    """
+    Test the rpc_apply_service function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>NONE</push><actions>FORCE</actions><service-instance>foo[service-name=\'bar\']</service-instance><source>ds:candidate</source></controller-commit></rpc>"""
+
+    root = netconf.rpc_apply_service("foo", "bar", user="nisse")
 
     assert root.dumps() == xmlstr
 
@@ -173,6 +314,18 @@ def test_rpc_datastore_diff():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_datastore_diff_user():
+    """
+    Test the rpc_datastore_diff function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><datastore-diff xmlns="http://clicon.org/controller"><device>*</device><config-type1>RUNNING</config-type1><config-type2>ACTIONS</config-type2></datastore-diff></rpc>"""
+
+    root = netconf.rpc_datastore_diff(user="nisse")
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_datastore_diff_transient():
     """
     Test the rpc_datastore_diff transient function.
@@ -183,6 +336,17 @@ def test_rpc_datastore_diff_transient():
     assert netconf.rpc_datastore_diff(transient=True).dumps() == xmlstr
 
 
+def test_rpc_datastore_diff_transient_user():
+    """
+    Test the rpc_datastore_diff transient function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><datastore-diff xmlns="http://clicon.org/controller"><device>*</device><config-type1>TRANSIENT</config-type1><config-type2>RUNNING</config-type2></datastore-diff></rpc>"""
+
+    assert netconf.rpc_datastore_diff(
+        transient=True, user="nisse").dumps() == xmlstr
+
+
 def test_rpc_datastore_diff_compare():
     """
     Test the rpc_datastore_diff compare function.
@@ -191,6 +355,17 @@ def test_rpc_datastore_diff_compare():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><datastore-diff xmlns="http://clicon.org/controller"><format>text</format><dsref1>ds:running</dsref1><dsref2>ds:candidate</dsref2></datastore-diff></rpc>"""
 
     assert netconf.rpc_datastore_diff(compare=True).dumps() == xmlstr
+
+
+def test_rpc_datastore_diff_compare_user():
+    """
+    Test the rpc_datastore_diff compare function with user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><datastore-diff xmlns="http://clicon.org/controller"><format>text</format><dsref1>ds:running</dsref1><dsref2>ds:candidate</dsref2></datastore-diff></rpc>"""
+
+    assert netconf.rpc_datastore_diff(
+        compare=True, user="nisse").dumps() == xmlstr
 
 
 def test_rpc_lock():
@@ -205,6 +380,20 @@ def test_rpc_lock():
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><lock><target><foobar/></target></lock></rpc>"""
 
     assert netconf.rpc_lock("foobar").dumps() == xmlstr
+
+
+def test_rpc_unlock():
+    """
+    Test the rpc_unlock function.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><unlock><target><candidate/></target></unlock></rpc>"""
+
+    assert netconf.rpc_unlock().dumps() == xmlstr
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><unlock><target><foobar/></target></unlock></rpc>"""
+
+    assert netconf.rpc_unlock("foobar").dumps() == xmlstr
 
 
 def test_rpc_unlock():
