@@ -16,7 +16,7 @@ logger = get_logger()
 
 
 def run_hooks(
-    modules: List, service_name: str, instance: str, diff: bool, result: str
+    modules: List, service_name: str, instance: str, diff: bool, result: str, user: Optional[str] = None
 ) -> None:
     if modules == []:
         logger.info("No modules found.")
@@ -31,7 +31,7 @@ def run_hooks(
             logger.debug(f"Module {module} does not have any hooks")
             return
 
-    with Clixon(sockpath=get_sockpath()) as cd:
+    with Clixon(sockpath=get_sockpath(), user=user) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
@@ -79,7 +79,7 @@ def run_hooks(
 
 
 def run_modules(
-    modules: List, service_name: str, instance: str, service_diff: bool
+    modules: List, service_name: str, instance: str, service_diff: bool, user: Optional[str] = None
 ) -> Optional[Exception]:
     """
     Run all modules in the list.
@@ -102,7 +102,7 @@ def run_modules(
         logger.info("No modules found.")
         return
 
-    with Clixon(sockpath=get_sockpath()) as cd:
+    with Clixon(sockpath=get_sockpath(), user=user) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:

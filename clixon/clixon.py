@@ -122,7 +122,8 @@ class Clixon:
                 self.__root = self.get_root()
 
             for child in self.__root:
-                config = rpc_config_set(child, target=self.__target)
+                config = rpc_config_set(
+                    child, user=self.__user, target=self.__target)
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp)
 
@@ -148,7 +149,7 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        commit = rpc_commit()
+        commit = rpc_commit(user=self.__user)
 
         send(self.__socket, commit, pp)
         data = read(self.__socket, pp)
@@ -260,7 +261,8 @@ class Clixon:
         :rtype: None
         """
 
-        enable_transaction_notify = rpc_subscription_create("controller-transaction")
+        enable_transaction_notify = rpc_subscription_create(
+            "controller-transaction", user=self.__user)
 
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -291,7 +293,7 @@ class Clixon:
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
 
-        pull = rpc_pull(transient=transient, device=device)
+        pull = rpc_pull(transient=transient, device=device, user=self.__user)
         send(self.__socket, pull, pp)
 
         self.__wait_for_notification()
@@ -315,7 +317,7 @@ class Clixon:
             self.__enable_transaction_notify()
 
         logger.debug("Pushing commit")
-        push = rpc_push()
+        push = rpc_push(user=self.__user)
 
         send(self.__socket, push, pp)
 
@@ -336,7 +338,8 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        config = rpc_config_set(root, device=False, target=self.__target)
+        config = rpc_config_set(root, user=self.__user,
+                                device=False, target=self.__target)
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)
@@ -370,7 +373,8 @@ class Clixon:
         :rtype: None
         """
 
-        rpc = rpc_apply_rpc_template(devname, template, variables)
+        rpc = rpc_apply_rpc_template(
+            devname, template, variables, user=self.__user)
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -406,17 +410,19 @@ class Clixon:
         """
 
         if self.__read_only and not diff:
-            raise ValueError("Apply: Read only mode enabled, can only apply diff")
+            raise ValueError(
+                "Apply: Read only mode enabled, can only apply diff")
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
 
-        rpc_apply = rpc_apply_service(service, instance, diff)
+        rpc_apply = rpc_apply_service(
+            service, instance, diff, user=self.__user)
         send(self.__socket, rpc_apply, pp)
 
         self.__wait_for_notification()
 
-        rpc_diff = rpc_datastore_diff()
+        rpc_diff = rpc_datastore_diff(user=self.__user)
         send(self.__socket, rpc_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -438,7 +444,7 @@ class Clixon:
         if set_root:
             self.set_root(self.__root)
 
-        rpc_show_compare = rpc_datastore_diff(compare=True)
+        rpc_show_compare = rpc_datastore_diff(compare=True, user=self.__user)
         send(self.__socket, rpc_show_compare, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
 
@@ -458,7 +464,8 @@ class Clixon:
 
         self.pull(transient=True)
 
-        rpc_show_devices_diff = rpc_datastore_diff(transient=True)
+        rpc_show_devices_diff = rpc_datastore_diff(
+            transient=True, user=self.__user)
 
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -520,7 +527,7 @@ class Clixon:
 
         logger.info(f"Locking configuration for target {target}")
 
-        rpc = rpc_lock(target)
+        rpc = rpc_lock(target, user=self.__user)
         send(self.__socket, rpc, pp)
         data = read(self.__socket, pp)
 
@@ -539,7 +546,7 @@ class Clixon:
 
         logger.info(f"Unlocking configuration for target {target}")
 
-        rpc = rpc_unlock(target)
+        rpc = rpc_unlock(target, user=self.__user)
         send(self.__socket, rpc, pp)
         data = read(self.__socket, pp)
 

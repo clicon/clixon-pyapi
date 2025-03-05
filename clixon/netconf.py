@@ -1,5 +1,6 @@
 import getpass
 import sys
+
 from enum import Enum
 from types import NoneType
 from typing import Optional
@@ -27,7 +28,7 @@ CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
 BASE_ATTRIBUTES = {
     "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
     "message-id": "42",
-    "username": getpass.getuser(),
+    "username": None,
 }
 
 
@@ -133,7 +134,7 @@ def rpc_commit(user: Optional[str] = None) -> Element:
     return rpc_header_get(RPCTypes.COMMIT, user)
 
 
-def rpc_push() -> Element:
+def rpc_push(user: Optional[str] = None) -> Element:
     """
     Create a RPC push element.
 
@@ -142,10 +143,13 @@ def rpc_push() -> Element:
 
     """
 
-    return rpc_header_get(RPCTypes.PUSH_COMMIT, getpass.getuser())
+    if not user:
+        user = getpass.getuser()
+
+    return rpc_header_get(RPCTypes.PUSH_COMMIT, user)
 
 
-def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False) -> Element:
+def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False, user: Optional[str] = None) -> Element:
     """
     Create a RPC pull element.
 
@@ -154,7 +158,10 @@ def rpc_pull(device: Optional[str] = "*", transient: Optional[bool] = False) -> 
 
     """
 
-    rpc = rpc_header_get(RPCTypes.PULL, user=getpass.getuser(), device=device)
+    if not user:
+        user = getpass.getuser()
+
+    rpc = rpc_header_get(RPCTypes.PULL, user=user, device=device)
 
     if transient:
         rpc.rpc.config_pull.create("transient", data="true")
@@ -221,7 +228,7 @@ def rpc_header_get(
     return root
 
 
-def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Element:
+def rpc_subscription_create(stream: Optional[str] = "services-commit", user: Optional[str] = None) -> Element:
     """
     Create a RPC subscription element.
 
@@ -232,6 +239,9 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
 
     """
 
+    if not user:
+        user = getpass.getuser()
+
     attributes = {
         "xmlns": "urn:ietf:params:xml:ns:netmod:notification",
     }
@@ -239,16 +249,17 @@ def rpc_subscription_create(stream: Optional[str] = "services-commit") -> Elemen
     rpcattrs = {
         "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
         "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
-        "cl:username": getpass.getuser(),
+        "cl:username": user,
         "xmlns:cl": "http://clicon.org/lib",
         "message-id": "42",
     }
 
-    root = rpc_header_get("", getpass.getuser(), rpcattrs)
+    root = rpc_header_get("", user, rpcattrs)
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
-    root.rpc.create_subscription.create("filter", {"type": "xpath", "select": ""})
+    root.rpc.create_subscription.create(
+        "filter", {"type": "xpath", "select": ""})
 
     return root
 
@@ -278,7 +289,8 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
     if "notification xmlns" in xmlstr:
         try:
-            message = str(root.notification.controller_transaction.reason.cdata)
+            message = str(
+                root.notification.controller_transaction.reason.cdata)
             if standalone:
                 logger.error(f"Error in notification: {message}")
 
@@ -336,7 +348,13 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             return None
 
 
-def rpc_apply_rpc_template(devname: str, template: str, variables: dict) -> Element:
+def rpc_apply_rpc_template(devname: str, template: str, variables: dict, user: Optional[str] = None) -> Element:
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
     root = Element()
     root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
@@ -355,7 +373,7 @@ def rpc_apply_rpc_template(devname: str, template: str, variables: dict) -> Elem
 
 
 def rpc_apply_service(
-    service: str, instance: str, diff: Optional[bool] = True
+    service: str, instance: str, diff: Optional[bool] = True, user: Optional[str] = None
 ) -> Element:
     """
     Create a RPC service-apply element.
@@ -374,6 +392,11 @@ def rpc_apply_service(
     else:
         action = "COMMIT"
 
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
     instance = f"{service}[service-name='{instance}']"
 
     root = Element()
@@ -389,7 +412,7 @@ def rpc_apply_service(
 
 
 def rpc_datastore_diff(
-    compare: Optional[bool] = False, transient: Optional[bool] = False
+    compare: Optional[bool] = False, transient: Optional[bool] = False, user: Optional[str] = None
 ) -> Element:
     """
     Create a RPC datastore-diff element.
@@ -398,6 +421,11 @@ def rpc_datastore_diff(
     :rtype: Element
 
     """
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
 
     root = Element()
     root.create("rpc", attributes=BASE_ATTRIBUTES)
@@ -422,7 +450,7 @@ def rpc_datastore_diff(
     return root
 
 
-def rpc_lock(target: Optional[str] = "candidate") -> Element:
+def rpc_lock(target: Optional[str] = "candidate", user: Optional[str] = None) -> Element:
     """
     Create a RPC lock element.
 
@@ -431,6 +459,11 @@ def rpc_lock(target: Optional[str] = "candidate") -> Element:
 
     """
 
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
     root = Element()
     root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("lock").create("target").create(target)
@@ -438,7 +471,7 @@ def rpc_lock(target: Optional[str] = "candidate") -> Element:
     return root
 
 
-def rpc_unlock(target: Optional[str] = "candidate") -> Element:
+def rpc_unlock(target: Optional[str] = "candidate", user: Optional[str] = None) -> Element:
     """
     Create a RPC unlock element.
 
@@ -447,6 +480,11 @@ def rpc_unlock(target: Optional[str] = "candidate") -> Element:
 
     """
 
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
     root = Element()
     root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("unlock").create("target").create(target)
@@ -454,7 +492,7 @@ def rpc_unlock(target: Optional[str] = "candidate") -> Element:
     return root
 
 
-def rpc_connection_open(device: Optional[str] = "*") -> Element:
+def rpc_connection_open(device: Optional[str] = "*", user: Optional[str] = None) -> Element:
     """
     Create a RPC connection-open element.
 
@@ -462,6 +500,11 @@ def rpc_connection_open(device: Optional[str] = "*") -> Element:
     :rtype: Element
 
     """
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
 
     root = Element()
     root.create("rpc", attributes=BASE_ATTRIBUTES)
