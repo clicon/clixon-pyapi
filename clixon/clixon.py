@@ -10,7 +10,7 @@ from clixon.netconf import (rpc_apply_rpc_template, rpc_apply_service,
                             rpc_commit, rpc_config_get, rpc_config_set,
                             rpc_connection_open, rpc_datastore_diff,
                             rpc_error_get, rpc_lock, rpc_pull, rpc_push,
-                            rpc_subscription_create, rpc_unlock)
+                            rpc_subscription_create, rpc_unlock, rpc_transactions_get)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
 
@@ -578,6 +578,18 @@ class Clixon:
         data = read(self.__socket, pp, standalone=self.__standalone)
         self.__handle_errors(data)
         data = self.__strip_rpc_reply(data)
+
+        return data
+
+    def show_transactions(self, tid: Optional[int] = None) -> str:
+
+        rpc = rpc_transactions_get(tid=tid, user=self.__user)
+
+        # print(rpc.dumps())
+
+        send(self.__socket, rpc, pp)
+
+        data = read(self.__socket, pp)
 
         return data
 

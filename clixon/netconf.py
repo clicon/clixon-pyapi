@@ -513,3 +513,46 @@ def rpc_connection_open(device: Optional[str] = "*", user: Optional[str] = None)
     root.rpc.connection_change.create("device", data=device)
 
     return root
+
+
+def rpc_transactions_get(tid: Optional[int] = None, user: Optional[str] = None) -> Element:
+    """
+    Get either all transactions or a single transaction status.
+    """
+
+    # Example:
+    # <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="debian" xmlns:cl="http://clicon.org/lib" message-id="43">
+    #     <get cl:content="all" xmlns:cl="http://clicon.org/lib">
+    #         <nc:filter nc:type="xpath" nc:select="co:transactions" xmlns:co="http://clicon.org/controller"/>
+    #         <with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">report-all</with-defaults>
+    #     </get>
+    # </rpc>
+
+    if not user:
+        user = getpass.getuser()
+
+    rpc_attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": user,
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
+    }
+
+    attributes = {
+        "nc:type": "xpath", "nc:select": "co:transactions",
+        "xmlns:co": "http://clicon.org/controller"
+    }
+
+    if tid:
+        attributes["nc:select"] = f"/co:transactions/co:transaction[co:tid='{tid}']"
+
+    root = Element()
+    root.create("rpc", attributes=rpc_attributes)
+    root.rpc.create("get", attributes={
+                    "cl:content": "nonconfig", "xmlns:cl": "http://clicon.org/lib"})
+    root.rpc.get.create("nc:filter", attributes=attributes)
+    root.rpc.get.create("with-defaults", attributes={
+                        "xmlns": "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"}, data="report-all")
+
+    return root

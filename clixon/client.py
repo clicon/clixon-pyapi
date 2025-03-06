@@ -3,19 +3,39 @@ import struct
 import sys
 import time
 import traceback
+
 from socket import socket
 from typing import Optional
 
 from clixon.args import get_logger
 from clixon.event import RPCEventHandler
-from clixon.modules import run_hooks, run_modules
-from clixon.netconf import RPCTypes, rpc_header_get, rpc_subscription_create
+from clixon.modules import run_hooks
+from clixon.modules import run_modules
+from clixon.netconf import RPCTypes
+from clixon.netconf import rpc_header_get
+from clixon.netconf import rpc_subscription_create
+from clixon.netconf import rpc_transactions_get
 from clixon.parser import parse_string
-from clixon.sock import SocketClosedError, create_socket, read, send
+from clixon.sock import SocketClosedError
+from clixon.sock import create_socket
+from clixon.sock import read
+from clixon.sock import send
 
 logger = get_logger()
 events = RPCEventHandler()
 transactions = {}
+
+
+def __get_username(sock: socket, tid: int, pp: bool) -> str:
+    rpc = rpc_transactions_get(tid=tid)
+
+    send(sock, rpc, pp)
+    data = read(sock, pp)
+    root = parse_string(data)
+
+    username = root.rpc_reply.data.transactions.transaction.username.get_data()
+
+    return username
 
 
 @events.register("*<controller-transaction*>*</controller-transaction>*")
@@ -82,7 +102,9 @@ def services_commit_cb(*args, **kwargs) -> None:
     notification = reply.notification
     tid = str(notification.services_commit.tid.cdata)
 
-    rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, "root")
+    username = __get_username(sock, tid, pp)
+
+    rpc = rpc_header_get(RPCTypes.TRANSACTION_DONE, username)
     rpc.rpc.transaction_actions_done.create("tid", cdata=tid)
 
     try:
@@ -93,7 +115,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     try:
         if not services:
             logger.debug("No services in commit, running all services")
-            run_modules(modules, None, None)
+            run_modules(modules, None, None, user=username)
             send(sock, rpc, pp)
 
             return
@@ -117,9 +139,11 @@ def services_commit_cb(*args, **kwargs) -> None:
             service_name = match.group(1)
             instance = match.group(2)
 
-            run_hooks(modules, service_name, instance, service_diff, "pre-commit")
+            run_hooks(modules, service_name, instance,
+                      service_diff, "pre-commit", user=username)
 
-            run_modules(modules, service_name, instance, service_diff)
+            run_modules(modules, service_name, instance,
+                        service_diff, user=username)
 
             if service_name not in finished_services:
                 finished_services.append(service_name)
@@ -238,7 +262,8 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
         while True:
             try:
                 data = read(sock, pp)
-                events.emit(event=data, data=data, sock=sock, modules=modules, pp=pp)
+                events.emit(event=data, data=data, sock=sock,
+                            modules=modules, pp=pp)
             except struct.error:
                 logger.error("Socket closed, backend probably died")
                 sys.exit(1)
