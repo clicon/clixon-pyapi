@@ -1,3 +1,10 @@
+"""
+Client module for the Clixon API.
+
+This module is responsible for connecting to the Clixon API and listen for
+notifications. It also contains the main read loop for the client.
+"""
+
 import re
 import struct
 import sys
@@ -27,6 +34,10 @@ transactions = {}
 
 
 def __get_username(sock: socket, tid: int, pp: bool) -> str:
+    """
+    Get the username from the transaction ID.
+    """
+
     rpc = rpc_transactions_get(tid=tid)
 
     send(sock, rpc, pp)
