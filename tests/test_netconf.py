@@ -420,3 +420,20 @@ def test_rpc_connection_open():
 
     assert netconf.rpc_connection_open().dumps() == xmlstr0
     assert netconf.rpc_connection_open(device="test").dumps() == xmlstr1
+
+
+def test_rpc_transactions_get():
+    """
+    Test the rpc_transactions_get function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="nonconfig" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="co:transactions" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">report-all</with-defaults></get></rpc>"""
+    xmlstr1 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="nonconfig" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="/co:transactions/co:transaction[co:tid=\'123\']" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">report-all</with-defaults></get></rpc>"""
+    xmlstr2 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="test123" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="nonconfig" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="co:transactions" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">report-all</with-defaults></get></rpc>"""
+    xmlstr3 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="test123" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="nonconfig" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="/co:transactions/co:transaction[co:tid=\'123\']" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">report-all</with-defaults></get></rpc>"""
+
+    assert netconf.rpc_transactions_get().dumps() == xmlstr0
+    assert netconf.rpc_transactions_get(tid=123).dumps() == xmlstr1
+    assert netconf.rpc_transactions_get(user="test123").dumps() == xmlstr2
+    assert netconf.rpc_transactions_get(
+        tid=123, user="test123").dumps() == xmlstr3
