@@ -1,5 +1,19 @@
 # Clixon Python API Changelog
 
+## 1.4.0
+3 April 2025
+
+### Features
+* NACM support, get the username from transactions before running services.
+* Use the local users login instead of a hardcoded one in all XML RPC messages.
+
+### Corrected bugs:
+* Make sure rpc_subscription_create() sends the same attributes as the CLI.
+* show_devices_diff() should handle any stray transaction IDs recevied from the backend.
+* Commit hooks didn't run properly, hasattr() should use module and not modules.
+* Avoid os.getlogin() and use getpass.getuser() instead.
+* Should not exit unless the modules list is empty.
+
 ## 1.3.0
 30 January 2025
 
