@@ -22,14 +22,19 @@ def run_hooks(
         logger.info("No modules found.")
         return
 
+    run_hooks = False
+
     for module in modules:
         if (
-            not hasattr(module, "setup_pre_commit")
-            and not hasattr(module, "setup_post_commit")
-            and not hasattr(module, "setup_post_commit_failed")
+            hasattr(module, "setup_pre_commit")
+            or hasattr(module, "setup_post_commit")
+            or hasattr(module, "setup_post_commit_failed")
         ):
-            logger.debug(f"Module {module} does not have any hooks")
-            return
+            run_hooks = True
+
+    if not run_hooks:
+        logger.info("No hooks found.")
+        return
 
     with Clixon(sockpath=get_sockpath(), user=user) as cd:
         for module in modules:
