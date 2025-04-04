@@ -83,5 +83,5 @@ if __name__ == "__main__":
         process_name = os.path.basename(sys.argv[0])
         logger.error(
             f"Either another instance of {process_name} is running or "
-            "the PID file can not be created."
+            "the PID file {pidfile} can not be created."
         )
