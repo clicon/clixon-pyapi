@@ -260,7 +260,7 @@ def test_rpc_apply_template():
 
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><device-template-apply xmlns="http://clicon.org/controller"><type>RPC</type><device>test</device><template>test</template><variables><variable><name>test</name><value>test</value></variable></variables></device-template-apply></rpc>"""
 
-    root = netconf.rpc_apply_rpc_template("test", "test", {"test": "test"})
+    root = netconf.rpc_apply_template("test", "test", {"test": "test"})
 
     assert root.dumps() == xmlstr
 
@@ -272,8 +272,7 @@ def test_rpc_apply_template_user():
 
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><device-template-apply xmlns="http://clicon.org/controller"><type>RPC</type><device>test</device><template>test</template><variables><variable><name>test</name><value>test</value></variable></variables></device-template-apply></rpc>"""
 
-    root = netconf.rpc_apply_rpc_template(
-        "test", "test", {"test": "test"}, user="nisse")
+    root = netconf.rpc_apply_template("test", "test", {"test": "test"}, user="nisse")
 
     assert root.dumps() == xmlstr
 
@@ -343,8 +342,7 @@ def test_rpc_datastore_diff_transient_user():
 
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><datastore-diff xmlns="http://clicon.org/controller"><device>*</device><config-type1>TRANSIENT</config-type1><config-type2>RUNNING</config-type2></datastore-diff></rpc>"""
 
-    assert netconf.rpc_datastore_diff(
-        transient=True, user="nisse").dumps() == xmlstr
+    assert netconf.rpc_datastore_diff(transient=True, user="nisse").dumps() == xmlstr
 
 
 def test_rpc_datastore_diff_compare():
@@ -364,8 +362,7 @@ def test_rpc_datastore_diff_compare_user():
 
     xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="nisse"><datastore-diff xmlns="http://clicon.org/controller"><format>text</format><dsref1>ds:running</dsref1><dsref2>ds:candidate</dsref2></datastore-diff></rpc>"""
 
-    assert netconf.rpc_datastore_diff(
-        compare=True, user="nisse").dumps() == xmlstr
+    assert netconf.rpc_datastore_diff(compare=True, user="nisse").dumps() == xmlstr
 
 
 def test_rpc_lock():
@@ -435,5 +432,4 @@ def test_rpc_transactions_get():
     assert netconf.rpc_transactions_get().dumps() == xmlstr0
     assert netconf.rpc_transactions_get(tid=123).dumps() == xmlstr1
     assert netconf.rpc_transactions_get(user="test123").dumps() == xmlstr2
-    assert netconf.rpc_transactions_get(
-        tid=123, user="test123").dumps() == xmlstr3
+    assert netconf.rpc_transactions_get(tid=123, user="test123").dumps() == xmlstr3

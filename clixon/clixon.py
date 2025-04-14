@@ -6,11 +6,22 @@ from typing import Optional
 from clixon.args import get_arg, get_logger
 from clixon.exceptions import TransactionError
 from clixon.helpers import timeout
-from clixon.netconf import (rpc_apply_rpc_template, rpc_apply_service,
-                            rpc_commit, rpc_config_get, rpc_config_set,
-                            rpc_connection_open, rpc_datastore_diff,
-                            rpc_error_get, rpc_lock, rpc_pull, rpc_push,
-                            rpc_subscription_create, rpc_unlock, rpc_transactions_get)
+from clixon.netconf import (
+    rpc_apply_template,
+    rpc_apply_service,
+    rpc_commit,
+    rpc_config_get,
+    rpc_config_set,
+    rpc_connection_open,
+    rpc_datastore_diff,
+    rpc_error_get,
+    rpc_lock,
+    rpc_pull,
+    rpc_push,
+    rpc_subscription_create,
+    rpc_unlock,
+    rpc_transactions_get,
+)
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
 
@@ -122,8 +133,7 @@ class Clixon:
                 self.__root = self.get_root()
 
             for child in self.__root:
-                config = rpc_config_set(
-                    child, user=self.__user, target=self.__target)
+                config = rpc_config_set(child, user=self.__user, target=self.__target)
                 send(self.__socket, config, pp)
                 data = read(self.__socket, pp)
 
@@ -262,7 +272,8 @@ class Clixon:
         """
 
         enable_transaction_notify = rpc_subscription_create(
-            "controller-transaction", user=self.__user)
+            "controller-transaction", user=self.__user
+        )
 
         send(self.__socket, enable_transaction_notify, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -338,8 +349,9 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        config = rpc_config_set(root, user=self.__user,
-                                device=False, target=self.__target)
+        config = rpc_config_set(
+            root, user=self.__user, device=False, target=self.__target
+        )
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)
@@ -373,8 +385,44 @@ class Clixon:
         :rtype: None
         """
 
-        rpc = rpc_apply_rpc_template(
-            devname, template, variables, user=self.__user)
+        rpc = rpc_apply_template(
+            devname, template, variables, template_type="RPC", user=self.__user
+        )
+
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
+
+        send(self.__socket, rpc, pp)
+
+        data = self.__wait_for_notification(return_data=True)
+
+        rpc_reply = parse_string(data)
+
+        try:
+            return rpc_reply.notification.controller_transaction.devices.devdata
+        except AttributeError:
+            raise ValueError("No devdata in rpc-reply for device_rpc")
+
+        return rpc_reply
+
+    def apply_template(self, devname: str, template: str, variables: dict) -> None:
+        """
+        Apply a template.
+
+        :param devname: Device name
+        :type devname: str
+        :param template: Template
+        :type template: str
+        :param variables: Variables
+
+        :type variables: dict
+        :return: None
+        :rtype: None
+        """
+
+        rpc = rpc_apply_template(
+            devname, template, variables, template_type="CONFIG", user=self.__user
+        )
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -410,14 +458,12 @@ class Clixon:
         """
 
         if self.__read_only and not diff:
-            raise ValueError(
-                "Apply: Read only mode enabled, can only apply diff")
+            raise ValueError("Apply: Read only mode enabled, can only apply diff")
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
 
-        rpc_apply = rpc_apply_service(
-            service, instance, diff, user=self.__user)
+        rpc_apply = rpc_apply_service(service, instance, diff, user=self.__user)
         send(self.__socket, rpc_apply, pp)
 
         self.__wait_for_notification()
@@ -464,8 +510,7 @@ class Clixon:
 
         self.pull(transient=True)
 
-        rpc_show_devices_diff = rpc_datastore_diff(
-            transient=True, user=self.__user)
+        rpc_show_devices_diff = rpc_datastore_diff(transient=True, user=self.__user)
 
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)
@@ -582,7 +627,6 @@ class Clixon:
         return data
 
     def show_transactions(self, tid: Optional[int] = None) -> str:
-
         rpc = rpc_transactions_get(tid=tid, user=self.__user)
 
         # print(rpc.dumps())
