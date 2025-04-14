@@ -386,7 +386,7 @@ class Clixon:
         """
 
         rpc = rpc_apply_template(
-            devname, template, variables, template_type="RPC", user=self.__user
+            devname, template, variables, template_type="CONFIG", user=self.__user
         )
 
         if not self.__transaction_notify:
@@ -394,16 +394,12 @@ class Clixon:
 
         send(self.__socket, rpc, pp)
 
-        data = self.__wait_for_notification(return_data=True)
+        data = read(self.__socket, pp, standalone=self.__standalone)
 
-        rpc_reply = parse_string(data)
+        if "<ok/>" not in data:
+            raise ValueError("Apply template failed")
 
-        try:
-            return rpc_reply.notification.controller_transaction.devices.devdata
-        except AttributeError:
-            raise ValueError("No devdata in rpc-reply for device_rpc")
-
-        return rpc_reply
+        return True
 
     def apply_template(self, devname: str, template: str, variables: dict) -> None:
         """
