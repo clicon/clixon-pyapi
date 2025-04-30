@@ -84,7 +84,7 @@ def run_hooks(
 
 
 def run_modules(
-    modules: List, service_name: str, instance: str, service_diff: bool, user: Optional[str] = None
+    modules: List, service_name: str, instance: str, service_diff: Optional[bool] = False, user: Optional[str] = None
 ) -> Optional[Exception]:
     """
     Run all modules in the list.
