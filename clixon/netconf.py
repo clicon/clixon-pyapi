@@ -507,6 +507,38 @@ def rpc_unlock(
     return root
 
 
+def rpc_discard_changes(user: Optional[str] = None) -> Element:
+    """
+    Discard changes aka rollback.
+
+    :return: RPC element
+    :rtype: Element
+
+    """
+    #  Example:
+    #  <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+    #  cl:username="snc" xmlns:cl="http://clicon.org/lib" message-id="42"><discard-changes/></rpc>
+
+    BASE_ATTRIBUTES = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": None,
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
+    }
+
+    if not user:
+        BASE_ATTRIBUTES["cl:username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["cl:username"] = user
+
+    root = Element()
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
+    root.rpc.create("discard-changes")
+
+    return root
+
+
 def rpc_connection_open(
     device: Optional[str] = "*", user: Optional[str] = None
 ) -> Element:
@@ -578,6 +610,46 @@ def rpc_transactions_get(
         "with-defaults",
         attributes={"xmlns": "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"},
         data="report-all",
+    )
+
+    return root
+
+
+def rpc_devices_get(user: Optional[str] = None) -> Element:
+    """
+    Get device names, connection states, timestamps, and log messages.
+    """
+    if not user:
+        user = getpass.getuser()
+
+    rpc_attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": user,
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "45",
+    }
+
+    filter_attributes = {
+        "nc:type": "xpath",
+        "nc:select": "co:devices/co:device/co:name | co:devices/co:device/co:conn-state | co:devices/co:device/co:conn-state-timestamp | co:devices/co:device/co:logmsg",
+        "xmlns:co": "http://clicon.org/controller",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=rpc_attributes)
+
+    root.rpc.create(
+        "get",
+        attributes={"cl:content": "all", "xmlns:cl": "http://clicon.org/lib"},
+    )
+
+    root.rpc.get.create("nc:filter", attributes=filter_attributes)
+
+    root.rpc.get.create(
+        "with-defaults",
+        attributes={"xmlns": "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"},
+        data="explicit",
     )
 
     return root
