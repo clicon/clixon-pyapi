@@ -21,6 +21,8 @@ from clixon.netconf import (
     rpc_subscription_create,
     rpc_unlock,
     rpc_transactions_get,
+    rpc_devices_get,
+    rpc_discard_changes,
 )
 from clixon.parser import parse_string
 from clixon.sock import create_socket, read, send
@@ -618,6 +620,25 @@ class Clixon:
 
         return data
 
+    def rollback(self) -> None:
+        """
+        Rollback / discard candidate.
+
+        :param target: Target
+        :type target: str
+        :return: None
+        :rtype: None
+
+        """
+
+        logger.info(f"Rollback, discard_changes")
+
+        rpc = rpc_discard_changes(user=self.__user)
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp)
+
+        self.__handle_errors(data)
+
     def show_transactions(self, tid: Optional[int] = None) -> str:
         rpc = rpc_transactions_get(tid=tid, user=self.__user)
 
@@ -627,6 +648,15 @@ class Clixon:
 
         data = read(self.__socket, pp)
 
+        return data
+
+    def show_devices(self) -> str:
+        """
+        Get device names, connection states, timestamps, and log messages.
+        """
+        rpc = rpc_devices_get(user=self.__user)
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp)
         return data
 
 
