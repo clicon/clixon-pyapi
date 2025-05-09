@@ -627,7 +627,7 @@ def rpc_devices_get(user: Optional[str] = None) -> Element:
         "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
         "cl:username": user,
         "xmlns:cl": "http://clicon.org/lib",
-        "message-id": "45",
+        "message-id": "42",
     }
 
     filter_attributes = {
