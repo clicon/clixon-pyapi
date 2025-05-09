@@ -433,3 +433,23 @@ def test_rpc_transactions_get():
     assert netconf.rpc_transactions_get(tid=123).dumps() == xmlstr1
     assert netconf.rpc_transactions_get(user="test123").dumps() == xmlstr2
     assert netconf.rpc_transactions_get(tid=123, user="test123").dumps() == xmlstr3
+
+
+def test_rpc_discard_changes():
+    """
+    Test the rpc_discard_changes function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><discard-changes/></rpc>"""
+
+    assert netconf.rpc_discard_changes().dumps() == xmlstr0
+
+
+def test_rpc_devices_get():
+    """
+    Test the rpc_devices_get function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="all" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="co:devices/co:device/co:name | co:devices/co:device/co:conn-state | co:devices/co:device/co:conn-state-timestamp | co:devices/co:device/co:logmsg" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">explicit</with-defaults></get></rpc>"""
+
+    assert netconf.rpc_devices_get().dumps() == xmlstr0
