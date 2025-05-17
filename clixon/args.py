@@ -90,6 +90,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     default_sockpath = "/usr/local/var/run/controller/controller.sock"
     default_pidfile = "/usr/local/var/run/controller/clixon_server.pid"
     default_log = "s"
+    conf_mpath = None
 
     parser = argparse.ArgumentParser(description="clixon PyAPI")
     parser.add_argument(
@@ -127,7 +128,22 @@ def parse_args(cli_args: Optional = None) -> tuple:
         print(__version__)
         sys.exit(0)
 
-    if args.modulepaths is None:
+    if args.configfile:
+        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(args.configfile)
+        args.sockpath = sockpath
+
+        if conf_mpath:
+            if not args.modulepaths:
+                args.modulepaths = []
+            for path in conf_mpath:
+                if os.path.normpath(path) in args.modulepaths:
+                    continue
+                args.modulepaths.extend(conf_mpath)
+
+        args.modulefilter = modulefilter
+        args.pidfile = pidfile
+
+    if args.modulepaths is None and conf_mpath is None:
         args.modulepaths = [default_mpath]
 
     if not all(map(os.path.exists, args.modulepaths)):
@@ -138,22 +154,6 @@ def parse_args(cli_args: Optional = None) -> tuple:
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
 
-    # Load
-    #   sockpath, conf_mpath, modulefilter, pidfile
-    # from config file
-    if args.configfile:
-        sockpath, conf_mpath, modulefilter, pidfile = __parse_config(args.configfile)
-        args.sockpath = sockpath
-
-        for path in conf_mpath:
-            if os.path.normpath(path) in args.modulepaths:
-                continue
-            args.modulepaths.extend(conf_mpath)
-
-        args.modulefilter = modulefilter
-        args.pidfile = pidfile
-
-    # Save args is global scope
     global_args = vars(args)
 
     return (
