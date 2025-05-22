@@ -1,0 +1,32 @@
+publiccodeYmlVersion: 0.4.0
+name: clixon-pyapi
+applicationSuite: Clixon
+url: https://github.com/clicon/clixon-pyapi
+softwareVersion: 1.4.0
+platforms:
+  - linux
+  - mac
+categories:
+  - network-management
+usedBy:
+  - SUNET
+developmentStatus: stable
+softwareType: standalone/backend
+description:
+  en:
+    localisedName: Clixon PyAPI
+    shortDescription: Python API for the Clixon controller
+    longDescription: Python API which let the user create services for the Clixon
+      network controller. Let the user manipulate NETCONF in a simple manner
+      using an abstraction of the NETCONF XML.
+    features:
+      - NETCONF
+      - API
+legal:
+  license: Apache-2.0
+maintenance:
+  type: community
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
