@@ -77,6 +77,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     try:
+        logger.info(f"Creating PID file {pidfile}")
         with PIDLock(pidfile):
             main()
     except Exception:
