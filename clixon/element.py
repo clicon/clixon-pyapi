@@ -188,11 +188,9 @@ class Element:
             self._children = []
             return
         elif name != "" and name != "*":
-            index = 0
-            for child in self._children:
+            for index, child in enumerate(self._children):
                 if child._origname == name:
                     del self._children[index]
-                index += 1
 
     def replace(self, name: str, element: object) -> None:
         """
