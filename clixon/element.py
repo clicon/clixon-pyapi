@@ -180,10 +180,9 @@ class Element:
 
         if element:
             index = 0
-            for child in self._children:
-                if child == element:
+            for index, child in enumerate(self._children):
+                if id(child) == id(element):
                     del self._children[index]
-                    index += 1
 
         if name == "*":
             self._children = []
@@ -525,7 +524,7 @@ class Element:
         return self.cdata.strip()
 
     def __repr__(self) -> str:
-        if self.cdata.strip() == '':
+        if self.cdata.strip() == "":
             return self._name
         return self.cdata.strip()
 
