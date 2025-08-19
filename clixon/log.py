@@ -5,7 +5,9 @@ import os
 
 
 def get_log_factory(
-    output: Optional[str] = "s", debug: Optional[bool] = False
+    output: Optional[str] = "s",
+    debug: Optional[bool] = False,
+    timestamp: Optional[bool] = False,
 ) -> logging.Logger:
     """
     Get logger for the application.
@@ -21,9 +23,15 @@ def get_log_factory(
 
     logger = logging.getLogger("pyserver")
     if not logger.handlers:
-        formatter = logging.Formatter(
-            "%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s"
-        )
+        if timestamp:
+            formatter = logging.Formatter(
+                "%(asctime)s %(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        else:
+            formatter = logging.Formatter(
+                "%(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s"
+            )
 
         if output == "s":
             if os.path.exists("/dev/log"):
