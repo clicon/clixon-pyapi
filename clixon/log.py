@@ -8,6 +8,7 @@ def get_log_factory(
     output: Optional[str] = "s",
     debug: Optional[bool] = False,
     timestamp: Optional[bool] = False,
+    override: Optional[bool] = False,
 ) -> logging.Logger:
     """
     Get logger for the application.
@@ -22,7 +23,10 @@ def get_log_factory(
     """
 
     logger = logging.getLogger("pyserver")
-    if not logger.handlers:
+    if not logger.handlers or override:
+        if logger.handlers:
+            logger.handlers.clear()
+
         if timestamp:
             formatter = logging.Formatter(
                 "%(asctime)s %(name)s[%(process)d] %(filename)s:%(lineno)d: %(message)s",
