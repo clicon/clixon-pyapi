@@ -1,3 +1,4 @@
+import re
 import json
 import xmltodict
 import yaml
@@ -383,10 +384,22 @@ class Element:
         :rtype: str
 
         """
+        in_str = self.dumps()
 
-        dom = minidom.parseString(self.dumps())
+        pattern = r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
+        matches = list(re.finditer(pattern, in_str, flags=re.DOTALL))
 
-        return dom.toprettyxml(indent="  ")
+        if len(matches) > 1:
+            in_str = "<xml>" + in_str + "</xml>"
+
+        dom = minidom.parseString(in_str)
+        outstr = dom.toprettyxml(indent="  ")
+
+        # If outstr endwith 0x00 (null char), remove it
+        if outstr.replace("\x00", ""):
+            outstr = outstr[:-1]
+
+        return outstr
 
     def dumpj(self) -> str:
         """
