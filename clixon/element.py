@@ -1,8 +1,9 @@
 import json
-from typing import Optional, Generator, Any
-
 import xmltodict
 import yaml
+
+from xml.dom import minidom
+from typing import Optional, Generator, Any
 
 
 class Element:
@@ -372,6 +373,20 @@ class Element:
                 xmlstr += f"</{name}>"
 
         return xmlstr
+
+    def dumps_pp(self) -> str:
+        """
+
+        Return a prettyprinted XML string.
+
+        :return: XML string.
+        :rtype: str
+
+        """
+
+        dom = minidom.parseString(self.dumps())
+
+        return dom.toprettyxml(indent="  ")
 
     def dumpj(self) -> str:
         """
