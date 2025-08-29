@@ -358,6 +358,7 @@ def rpc_apply_template(
     variables: dict,
     template_type: Optional[str] = "RPC",
     user: Optional[str] = None,
+    inline: Optional[bool] = False,
 ) -> Element:
     if not user:
         BASE_ATTRIBUTES["username"] = getpass.getuser()
@@ -369,7 +370,12 @@ def rpc_apply_template(
     root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
     root.rpc.device_template_apply.create("type", data=template_type)
     root.rpc.device_template_apply.create("device", data=devname)
-    root.rpc.device_template_apply.create("template", data=template)
+
+    if inline:
+        inline_element = parse_string(template).config
+        root.rpc.device_template_apply.create("inline").add(inline_element)
+    else:
+        root.rpc.device_template_apply.create("template", data=template)
 
     if variables:
         root.rpc.device_template_apply.create("variables")

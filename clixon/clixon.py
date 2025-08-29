@@ -372,7 +372,13 @@ class Clixon:
         """
         return self.__logger
 
-    def device_rpc(self, devname: str, template: str, variables: dict) -> list | object:
+    def device_rpc(
+        self,
+        devname: str,
+        template: Optional[str] = "",
+        variables: Optional[dict] = {},
+        inline: Optional[str] = "",
+    ) -> list | object:
         """
         Apply a RPC template.
 
@@ -383,11 +389,16 @@ class Clixon:
         :type template: str
         :param variables: Variables
         :type variables: dict
-        :return: Device data
-        :rtype: list | object
+        :return: None
+        :rtype: None
         """
 
-        rpc = rpc_apply_template(devname, template, variables, user=self.__user)
+        if inline:
+            rpc = rpc_apply_template(
+                devname, template, variables, user=self.__user, inline=True
+            )
+        else:
+            rpc = rpc_apply_template(devname, template, variables, user=self.__user)
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -403,7 +414,13 @@ class Clixon:
         except AttributeError:
             raise ValueError("No devdata in rpc-reply for device_rpc")
 
-    def apply_template(self, devname: str, template: str, variables: dict) -> None:
+    def apply_template(
+        self,
+        devname: str,
+        template: Optional[str] = "",
+        variables: Optional[dict] = {},
+        inline: Optional[bool] = False,
+    ) -> None:
         """
         Apply a template.
 
@@ -412,15 +429,28 @@ class Clixon:
         :param template: Template
         :type template: str
         :param variables: Variables
+        :type variables: dict
+        :param inline: Inline template
+        :type inline: bool
 
         :type variables: dict
         :return: None
         :rtype: None
         """
 
-        rpc = rpc_apply_template(
-            devname, template, variables, template_type="CONFIG", user=self.__user
-        )
+        if inline:
+            rpc = rpc_apply_template(
+                devname,
+                template,
+                variables,
+                template_type="CONFIG",
+                user=self.__user,
+                inline=True,
+            )
+        else:
+            rpc = rpc_apply_template(
+                devname, template, variables, template_type="CONFIG", user=self.__user
+            )
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
