@@ -372,7 +372,7 @@ class Clixon:
         """
         return self.__logger
 
-    def device_rpc(self, devname: str, template: str, variables: dict) -> None:
+    def device_rpc(self, devname: str, template: str, variables: dict) -> list | object:
         """
         Apply a RPC template.
 
@@ -383,12 +383,11 @@ class Clixon:
         :type template: str
         :param variables: Variables
         :type variables: dict
-        :return: None
-        :rtype: None
+        :return: Device data
+        :rtype: list | object
         """
 
-        rpc = rpc_apply_template(
-            devname, template, variables, user=self.__user)
+        rpc = rpc_apply_template(devname, template, variables, user=self.__user)
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -403,7 +402,6 @@ class Clixon:
             return rpc_reply.notification.controller_transaction.devices.devdata
         except AttributeError:
             raise ValueError("No devdata in rpc-reply for device_rpc")
-
 
     def apply_template(self, devname: str, template: str, variables: dict) -> None:
         """
