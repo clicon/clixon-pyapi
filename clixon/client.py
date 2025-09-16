@@ -126,7 +126,7 @@ def services_commit_cb(*args, **kwargs) -> None:
     try:
         if not services:
             logger.debug("No services in commit, running all services")
-            run_modules(modules, None, None, user=username)
+            run_modules(sock, modules, None, None, user=username)
             send(sock, rpc, pp)
 
             return

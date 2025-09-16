@@ -76,11 +76,11 @@ class Clixon:
         if not user:
             user = getpass.getuser()
 
-        if sockpath == "":
+        if sockpath == "" and socket is None:
             sockpath = default_sockpath
 
-        if not os.path.exists(sockpath):
-            raise ValueError(f"Invalid socket: {sockpath}")
+            if not os.path.exists(sockpath):
+                raise ValueError(f"Invalid socket: {sockpath}")
 
         self.__commit = commit
         self.__logger = logger
