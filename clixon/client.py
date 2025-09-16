@@ -150,11 +150,19 @@ def services_commit_cb(*args, **kwargs) -> None:
             service_name = match.group(1)
             instance = match.group(2)
 
-            run_hooks(modules, service_name, instance,
-                      service_diff, "pre-commit", user=username)
+            run_hooks(
+                sock,
+                modules,
+                service_name,
+                instance,
+                service_diff,
+                "pre-commit",
+                user=username,
+            )
 
-            run_modules(modules, service_name, instance,
-                        service_diff, user=username)
+            run_modules(
+                sock, modules, service_name, instance, service_diff, user=username
+            )
 
             if service_name not in finished_services:
                 finished_services.append(service_name)
@@ -273,8 +281,7 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
         while True:
             try:
                 data = read(sock, pp)
-                events.emit(event=data, data=data, sock=sock,
-                            modules=modules, pp=pp)
+                events.emit(event=data, data=data, sock=sock, modules=modules, pp=pp)
             except struct.error:
                 logger.error("Socket closed, backend probably died")
                 sys.exit(1)

@@ -7,7 +7,6 @@ from typing import List
 from typing import Optional
 
 from clixon.args import get_logger
-from clixon.args import get_sockpath
 from clixon.clixon import Clixon
 from clixon.exceptions import ModuleError
 
@@ -16,7 +15,13 @@ logger = get_logger()
 
 
 def run_hooks(
-    modules: List, service_name: str, instance: str, diff: bool, result: str, user: Optional[str] = None
+    socket,
+    modules: List,
+    service_name: str,
+    instance: str,
+    diff: bool,
+    result: str,
+    user: Optional[str] = None,
 ) -> None:
     if modules == []:
         logger.info("No modules found.")
@@ -36,7 +41,7 @@ def run_hooks(
         logger.info("No hooks found.")
         return
 
-    with Clixon(sockpath=get_sockpath(), user=user) as cd:
+    with Clixon(socket=socket, user=user) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
@@ -84,7 +89,12 @@ def run_hooks(
 
 
 def run_modules(
-    modules: List, service_name: str, instance: str, service_diff: Optional[bool] = False, user: Optional[str] = None
+    socket,
+    modules: List,
+    service_name: str,
+    instance: str,
+    service_diff: Optional[bool] = False,
+    user: Optional[str] = None,
 ) -> Optional[Exception]:
     """
     Run all modules in the list.
@@ -107,7 +117,7 @@ def run_modules(
         logger.info("No modules found.")
         return
 
-    with Clixon(sockpath=get_sockpath(), user=user) as cd:
+    with Clixon(socket=socket, user=user) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
@@ -118,8 +128,7 @@ def run_modules(
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
                 root = cd.get_root()
-                module.setup(root, logger, instance=instance,
-                             diff=service_diff)
+                module.setup(root, logger, instance=instance, diff=service_diff)
             except Exception as e:
                 logger.error(f"Module {module} failed with exception: {e}")
                 logger.error(traceback.format_exc())
@@ -195,8 +204,7 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
 
         logger.debug(f"Importing module {modulename}")
         try:
-            spec = importlib.util.spec_from_file_location(
-                modulename, modulefile)
+            spec = importlib.util.spec_from_file_location(modulename, modulefile)
             module = importlib.util.module_from_spec(spec)
             sys.modules[modulename] = module
             spec.loader.exec_module(module)

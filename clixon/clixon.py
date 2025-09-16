@@ -1,6 +1,7 @@
 import getpass
 import os
 import re
+import socket
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
@@ -37,6 +38,7 @@ class Clixon:
     def __init__(
         self,
         sockpath: Optional[str] = "",
+        socket: Optional[socket] = None,
         commit: Optional[bool] = False,
         push: Optional[bool] = False,
         pull: Optional[bool] = False,
@@ -85,7 +87,12 @@ class Clixon:
         self.__pull = pull
         self.__push = push
         self.__root = None
-        self.__socket = create_socket(sockpath)
+
+        if not socket:
+            self.__socket = create_socket(sockpath)
+        else:
+            self.__socket = socket
+
         self.__source = source
         self.__target = target
         self.__user = user
