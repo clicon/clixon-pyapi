@@ -65,6 +65,7 @@ def controller_transaction_cb(*args, **kwargs) -> None:
 
     data = kwargs["data"]
     modules = kwargs["modules"]
+    sock = kwargs["sock"]
     notification = parse_string(data)
     tid = str(notification.notification.controller_transaction.tid)
     result = str(notification.notification.controller_transaction.result)
@@ -83,7 +84,7 @@ def controller_transaction_cb(*args, **kwargs) -> None:
         service_name = match.group(1)
         instance = match.group(2)
 
-        run_hooks(modules, service_name, instance, False, result)
+        run_hooks(sock, modules, service_name, instance, False, result)
 
 
 @events.register("*<services-commit*>*</services-commit>*")
