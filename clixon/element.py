@@ -1,10 +1,10 @@
-import re
 import json
+import re
 import xmltodict
 import yaml
 
+from typing import Any, Generator, Optional
 from xml.dom import minidom
-from typing import Optional, Generator, Any
 
 
 class Element:
@@ -58,6 +58,8 @@ class Element:
         if parent:
             self._parent = parent
 
+        self.__modified = False
+
     def is_root(self, boolean: bool) -> None:
         """
         Set the element as root.
@@ -91,6 +93,7 @@ class Element:
         cdata: Optional[str] = "",
         data: Optional[str] = "",
         element: Optional[object] = None,
+        modified: Optional[bool] = True,
     ) -> None:
         """
         Create a new element.
@@ -112,6 +115,9 @@ class Element:
 
         if not element:
             element = Element(name, attributes, parent=self)
+
+            if modified:
+                self.__modified = True
 
             if data != "":
                 element.cdata = data
@@ -260,6 +266,7 @@ class Element:
         data: Optional[str] = "",
         elements: Optional[list] = [],
         recursive: Optional[bool] = False,
+        get_modified_elements: Optional[bool] = False,
     ) -> list:
         """
         Return the children of the element.
@@ -284,7 +291,11 @@ class Element:
                     elements.append(child)
 
                 elements = child.get_elements(
-                    name=name, data=data, elements=elements, recursive=recursive
+                    name=name,
+                    data=data,
+                    elements=elements,
+                    recursive=recursive,
+                    get_modified_elements=get_modified_elements,
                 )
         else:
             if name != "":
@@ -294,6 +305,9 @@ class Element:
 
         if data:
             return [e for e in elements if e.get_data() == data]
+
+        if get_modified_elements:
+            return [e for e in elements if e.is_modified()]
 
         return elements
 
@@ -313,7 +327,7 @@ class Element:
                 attr_string += f' {key}="{value}"'
         return attr_string
 
-    def set_data(self, data: str) -> None:
+    def set_data(self, data: str, modified: Optional[bool] = False) -> None:
         """
         Set the data of the element.
 
@@ -322,6 +336,9 @@ class Element:
         :return: None
 
         """
+
+        if modified:
+            self.__modified = True
 
         self.cdata = data
 
@@ -386,7 +403,9 @@ class Element:
         """
         in_str = self.dumps()
 
-        pattern = r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
+        pattern = (
+            r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
+        )
         matches = list(re.finditer(pattern, in_str, flags=re.DOTALL))
 
         if len(matches) > 1:
@@ -465,6 +484,20 @@ class Element:
             yield parent
             parent = parent._parent
 
+    def is_modified(self) -> bool:
+        """
+        Return True if the element or any of its children have been modified.
+
+        :return: True if the element or any of its children have been modified.
+        :rtype: bool
+
+        """
+
+        if self.__modified:
+            return True
+
+        return False
+
     def find(self, name: str) -> Optional[object]:
         """
         Return the first element with the name.
@@ -482,6 +515,22 @@ class Element:
             return found[0]
 
         return None
+
+    def find_modified(self) -> Optional[list]:
+        """
+        Return the first modified element.
+
+        :return: The first modified element.
+        :rtype: object
+
+        """
+
+        found = self.get_elements(get_modified_elements=True, recursive=True)
+
+        if found:
+            return found
+
+        return []
 
     def findall(self, name: str) -> list:
         """
@@ -556,8 +605,6 @@ class Element:
 
     def __bool__(self) -> bool:
         return self._is_root or self._name is not None
-
-    __nonzero__ = __bool__
 
     def __eq__(self, val) -> bool:
         return self.cdata == val

@@ -2,7 +2,6 @@ import getpass
 import sys
 
 from enum import Enum
-from types import NoneType
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
 
@@ -112,7 +111,20 @@ def rpc_config_set(
             elements = config.get_elements()
 
         for node in elements:
-            root.rpc.edit_config.config.add(node)
+            if node.get_name() != "devices":
+                root.rpc.edit_config.config.add(node)
+                continue
+
+            root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
+
+            for device in node.get_elements():
+                if not device.find_modified():
+                    continue
+
+                if isinstance(root.rpc.edit_config.config.devices, list):
+                    root.rpc.edit_config.config.devices.append(device)
+                else:
+                    root.rpc.edit_config.config.devices.add(device)
 
     return root
 
