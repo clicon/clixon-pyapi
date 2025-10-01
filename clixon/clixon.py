@@ -38,7 +38,7 @@ class Clixon:
     def __init__(
         self,
         sockpath: Optional[str] = "",
-        socket: Optional[socket] = None,
+        socket: Optional[socket.socket] = None,
         commit: Optional[bool] = False,
         push: Optional[bool] = False,
         pull: Optional[bool] = False,
