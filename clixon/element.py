@@ -58,7 +58,7 @@ class Element:
         if parent:
             self._parent = parent
 
-        self.__modified = False
+        self._modified = False
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -84,6 +84,7 @@ class Element:
 
         if self._origname == "":
             return self._name
+
         return self._origname
 
     def create(
@@ -117,7 +118,7 @@ class Element:
             element = Element(name, attributes, parent=self)
 
             if modified:
-                self.__modified = True
+                self._modified = True
 
             if data != "":
                 element.cdata = data
@@ -128,7 +129,7 @@ class Element:
 
         return element
 
-    def rename(self, name: str, origname: str) -> None:
+    def rename(self, name: str, origname: str, modified: Optional[bool] = True) -> None:
         """
         Rename the element.
 
@@ -143,6 +144,7 @@ class Element:
 
         self._name = name
         self._origname = origname
+        self._modified = modified
 
     def get_name(self) -> str:
         """
@@ -154,7 +156,7 @@ class Element:
 
         return self._name
 
-    def add(self, element: object) -> None:
+    def add(self, element: object, modified: Optional[bool] = True) -> None:
         """
         Add an element to the children of the element.
 
@@ -166,12 +168,15 @@ class Element:
         """
 
         element._parent = self
+
         self._children.append(element)
+        self._modified = modified
 
     def delete(
         self,
         name: Optional[str] = "",
         element: Optional[object] = None,
+        modified: Optional[bool] = True,
     ) -> None:
         """
         Delete an element from the children of the element.
@@ -200,7 +205,9 @@ class Element:
                 if child._origname == name:
                     del self._children[index]
 
-    def replace(self, name: str, element: object) -> None:
+    def replace(
+        self, name: str, element: object, modified: Optional[bool] = True
+    ) -> None:
         """
         Replace an element in the children of the element.
 
@@ -215,8 +222,9 @@ class Element:
 
         self.delete(name)
         self.add(element)
+        self._modified = modified
 
-    def set_attributes(self, attributes: dict) -> None:
+    def set_attributes(self, attributes: dict, modified: Optional[bool] = True) -> None:
         """
         Set the attributes of the element.
 
@@ -228,8 +236,11 @@ class Element:
         """
 
         self.attributes = attributes
+        self._modified = modified
 
-    def update_attributes(self, attributes: dict) -> None:
+    def update_attributes(
+        self, attributes: dict, modified: Optional[bool] = True
+    ) -> None:
         """
         Update the attributes of the element.
 
@@ -244,6 +255,7 @@ class Element:
         new_attributes = old_attributes | attributes
 
         self.set_attributes(new_attributes)
+        self._modified = modified
 
     def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
         """
@@ -307,7 +319,9 @@ class Element:
             return [e for e in elements if e.get_data() == data]
 
         if get_modified_elements:
-            return [e for e in elements if e.is_modified()]
+            return [
+                e for e in elements if e.is_modified() or "cl:creator" in e.attributes
+            ]
 
         return elements
 
@@ -337,10 +351,8 @@ class Element:
 
         """
 
-        if modified:
-            self.__modified = True
-
         self.cdata = data
+        self._modified = modified
 
     def get_data(self, typecast: Optional[Any] = None) -> str:
         """
@@ -357,7 +369,7 @@ class Element:
 
         return self.cdata
 
-    def dumps(self) -> str:
+    def dumps(self, modified: Optional[bool] = False) -> str:
         """
 
         Return the XML string of the element and its children.
@@ -390,9 +402,12 @@ class Element:
             if child.get_elements() != [] or child.cdata != "":
                 xmlstr += f"</{name}>"
 
+                if child._modified and modified:
+                    xmlstr += " <!-- modified -->"
+
         return xmlstr
 
-    def dumps_pp(self) -> str:
+    def dumps_pp(self, modified: Optional[bool] = False) -> str:
         """
 
         Return a prettyprinted XML string.
@@ -401,7 +416,7 @@ class Element:
         :rtype: str
 
         """
-        in_str = self.dumps()
+        in_str = self.dumps(modified)
 
         pattern = (
             r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
@@ -493,10 +508,7 @@ class Element:
 
         """
 
-        if self.__modified:
-            return True
-
-        return False
+        return self._modified
 
     def find(self, name: str) -> Optional[object]:
         """
