@@ -119,7 +119,10 @@ def rpc_config_set(
 
             for device in node.get_elements():
                 if not device.find_modified():
+                    logger.info(f"No changes in device {device.name}, skipping")
                     continue
+
+                logger.inof(f"Adding device {device.name} to edit-config")
 
                 if isinstance(root.rpc.edit_config.config.devices, list):
                     root.rpc.edit_config.config.devices.append(device)
