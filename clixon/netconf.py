@@ -106,9 +106,9 @@ def rpc_config_set(
         root.rpc.edit_config.config.devices.add(config)
     else:
         if type(config) is list:
-            elements = config
+            elements = root.rpc.edit_config.config.devices
         else:
-            elements = config.get_elements()
+            elements = root.rpc.edit_config.config.devices.get_elements()
 
         for node in elements:
             if node.get_name() != "devices":
@@ -117,17 +117,22 @@ def rpc_config_set(
 
             root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
 
-            for device in node.get_elements():
-                if not device.find_modified():
-                    logger.info(f"No changes in device {device.name}, skipping")
-                    continue
-
-                logger.info(f"Adding device {device.name} to edit-config")
-
-                if isinstance(root.rpc.edit_config.config.devices, list):
-                    root.rpc.edit_config.config.devices.append(device)
+            for devices in node.get_elements():
+                if devices.get_name() != "device":
+                    root.rpc.edit_config.config.devices.add(devices)
                 else:
-                    root.rpc.edit_config.config.devices.add(device)
+                    for device in devices:
+                        modified = device.find_modified()
+
+                        if not modified:
+                            continue
+
+                        logger.info(f"Modified device {device.name}")
+
+                        if type(root.rpc.edit_config.config.devices) is list:
+                            root.rpc.edit_config.config.devices.append(device)
+                        else:
+                            root.rpc.edit_config.config.devices.add(device)
 
     return root
 

@@ -117,8 +117,7 @@ class Element:
         if not element:
             element = Element(name, attributes, parent=self)
 
-            if modified:
-                self._modified = True
+            self._modified = modified
 
             if data != "":
                 element.cdata = data
@@ -156,7 +155,7 @@ class Element:
 
         return self._name
 
-    def add(self, element: object, modified: Optional[bool] = True) -> None:
+    def add(self, element: object) -> None:
         """
         Add an element to the children of the element.
 
@@ -170,7 +169,6 @@ class Element:
         element._parent = self
 
         self._children.append(element)
-        self._modified = modified
 
     def delete(
         self,
@@ -276,52 +274,55 @@ class Element:
         self,
         name: Optional[str] = "",
         data: Optional[str] = "",
-        elements: Optional[list] = [],
+        elements: Optional[list] = None,
         recursive: Optional[bool] = False,
         get_modified_elements: Optional[bool] = False,
     ) -> list:
         """
-        Return the children of the element.
-
-        :param name: The name of the element to return.
-        :type name: str
-        :param data: The data of the element to return.
-        :type data: str
-        :return: The children of the element.
-        :rtype: list
-
+        Return the children of the element, optionally filtered by name, data,
+        and/or modification status. Aborts early if a modified element is found.
         """
+
+        if elements is None:
+            elements = []
 
         name = name.replace("-", "_")
 
-        if recursive:
-            for child in self.get_elements():
-                if name != "":
-                    if child._name == name:
-                        elements.append(child)
-                else:
-                    elements.append(child)
-
-                elements = child.get_elements(
-                    name=name,
-                    data=data,
-                    elements=elements,
-                    recursive=recursive,
-                    get_modified_elements=get_modified_elements,
-                )
-        else:
-            if name != "":
+        if not recursive:
+            if name:
                 elements = [e for e in self._children if e._name == name]
             else:
-                elements = self._children
+                elements = list(self._children)
+
+            if data:
+                elements = [e for e in elements if e.get_data() == data]
+
+            if get_modified_elements:
+                elements = [e for e in elements if e._modified]
+
+            return elements
+
+        for child in self.get_elements():
+            if get_modified_elements and child._modified:
+                elements.append(child)
+                return elements
+
+            if name and child._name == name:
+                elements.append(child)
+
+            found = child.get_elements(
+                name=name,
+                data=data,
+                elements=elements,
+                recursive=recursive,
+                get_modified_elements=get_modified_elements,
+            )
+
+            if get_modified_elements and any(e._modified for e in found):
+                return elements
 
         if data:
-            return [e for e in elements if e.get_data() == data]
-
-        if get_modified_elements:
-            return [
-                e for e in elements if e.is_modified() or "cl:creator" in e.attributes
-            ]
+            elements = [e for e in elements if e.get_data() == data]
 
         return elements
 
@@ -341,7 +342,7 @@ class Element:
                 attr_string += f' {key}="{value}"'
         return attr_string
 
-    def set_data(self, data: str, modified: Optional[bool] = False) -> None:
+    def set_data(self, data: str, modified: Optional[bool] = True) -> None:
         """
         Set the data of the element.
 
@@ -508,6 +509,8 @@ class Element:
 
         """
 
+        # print(f"{self.get_name()} is modified: {self._modified}")
+
         return self._modified
 
     def find(self, name: str) -> Optional[object]:
@@ -537,12 +540,7 @@ class Element:
 
         """
 
-        found = self.get_elements(get_modified_elements=True, recursive=True)
-
-        if found:
-            return found
-
-        return []
+        return self.get_elements(get_modified_elements=True, recursive=True)
 
     def findall(self, name: str) -> list:
         """
