@@ -3,12 +3,13 @@ import sys
 
 from enum import Enum
 from typing import Optional
-from xml.sax._exceptions import SAXParseException
 
 from clixon.args import get_logger
 from clixon.element import Element
 from clixon.exceptions import RPCError
 from clixon.parser import parse_string
+
+from xml.sax._exceptions import SAXParseException
 
 logger = get_logger()
 
@@ -100,39 +101,17 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
-    if device:
-        root.rpc.edit_config.config.delete("services")
+    try:
+        _ = root.rpc.edit_config.config.devices
+    except AttributeError:
         root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
-        root.rpc.edit_config.config.devices.add(config)
-    else:
-        if type(config) is list:
-            elements = root.rpc.edit_config.config.devices
+
+    for device in config.devices.device:
+        if device.find_modified():
+            logger.debug(f"Modifications found on device {device.name.get_data()}")
+            root.rpc.edit_config.config.devices.add(device)
         else:
-            elements = root.rpc.edit_config.config.devices.get_elements()
-
-        for node in elements:
-            if node.get_name() != "devices":
-                root.rpc.edit_config.config.add(node)
-                continue
-
-            root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
-
-            for devices in node.get_elements():
-                if devices.get_name() != "device":
-                    root.rpc.edit_config.config.devices.add(devices)
-                else:
-                    for device in devices:
-                        modified = device.find_modified()
-
-                        if not modified:
-                            continue
-
-                        logger.info(f"Modified device {device.name}")
-
-                        if type(root.rpc.edit_config.config.devices) is list:
-                            root.rpc.edit_config.config.devices.append(device)
-                        else:
-                            root.rpc.edit_config.config.devices.add(device)
+            logger.debug(f"No modifications found on device {device.name.get_data()}")
 
     return root
 

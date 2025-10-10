@@ -500,7 +500,22 @@ class Element:
             yield parent
             parent = parent._parent
 
-    def is_modified(self) -> bool:
+    def set_modified(self, modified: Optional[bool] = True) -> bool:
+        """
+        Set the element and its parents as modified.
+
+        :param modified: True or False.
+        :type modified: bool
+        :return: None
+        :rtype: None
+
+        """
+
+        self._modified = modified
+
+        return self._modified
+
+    def get_modified(self) -> bool:
         """
         Return True if the element or any of its children have been modified.
 
@@ -508,8 +523,6 @@ class Element:
         :rtype: bool
 
         """
-
-        # print(f"{self.get_name()} is modified: {self._modified}")
 
         return self._modified
 
