@@ -101,9 +101,7 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
-    try:
-        _ = root.rpc.edit_config.config.devices
-    except AttributeError:
+    if root.rpc.edit_config.config.get_elements("devices") == []:
         root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
 
     for device in config.devices.device:
