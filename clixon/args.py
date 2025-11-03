@@ -2,9 +2,11 @@ import argparse
 import logging
 import os
 import sys
+
 from typing import Optional
 
 import clixon.parser as parser
+
 from clixon.log import get_log_factory
 from clixon.version import __version__
 

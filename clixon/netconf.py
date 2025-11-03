@@ -2,14 +2,14 @@ import getpass
 import sys
 
 from enum import Enum
-from types import NoneType
 from typing import Optional
-from xml.sax._exceptions import SAXParseException
 
 from clixon.args import get_logger
 from clixon.element import Element
 from clixon.exceptions import RPCError
 from clixon.parser import parse_string
+
+from xml.sax._exceptions import SAXParseException
 
 logger = get_logger()
 
@@ -101,18 +101,15 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
-    if device:
-        root.rpc.edit_config.config.delete("services")
+    if root.rpc.edit_config.config.get_elements("devices") == []:
         root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
-        root.rpc.edit_config.config.devices.add(config)
-    else:
-        if type(config) is list:
-            elements = config
-        else:
-            elements = config.get_elements()
 
-        for node in elements:
-            root.rpc.edit_config.config.add(node)
+    for device in config.devices.device:
+        if device.find_modified():
+            logger.debug(f"Modifications found on device {device.name.get_data()}")
+            root.rpc.edit_config.config.devices.add(device)
+        else:
+            logger.debug(f"No modifications found on device {device.name.get_data()}")
 
     return root
 

@@ -1,10 +1,10 @@
-import re
 import json
+import re
 import xmltodict
 import yaml
 
+from typing import Any, Generator, Optional
 from xml.dom import minidom
-from typing import Optional, Generator, Any
 
 
 class Element:
@@ -58,6 +58,8 @@ class Element:
         if parent:
             self._parent = parent
 
+        self._modified = False
+
     def is_root(self, boolean: bool) -> None:
         """
         Set the element as root.
@@ -82,6 +84,7 @@ class Element:
 
         if self._origname == "":
             return self._name
+
         return self._origname
 
     def create(
@@ -91,6 +94,7 @@ class Element:
         cdata: Optional[str] = "",
         data: Optional[str] = "",
         element: Optional[object] = None,
+        modified: Optional[bool] = True,
     ) -> None:
         """
         Create a new element.
@@ -113,6 +117,8 @@ class Element:
         if not element:
             element = Element(name, attributes, parent=self)
 
+            self._modified = modified
+
             if data != "":
                 element.cdata = data
             else:
@@ -122,7 +128,7 @@ class Element:
 
         return element
 
-    def rename(self, name: str, origname: str) -> None:
+    def rename(self, name: str, origname: str, modified: Optional[bool] = True) -> None:
         """
         Rename the element.
 
@@ -137,6 +143,7 @@ class Element:
 
         self._name = name
         self._origname = origname
+        self._modified = modified
 
     def get_name(self) -> str:
         """
@@ -160,12 +167,14 @@ class Element:
         """
 
         element._parent = self
+
         self._children.append(element)
 
     def delete(
         self,
         name: Optional[str] = "",
         element: Optional[object] = None,
+        modified: Optional[bool] = True,
     ) -> None:
         """
         Delete an element from the children of the element.
@@ -194,7 +203,9 @@ class Element:
                 if child._origname == name:
                     del self._children[index]
 
-    def replace(self, name: str, element: object) -> None:
+    def replace(
+        self, name: str, element: object, modified: Optional[bool] = True
+    ) -> None:
         """
         Replace an element in the children of the element.
 
@@ -209,8 +220,9 @@ class Element:
 
         self.delete(name)
         self.add(element)
+        self._modified = modified
 
-    def set_attributes(self, attributes: dict) -> None:
+    def set_attributes(self, attributes: dict, modified: Optional[bool] = True) -> None:
         """
         Set the attributes of the element.
 
@@ -222,8 +234,11 @@ class Element:
         """
 
         self.attributes = attributes
+        self._modified = modified
 
-    def update_attributes(self, attributes: dict) -> None:
+    def update_attributes(
+        self, attributes: dict, modified: Optional[bool] = True
+    ) -> None:
         """
         Update the attributes of the element.
 
@@ -238,6 +253,7 @@ class Element:
         new_attributes = old_attributes | attributes
 
         self.set_attributes(new_attributes)
+        self._modified = modified
 
     def get_attributes(self, key: Optional[str] = None) -> Optional[dict]:
         """
@@ -258,42 +274,55 @@ class Element:
         self,
         name: Optional[str] = "",
         data: Optional[str] = "",
-        elements: Optional[list] = [],
+        elements: Optional[list] = None,
         recursive: Optional[bool] = False,
+        get_modified_elements: Optional[bool] = False,
     ) -> list:
         """
-        Return the children of the element.
-
-        :param name: The name of the element to return.
-        :type name: str
-        :param data: The data of the element to return.
-        :type data: str
-        :return: The children of the element.
-        :rtype: list
-
+        Return the children of the element, optionally filtered by name, data,
+        and/or modification status. Aborts early if a modified element is found.
         """
+
+        if elements is None:
+            elements = []
 
         name = name.replace("-", "_")
 
-        if recursive:
-            for child in self.get_elements():
-                if name != "":
-                    if child._name == name:
-                        elements.append(child)
-                else:
-                    elements.append(child)
-
-                elements = child.get_elements(
-                    name=name, data=data, elements=elements, recursive=recursive
-                )
-        else:
-            if name != "":
+        if not recursive:
+            if name:
                 elements = [e for e in self._children if e._name == name]
             else:
-                elements = self._children
+                elements = list(self._children)
+
+            if data:
+                elements = [e for e in elements if e.get_data() == data]
+
+            if get_modified_elements:
+                elements = [e for e in elements if e._modified]
+
+            return elements
+
+        for child in self.get_elements():
+            if get_modified_elements and child._modified:
+                elements.append(child)
+                return elements
+
+            if name and child._name == name:
+                elements.append(child)
+
+            found = child.get_elements(
+                name=name,
+                data=data,
+                elements=elements,
+                recursive=recursive,
+                get_modified_elements=get_modified_elements,
+            )
+
+            if get_modified_elements and any(e._modified for e in found):
+                return elements
 
         if data:
-            return [e for e in elements if e.get_data() == data]
+            elements = [e for e in elements if e.get_data() == data]
 
         return elements
 
@@ -313,7 +342,7 @@ class Element:
                 attr_string += f' {key}="{value}"'
         return attr_string
 
-    def set_data(self, data: str) -> None:
+    def set_data(self, data: str, modified: Optional[bool] = True) -> None:
         """
         Set the data of the element.
 
@@ -324,6 +353,7 @@ class Element:
         """
 
         self.cdata = data
+        self._modified = modified
 
     def get_data(self, typecast: Optional[Any] = None) -> str:
         """
@@ -340,7 +370,7 @@ class Element:
 
         return self.cdata
 
-    def dumps(self) -> str:
+    def dumps(self, modified: Optional[bool] = False) -> str:
         """
 
         Return the XML string of the element and its children.
@@ -373,9 +403,12 @@ class Element:
             if child.get_elements() != [] or child.cdata != "":
                 xmlstr += f"</{name}>"
 
+                if child._modified and modified:
+                    xmlstr += " <!-- modified -->"
+
         return xmlstr
 
-    def dumps_pp(self) -> str:
+    def dumps_pp(self, modified: Optional[bool] = False) -> str:
         """
 
         Return a prettyprinted XML string.
@@ -384,9 +417,11 @@ class Element:
         :rtype: str
 
         """
-        in_str = self.dumps()
+        in_str = self.dumps(modified)
 
-        pattern = r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
+        pattern = (
+            r"<([a-zA-Z0-9\-\_]+)(\s[^>]*)?>.*?</\1>|<([a-zA-Z0-9\-\_]+)(\s[^>]*)?/>"
+        )
         matches = list(re.finditer(pattern, in_str, flags=re.DOTALL))
 
         if len(matches) > 1:
@@ -465,6 +500,32 @@ class Element:
             yield parent
             parent = parent._parent
 
+    def set_modified(self, modified: Optional[bool] = True) -> bool:
+        """
+        Set the element and its parents as modified.
+
+        :param modified: True or False.
+        :type modified: bool
+        :return: None
+        :rtype: None
+
+        """
+
+        self._modified = modified
+
+        return self._modified
+
+    def get_modified(self) -> bool:
+        """
+        Return True if the element or any of its children have been modified.
+
+        :return: True if the element or any of its children have been modified.
+        :rtype: bool
+
+        """
+
+        return self._modified
+
     def find(self, name: str) -> Optional[object]:
         """
         Return the first element with the name.
@@ -482,6 +543,17 @@ class Element:
             return found[0]
 
         return None
+
+    def find_modified(self) -> Optional[list]:
+        """
+        Return the first modified element.
+
+        :return: The first modified element.
+        :rtype: object
+
+        """
+
+        return self.get_elements(get_modified_elements=True, recursive=True)
 
     def findall(self, name: str) -> list:
         """
@@ -556,8 +628,6 @@ class Element:
 
     def __bool__(self) -> bool:
         return self._is_root or self._name is not None
-
-    __nonzero__ = __bool__
 
     def __eq__(self, val) -> bool:
         return self.cdata == val

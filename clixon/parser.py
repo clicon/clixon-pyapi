@@ -91,8 +91,7 @@ class Handler(handler.ContentHandler):
             return
 
         # Escape special characters
-        cdata = cdata.replace("&", "&amp;").replace(
-            ">", "&gt;").replace("<", "&lt;")
+        cdata = cdata.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
         self.elements[-1].cdata += cdata
         self.last_cdata = cdata
@@ -136,6 +135,8 @@ def parse_string(xmlstr: str):
     sax_handler = Handler()
     parser.setContentHandler(sax_handler)
     parser.parse(StringIO(xmlstr))
+
+    sax_handler.root.get_elements()[0]._modified = True
 
     return sax_handler.root
 
