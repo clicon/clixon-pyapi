@@ -574,9 +574,9 @@ class Clixon:
             # +       <host-name>crpd2</host-name>
             #       </system>
             diff = {}
+            key = None
 
             for line in data.split("\n"):
-                key = None
                 if line.endswith(":") and "<" not in line and ">" not in line:
                     key = line[:-1]
                 else:
