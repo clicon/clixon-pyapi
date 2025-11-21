@@ -1,5 +1,22 @@
 # Clixon Python API Changelog
 
+## 1.6.0
+21 November 2025
+
+### Features
+* Strip XML and don't do edit-config for devices where the configuration are unchanged.
+* Added dumps_pp to properly pretty-print XML strings.
+
+### Corrected bugs:
+* Fixed bug in show_devices_diff.
+* Corrected wrong type for argument socket.
+* Fixed run_hooks() to correctly expect a sock argument for socket reuse.
+* Prevented unnecessary socket-path checks when using an already connected socket.
+* Re-use existing sockets when running services to avoid redundant socket creation.
+* Fixed broken device_rpc method (compatibility with version 1.5.0).
+* Fixed get_log_factory override behavior for resetting log factories.
+* Fixed optional timestamp handling in get_log_factory.
+
 ## 1.4.0
 3 April 2025
 
