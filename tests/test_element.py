@@ -341,3 +341,31 @@ def test_element_delete_argument():
     assert not any(
         interface.name.get_data() == "lo0" for interface in root.xml.interface
     ), "lo0 element was not deleted"
+
+
+def test_element_replace():
+    """
+    Test the replacement of an element in an XML element object.
+    """
+
+    xmlstr = """<xml><a><name>This one should be replaced!</name></a><b><name>This one should still be there.</name></b></xml>"""
+    newstr = """<c><name>I am the new one!</name></c>"""
+
+    root = parse_string(xmlstr)
+    new = parse_string(newstr)
+
+    assert "<a>" in root.xml.dumps()
+    assert "<b>" in root.xml.dumps()
+    assert "<c>" not in root.xml.dumps()
+    assert "This one should be replaced!" in root.xml.dumps()
+    assert "This one should still be there." in root.xml.dumps()
+    assert "I am the new one!" not in root.xml.dumps()
+
+    root.xml.replace("a", new.c)
+
+    assert "<a>" not in root.xml.dumps()
+    assert "<b>" in root.xml.dumps()
+    assert "<c>" in root.xml.dumps()
+    assert "This one should be replaced!" not in root.xml.dumps()
+    assert "This one should still be there." in root.xml.dumps()
+    assert "I am the new one!" in root.xml.dumps()
