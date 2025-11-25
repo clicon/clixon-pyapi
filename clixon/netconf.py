@@ -101,8 +101,11 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "none"
     root.rpc.edit_config.create("config")
 
-    if root.rpc.edit_config.config.get_elements("devices") == []:
-        root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
+    for node in config.get_elements():
+        if node.get_name() == "devices":
+            continue
+
+        root.rpc.edit_config.config.add(node)
 
     for device in config.devices.device:
         if device.find_modified():
