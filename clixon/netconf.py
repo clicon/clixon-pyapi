@@ -96,7 +96,7 @@ def rpc_config_set(
     root.rpc.edit_config.create("target")
     root.rpc.edit_config.target.create(target, attributes=target_attributes)
     root.rpc.edit_config.create("default-operation")
-    root.rpc.edit_config.default_operation.cdata = "none"
+    root.rpc.edit_config.default_operation.cdata = "merge"
     root.rpc.edit_config.create("config")
 
     if root.rpc.edit_config.config.get_elements("devices") == []:
