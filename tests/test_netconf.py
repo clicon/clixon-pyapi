@@ -13,7 +13,7 @@ def test_rpc_config_set():
     Test the rpc_config_set function.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>none</default-operation><config><devices xmlns="http://clicon.org/controller"/></config></edit-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>merge</default-operation><config><devices xmlns="http://clicon.org/controller"/></config></edit-config></rpc>"""
 
     config = Element("config", {})
     config.create("devices").create("device").create("name", data="foo")
@@ -28,7 +28,7 @@ def test_rpc_config_set_user():
     """
 
     user = "nisse"
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>none</default-operation><config><devices xmlns="http://clicon.org/controller"/></config></edit-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>merge</default-operation><config><devices xmlns="http://clicon.org/controller"/></config></edit-config></rpc>"""
 
     config = Element("config", {})
     config.create("devices").create("device").create("name", data="foo")
