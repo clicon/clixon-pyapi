@@ -307,6 +307,8 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
         except AttributeError:
             if "SUCCESS" in xmlstr:
                 pass
+            elif "services-commit":
+                pass
             else:
                 logger.error(f"Unknown notification error: {xmlstr}")
     elif "error-message" in xmlstr:
