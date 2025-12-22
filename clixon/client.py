@@ -20,6 +20,7 @@ from clixon.modules import run_hooks
 from clixon.modules import run_modules
 from clixon.netconf import RPCTypes
 from clixon.netconf import rpc_header_get
+from clixon.netconf import rpc_hello
 from clixon.netconf import rpc_subscription_create
 from clixon.netconf import rpc_transactions_get
 from clixon.parser import parse_string
@@ -195,6 +196,33 @@ def services_commit_cb(*args, **kwargs) -> None:
     send(sock, rpc, pp)
 
 
+def hello(sock: socket, pp: bool) -> None:
+    """
+
+    Send hello message to the server
+
+    :param sock: Socket
+    :type sock: socket
+    :param pp: Pretty print
+    :type pp: bool
+    :return: None
+    :rtype: None
+
+    """
+
+    rpc = rpc_hello()
+    send(sock, rpc, pp)
+    data = read(sock, pp)
+
+    if (
+        """<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><session-id>"""
+        not in data
+    ):
+        raise ValueError("Did not receive valid hello from server")
+
+    return data
+
+
 def enable_service_notify(sock: socket, pp: bool) -> None:
     """
 
@@ -264,6 +292,9 @@ def readloop(sockpath: str, modules: list, pp: Optional[bool] = False) -> None:
             continue
 
         try:
+            # Send hello message
+            hello(sock, pp)
+
             logger.info("Enable service subscriptions")
             data = enable_service_notify(sock, pp)
 

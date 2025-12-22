@@ -1,5 +1,6 @@
 import getpass
 import sys
+
 from enum import Enum
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
@@ -20,6 +21,7 @@ class RPCTypes(Enum):
     TRANSACTION_ERROR = 4
     PUSH_COMMIT = 5
     PULL = 6
+    HELLO = 7
 
 
 CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
@@ -178,6 +180,25 @@ def rpc_pull(
     return rpc
 
 
+def rpc_hello(
+    user: Optional[str] = None,
+) -> Element:
+    """
+    Create a RPC hello element.
+
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    if not user:
+        user = getpass.getuser()
+
+    return rpc_header_get(RPCTypes.HELLO, user)
+
+
 def rpc_header_get(
     rpc_type: object,
     user: str,
@@ -210,11 +231,25 @@ def rpc_header_get(
         attributes["xmlns:cl"] = "http://clicon.org/lib"
 
     root = Element("root", {})
-    root.create("rpc", attributes=attributes)
+
+    if rpc_type != RPCTypes.HELLO:
+        root.create("rpc", attributes=attributes)
 
     # This could be a match/case but keeping if-statements
     # for Python backward compatibility.
-    if rpc_type == RPCTypes.GET_CONFIG:
+    if rpc_type == RPCTypes.HELLO:
+        root.create(
+            "hello",
+            attributes={
+                "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+                "cl:username": user,
+                "cl:transport": "ctrl:services",
+                "xmlns:cl": "http://clicon.org/lib",
+            },
+        ).create("capabilities").create("capability").set_data(
+            "urn:ietf:params:netconf:base:1.0"
+        )
+    elif rpc_type == RPCTypes.GET_CONFIG:
         root.rpc.create("get-config")
     elif rpc_type == RPCTypes.EDIT_CONFIG:
         root.rpc.create("edit-config")
