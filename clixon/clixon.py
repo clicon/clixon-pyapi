@@ -208,6 +208,32 @@ class Clixon:
 
         return self.__root
 
+    def get_root_filtered(self, xpath="/", namespaces=None):
+        """
+        Retrieve and parse a filtered subtree from the controller.
+
+        :param xpath: XPath expression to filter the config (default '/')
+        :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
+                          e.g. {"clixon-controller": "http://clicon.org/controller"}
+        :return: Root element of the filtered (sub)tree
+        """
+        # Build the filtered get-config RPC
+        config = rpc_config_get(
+            user=self.__user, source=self.__source, xpath=xpath, namespaces=namespaces
+        )
+
+        # Send the RPC and read the response
+        send(self.__socket, config, pp)
+        data = read(self.__socket, pp)
+
+        # Handle errors in the response, if any
+        self.__handle_errors(data)
+
+        # Parse XML, get the subtree (e.g. <services>)
+        self.__root = parse_string(data).rpc_reply.data
+
+        return self.__root
+
     def __wait_for_notification(self, return_data: Optional[bool] = False) -> None:
         """
         Wait for the pull/push notification.
