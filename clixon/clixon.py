@@ -6,7 +6,7 @@ from typing import Optional
 
 from clixon.args import get_arg, get_logger
 from clixon.exceptions import TransactionError
-from clixon.helpers import timeout
+from clixon.helpers import get_path, timeout
 from clixon.netconf import (
     rpc_apply_template,
     rpc_apply_service,
@@ -178,11 +178,18 @@ class Clixon:
         if self.__push:
             self.push()
 
-    def get_root(self) -> object:
+    def get_root(self, path: Optional[str] = None) -> object:
         """
-        Return the root object.
+        Return the root object or a specific element at the given path.
 
-        :return: Root object
+        Examples:
+            root = clixon.get_root()  # Returns entire root
+            device = clixon.get_root("devices/device[0]")  # Returns first device
+            config = clixon.get_root("devices/device[name='r1']/config")  # Returns config for device 'r1'
+
+        :param path: Optional path to a specific element (e.g., "devices/device[0]"). If None, returns entire root.
+        :type path: Optional[str]
+        :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
         """
@@ -195,6 +202,9 @@ class Clixon:
 
         self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
+
+        if path:
+            return get_path(self.__root, path)
 
         return self.__root
 
