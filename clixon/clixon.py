@@ -210,8 +210,9 @@ class Clixon:
         self.__handle_errors(data)
         parsed = parse_string(data).rpc_reply.data
 
-        # When path is provided, we still use get_path for client-side navigation
-        # because the backend may return a partial tree that needs to be navigated
+        # When path is provided, we still need to use get_path() for client-side navigation
+        # because the XPath filter may return a subtree containing the requested element
+        # within a <data> wrapper, and we need to navigate to the exact element requested
         if path:
             return get_path(parsed, path)
         

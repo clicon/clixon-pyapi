@@ -253,7 +253,7 @@ def path_to_xpath(path: str) -> str:
         path_to_xpath("devices/device[name='r1']/config") -> "/devices/device[name='r1']/config"
         path_to_xpath("services/bgp-peer[name='bgp-test']") -> "/services/bgp-peer[name='bgp-test']"
 
-    :param path: Simplified path
+    :param path: Simplified path (can be None or empty string, which returns "/")
     :type path: str
     :return: XPath expression
     :rtype: str
@@ -276,9 +276,6 @@ def path_to_xpath(path: str) -> str:
         return f"[{index + 1}]"
     
     path = re.sub(r'\[(\d+)\]', convert_index, path)
-    
-    # Replace underscores back to hyphens in element names (but not in values)
-    # This is more complex, so we'll keep the path as-is since XPath should work with hyphens
     
     return path
 
