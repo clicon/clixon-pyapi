@@ -33,7 +33,7 @@ BASE_ATTRIBUTES = {
 
 
 def rpc_config_get(
-    user: Optional[str] = None, source: Optional[str] = "actions"
+    user: Optional[str] = None, source: Optional[str] = "actions", xpath: Optional[str] = "/"
 ) -> Element:
     """
     Create a get-config RPC element.
@@ -42,12 +42,14 @@ def rpc_config_get(
     :type user: str
     :param source: Source of the configuration
     :type source: str
+    :param xpath: XPath filter expression (default: "/")
+    :type xpath: str
     :return: RPC element
     :rtype: Element
 
     """
     attributes = {}
-    xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
+    xpath_attributes = {"nc:type": "xpath", "nc:select": xpath}
 
     if not user:
         user = getpass.getuser()

@@ -244,6 +244,45 @@ def is_juniper(device: Element) -> bool:
     return False
 
 
+def path_to_xpath(path: str) -> str:
+    """
+    Converts a simplified path format to XPath expression.
+
+    Examples:
+        path_to_xpath("devices/device[0]") -> "/devices/device[1]"
+        path_to_xpath("devices/device[name='r1']/config") -> "/devices/device[name='r1']/config"
+        path_to_xpath("services/bgp-peer[name='bgp-test']") -> "/services/bgp-peer[name='bgp-test']"
+
+    :param path: Simplified path
+    :type path: str
+    :return: XPath expression
+    :rtype: str
+    """
+    if not path:
+        return "/"
+    
+    # Ensure path starts with /
+    if not path.startswith("/"):
+        path = "/" + path
+    
+    # Replace any [key="value"] with [key='value']
+    path = re.sub(r'(\[.*?)"(.*?)"', r"\1'\2'", path)
+    
+    # Convert numeric indices to XPath format (0-based to 1-based)
+    # Match [digit] patterns and increment them
+    def convert_index(match):
+        index = int(match.group(1))
+        # XPath uses 1-based indexing
+        return f"[{index + 1}]"
+    
+    path = re.sub(r'\[(\d+)\]', convert_index, path)
+    
+    # Replace underscores back to hyphens in element names (but not in values)
+    # This is more complex, so we'll keep the path as-is since XPath should work with hyphens
+    
+    return path
+
+
 def get_path(root: Element, path: str) -> Optional[Element]:
     """
     Returns the element at the path. Poor mans xpath.
