@@ -125,9 +125,25 @@ def run_modules(
                     continue
 
             try:
+                # Check if module have a MODULE_PATH attribute
+                if hasattr(module, "MODULE_PATH"):
+                    # Verify that MODULE_PATH is a string
+                    if not isinstance(module.MODULE_PATH, str):
+                        logger.error(
+                            f"Module {module} has invalid MODULE_PATH: {module.MODULE_PATH}"
+                        )
+                        raise ModuleError(
+                            f"Module {module} has invalid MODULE_PATH: {module.MODULE_PATH}"
+                        )
+
+                    module_path = module.MODULE_PATH
+                    logger.debug(f"Module {module} has MODULE_PATH: {module_path}")
+                else:
+                    module_path = "/"
+
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
-                root = cd.get_root()
+                root = cd.get_root(xpath=module_path)
                 module.setup(root, logger, instance=instance, diff=service_diff)
             except Exception as e:
                 logger.error(f"Module {module} failed with exception: {e}")
