@@ -61,6 +61,30 @@ def test_rpc_config_get_user():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_config_get_xpath():
+    """
+    Test the rpc_config_get function with custom xpath.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/devices/device[1]"/></get-config></rpc>"""
+
+    root = netconf.rpc_config_get(xpath="/devices/device[1]")
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_xpath_user():
+    """
+    Test the rpc_config_get function with custom xpath and user.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/devices/device[name='test']"/></get-config></rpc>"""
+
+    root = netconf.rpc_config_get(user="nisse", xpath="/devices/device[name='test']")
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_commit():
     """
     Test the rpc_commit function.

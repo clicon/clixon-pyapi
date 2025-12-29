@@ -195,17 +195,28 @@ class Clixon:
         """
         logger.debug("Updating root object")
 
-        config = rpc_config_get(user=self.__user, source=self.__source)
+        # If path is provided, convert it to XPath and use it in the RPC call
+        # This reduces the amount of data transferred from the backend
+        if path:
+            from clixon.helpers import path_to_xpath
+            xpath = path_to_xpath(path)
+            config = rpc_config_get(user=self.__user, source=self.__source, xpath=xpath)
+        else:
+            config = rpc_config_get(user=self.__user, source=self.__source)
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
-        self.__root = parse_string(data).rpc_reply.data
+        parsed = parse_string(data).rpc_reply.data
 
+        # When path is provided, we still need to use get_path() for client-side navigation
+        # because the XPath filter may return a subtree containing the requested element
+        # within a <data> wrapper, and we need to navigate to the exact element requested
         if path:
-            return get_path(self.__root, path)
-
+            return get_path(parsed, path)
+        
+        self.__root = parsed
         return self.__root
 
     def __wait_for_notification(self, return_data: Optional[bool] = False) -> None:
