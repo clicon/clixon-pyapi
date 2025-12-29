@@ -187,9 +187,9 @@ class Clixon:
             device = clixon.get_root("devices/device[0]")  # Returns first device
             config = clixon.get_root("devices/device[name='r1']/config")  # Returns config for device 'r1'
 
-        :param path: Optional path to a specific element (e.g., "devices/device[0]")
-        :type path: str
-        :return: Root object or element at path
+        :param path: Optional path to a specific element (e.g., "devices/device[0]"). If None, returns entire root.
+        :type path: Optional[str]
+        :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
         """
