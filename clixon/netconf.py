@@ -25,6 +25,11 @@ class RPCTypes(Enum):
 
 
 CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
+CONTROLLER_NS_PREFIX = "clixon-controller"
+CONTROLLER_NS_URI = "http://clicon.org/controller"
+# Top-level elements in clixon-controller namespace
+CONTROLLER_ELEMENTS = ["services", "devices"]
+
 BASE_ATTRIBUTES = {
     "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
     "message-id": "42",
@@ -33,21 +38,44 @@ BASE_ATTRIBUTES = {
 
 
 def rpc_config_get(
-    user: Optional[str] = None, source: Optional[str] = "actions"
-) -> Element:
+    user: Optional[str] = None,
+    source: Optional[str] = "actions",
+    xpath: Optional[str] = "/",
+    namespaces: Optional[dict] = None,
+):
     """
-    Create a get-config RPC element.
+    Create a get-config RPC element with optional xpath filter.
 
-    :param user: User name
-    :type user: str
-    :param source: Source of the configuration
-    :type source: str
-    :return: RPC element
-    :rtype: Element
-
+    :param user: Username (optional)
+    :param source: Source of config ('actions' by default)
+    :param xpath: XPath string to filter config (default '/')
+    :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
+    :return: RPC element for NETCONF get-config
     """
     attributes = {}
-    xpath_attributes = {"nc:type": "xpath", "nc:select": "/"}
+
+    # Auto-prepend clixon-controller namespace for known top-level elements
+    for elem in CONTROLLER_ELEMENTS:
+        # Match /services or /services/... but not /clixon-controller:services
+        if xpath.startswith(f"/{elem}") and not xpath.startswith(
+            f"/{CONTROLLER_NS_PREFIX}:"
+        ):
+            xpath = xpath.replace(f"/{elem}", f"/{CONTROLLER_NS_PREFIX}:{elem}", 1)
+            break
+
+    xpath_attributes = {"nc:type": "xpath", "nc:select": xpath}
+
+    # Default namespaces for xpath - always include clixon-controller
+    default_namespaces = {
+        CONTROLLER_NS_PREFIX: CONTROLLER_NS_URI,
+    }
+
+    # Merge default namespaces with user-provided ones (user takes precedence)
+    all_namespaces = {**default_namespaces, **(namespaces or {})}
+
+    # Add namespace declarations for xpath prefixes
+    for prefix, uri in all_namespaces.items():
+        xpath_attributes[f"xmlns:{prefix}"] = uri
 
     if not user:
         user = getpass.getuser()

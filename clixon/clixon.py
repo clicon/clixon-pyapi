@@ -178,24 +178,37 @@ class Clixon:
         if self.__push:
             self.push()
 
-    def get_root(self, path: Optional[str] = None) -> object:
+    def get_root(
+        self,
+        path: Optional[str] = None,
+        xpath: Optional[str] = "/",
+        namespaces: Optional[dict] = None,
+    ) -> object:
         """
-        Return the root object or a specific element at the given path.
+        Return the root object or a specific element, with optional server-side filtering.
 
         Examples:
             root = clixon.get_root()  # Returns entire root
-            device = clixon.get_root("devices/device[0]")  # Returns first device
-            config = clixon.get_root("devices/device[name='r1']/config")  # Returns config for device 'r1'
+            device = clixon.get_root(path="devices/device[0]")  # Returns first device (client-side navigation)
+            config = clixon.get_root(path="devices/device[name='r1']/config")  # Returns config for device 'r1'
+            services = clixon.get_root(xpath="/services")  # Returns only services subtree (server-side filter)
+            l2c = clixon.get_root(xpath="/services/l2c:l2c", namespaces={"l2c": "http://example.com/l2c"})  # Filtered with namespace
 
-        :param path: Optional path to a specific element (e.g., "devices/device[0]"). If None, returns entire root.
+        :param path: Optional path to a specific element (e.g., "devices/device[0]"). Applied client-side after retrieval.
         :type path: Optional[str]
+        :param xpath: XPath expression to filter the config server-side (default '/')
+        :type xpath: Optional[str]
+        :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
+        :type namespaces: Optional[dict]
         :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
         """
         logger.debug("Updating root object")
 
-        config = rpc_config_get(user=self.__user, source=self.__source)
+        config = rpc_config_get(
+            user=self.__user, source=self.__source, xpath=xpath, namespaces=namespaces
+        )
 
         send(self.__socket, config, pp)
         data = read(self.__socket, pp)

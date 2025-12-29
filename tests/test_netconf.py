@@ -42,7 +42,7 @@ def test_rpc_config_get():
     Test the rpc_config_get function.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get()
 
@@ -54,7 +54,7 @@ def test_rpc_config_get_user():
     Test the rpc_config_get function with user.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get(user="nisse")
 
@@ -456,3 +456,58 @@ def test_rpc_devices_get():
     xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="all" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="co:devices/co:device/co:name | co:devices/co:device/co:conn-state | co:devices/co:device/co:conn-state-timestamp | co:devices/co:device/co:logmsg" xmlns:co="http://clicon.org/controller"/><with-defaults xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults">explicit</with-defaults></get></rpc>"""
 
     assert netconf.rpc_devices_get().dumps() == xmlstr0
+
+
+def test_rpc_config_get_with_xpath():
+    """
+    Test the rpc_config_get function with custom xpath.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+
+    root = netconf.rpc_config_get(xpath="/services")
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_with_xpath_and_namespaces():
+    """
+    Test the rpc_config_get function with custom xpath and namespaces.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services/l2c:l2c" xmlns:clixon-controller="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c"/></get-config></rpc>"""
+
+    namespaces = {"l2c": "http://example.com/l2c"}
+    root = netconf.rpc_config_get(xpath="/services/l2c:l2c", namespaces=namespaces)
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_with_xpath_different_source():
+    """
+    Test the rpc_config_get function with xpath and different source.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><candidate/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:devices" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+
+    root = netconf.rpc_config_get(source="candidate", xpath="/devices")
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_with_multiple_namespaces():
+    """
+    Test the rpc_config_get function with multiple custom namespaces.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services/l2c:l2c[l2c:service-name=\'test\']" xmlns:clixon-controller="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c" xmlns:custom="http://example.com/custom"/></get-config></rpc>"""
+
+    namespaces = {
+        "l2c": "http://example.com/l2c",
+        "custom": "http://example.com/custom",
+    }
+    root = netconf.rpc_config_get(
+        xpath="/services/l2c:l2c[l2c:service-name='test']", namespaces=namespaces
+    )
+
+    assert root.dumps() == xmlstr
