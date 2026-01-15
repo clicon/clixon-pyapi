@@ -407,7 +407,7 @@ class Clixon:
         devname: str,
         template: Optional[str] = "",
         variables: Optional[dict] = {},
-        inline: Optional[str] = "",
+        inline: Optional[bool] = False,
     ) -> list | object:
         """
         Apply a RPC template.
@@ -423,12 +423,9 @@ class Clixon:
         :rtype: None
         """
 
-        if inline:
-            rpc = rpc_apply_template(
-                devname, template, variables, user=self.__user, inline=True
-            )
-        else:
-            rpc = rpc_apply_template(devname, template, variables, user=self.__user)
+        rpc = rpc_apply_template(
+            devname, template, variables, user=self.__user, inline=inline
+        )
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
@@ -437,12 +434,19 @@ class Clixon:
 
         data = self.__wait_for_notification(return_data=True)
 
-        rpc_reply = parse_string(data)
+        transaction = parse_string(data)
 
         try:
-            return rpc_reply.notification.controller_transaction.devices.devdata
+            if transaction.notification.controller_transaction.result != "SUCCESS":
+                raise ValueError("Device RPC failed")
+
+            tid = transaction.notification.controller_transaction.tid.get_data()
+            data = self.show_transactions(tid=tid)
+
+            return parse_string(data).rpc_reply.data.transactions.transaction.devices
+
         except AttributeError:
-            raise ValueError("No devdata in rpc-reply for device_rpc")
+            raise ValueError("Device RPC failed")
 
     def apply_template(
         self,
@@ -691,7 +695,7 @@ class Clixon:
 
         """
 
-        logger.info(f"Rollback, discard_changes")
+        logger.info("Rollback, discard_changes")
 
         rpc = rpc_discard_changes(user=self.__user)
         send(self.__socket, rpc, pp)
@@ -701,8 +705,6 @@ class Clixon:
 
     def show_transactions(self, tid: Optional[int] = None) -> str:
         rpc = rpc_transactions_get(tid=tid, user=self.__user)
-
-        # print(rpc.dumps())
 
         send(self.__socket, rpc, pp)
 
