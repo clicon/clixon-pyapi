@@ -557,7 +557,7 @@ class Clixon:
 
         return data
 
-    def show_devices_diff(self, dict_format: Optional[bool] = False) -> str:
+    def show_devices_diff(self, device: Optional[str] = "*", dict_format: Optional[bool] = False) -> str:
         """
         Show the devices diff.
 
@@ -566,9 +566,9 @@ class Clixon:
 
         """
 
-        self.pull(transient=True)
+        self.pull(device=device, transient=True)
 
-        rpc_show_devices_diff = rpc_datastore_diff(transient=True, user=self.__user)
+        rpc_show_devices_diff = rpc_datastore_diff(device=device, transient=True, user=self.__user)
 
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)

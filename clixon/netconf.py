@@ -497,6 +497,7 @@ def rpc_apply_service(
 
 
 def rpc_datastore_diff(
+    device: Optional[str] = "*",
     compare: Optional[bool] = False,
     transient: Optional[bool] = False,
     user: Optional[str] = None,
@@ -530,7 +531,7 @@ def rpc_datastore_diff(
             config_type1 = "RUNNING"
             config_type2 = "ACTIONS"
 
-        root.rpc.datastore_diff.create("device", data="*")
+        root.rpc.datastore_diff.create("device", data=device)
         root.rpc.datastore_diff.create("config-type1", data=config_type1)
         root.rpc.datastore_diff.create("config-type2", data=config_type2)
 
