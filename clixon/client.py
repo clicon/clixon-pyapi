@@ -71,6 +71,9 @@ def controller_transaction_cb(*args, **kwargs) -> None:
     tid = str(notification.notification.controller_transaction.tid)
     result = str(notification.notification.controller_transaction.result)
 
+    if "SUCCESS" in data:
+        return
+
     if tid not in transactions:
         return
 
