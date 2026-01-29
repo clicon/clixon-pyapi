@@ -180,22 +180,15 @@ class Clixon:
 
     def get_root(
         self,
-        path: Optional[str] = None,
         xpath: Optional[str] = "/",
-        namespaces: Optional[dict] = None,
+        namespaces: Optional[str] = None,
     ) -> object:
         """
         Return the root object or a specific element, with optional server-side filtering.
 
         Examples:
             root = clixon.get_root()  # Returns entire root
-            device = clixon.get_root(path="devices/device[0]")  # Returns first device (client-side navigation)
-            config = clixon.get_root(path="devices/device[name='r1']/config")  # Returns config for device 'r1'
-            services = clixon.get_root(xpath="/services")  # Returns only services subtree (server-side filter)
-            l2c = clixon.get_root(xpath="/services/l2c:l2c", namespaces={"l2c": "http://example.com/l2c"})  # Filtered with namespace
-
-        :param path: Optional path to a specific element (e.g., "devices/device[0]"). Applied client-side after retrieval.
-        :type path: Optional[str]
+            device = clixon.get_root(xpath="devices/device[0]")  # Returns first device (client-side navigation)
         :param xpath: XPath expression to filter the config server-side (default '/')
         :type xpath: Optional[str]
         :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
@@ -215,9 +208,6 @@ class Clixon:
 
         self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
-
-        if path:
-            return get_path(self.__root, path)
 
         return self.__root
 
@@ -557,7 +547,9 @@ class Clixon:
 
         return data
 
-    def show_devices_diff(self, device: Optional[str] = "*", dict_format: Optional[bool] = False) -> str:
+    def show_devices_diff(
+        self, device: Optional[str] = "*", dict_format: Optional[bool] = False
+    ) -> str:
         """
         Show the devices diff.
 
@@ -568,7 +560,9 @@ class Clixon:
 
         self.pull(device=device, transient=True)
 
-        rpc_show_devices_diff = rpc_datastore_diff(device=device, transient=True, user=self.__user)
+        rpc_show_devices_diff = rpc_datastore_diff(
+            device=device, transient=True, user=self.__user
+        )
 
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)

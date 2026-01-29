@@ -41,7 +41,7 @@ def rpc_config_get(
     user: Optional[str] = None,
     source: Optional[str] = "actions",
     xpath: Optional[str] = "/",
-    namespaces: Optional[dict] = None,
+    namespaces: Optional[str] = "",
 ):
     """
     Create a get-config RPC element with optional xpath filter.
@@ -52,30 +52,17 @@ def rpc_config_get(
     :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
     :return: RPC element for NETCONF get-config
     """
+
     attributes = {}
-
-    # Auto-prepend clixon-controller namespace for known top-level elements
-    for elem in CONTROLLER_ELEMENTS:
-        # Match /services or /services/... but not /clixon-controller:services
-        if xpath.startswith(f"/{elem}") and not xpath.startswith(
-            f"/{CONTROLLER_NS_PREFIX}:"
-        ):
-            xpath = xpath.replace(f"/{elem}", f"/{CONTROLLER_NS_PREFIX}:{elem}", 1)
-            break
-
     xpath_attributes = {"nc:type": "xpath", "nc:select": xpath}
 
-    # Default namespaces for xpath - always include clixon-controller
-    default_namespaces = {
-        CONTROLLER_NS_PREFIX: CONTROLLER_NS_URI,
-    }
+    if namespaces:
+        for ns in namespaces.split(" "):
+            if ns == "" or not ns:
+                continue
 
-    # Merge default namespaces with user-provided ones (user takes precedence)
-    all_namespaces = {**default_namespaces, **(namespaces or {})}
-
-    # Add namespace declarations for xpath prefixes
-    for prefix, uri in all_namespaces.items():
-        xpath_attributes[f"xmlns:{prefix}"] = uri
+            prefix, namespace = ns.split("=")
+            xpath_attributes[prefix] = namespace.replace('"', "")
 
     if not user:
         user = getpass.getuser()
