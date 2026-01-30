@@ -50,7 +50,26 @@ def run_hooks(
 
             try:
                 logger.info(f"Running hooks for module {module}")
+
                 root = cd.get_root()
+
+                # Get the SERVICE_PATH
+                get_root_xpath = None
+                get_root_namespaces = None
+
+                if hasattr(module, "SERVICE_XPATH") and hasattr(
+                    module, "SERVICE_NAMESPACES"
+                ):
+                    get_root_xpath = module.SERVICE_XPATH
+                    get_root_namespaces = module.SERVICE_NAMESPACES
+
+                if get_root_xpath and get_root_namespaces:
+                    root = cd.get_root(
+                        xpath=get_root_xpath, namespaces=get_root_namespaces
+                    )
+                else:
+                    root = cd.get_root()
+
                 match result:
                     case "pre-commit":
                         logger.debug(f"Running pre-commit hook for module {module}")
