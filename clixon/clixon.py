@@ -240,6 +240,8 @@ class Clixon:
             while True:
                 logger.debug(f"Waiting for notification {idx} of 5")
 
+                self.__handle_errors(data)
+
                 if "notification" in data and "SUCCESS" in data:
                     self.__handle_errors(data)
 
