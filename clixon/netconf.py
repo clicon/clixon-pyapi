@@ -366,7 +366,7 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
             if standalone:
                 logger.error(f"Error in notification: {message}")
 
-            logger.error(message)
+            raise RPCError(message)
         except AttributeError:
             if "SUCCESS" in xmlstr:
                 pass
