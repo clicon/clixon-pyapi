@@ -1,5 +1,18 @@
 # Clixon Python API Changelog
 
+## 1.7.0
+21 February 2026
+
+### Features
+* Now possible to filter which configuration should be fetched by using get_root.
+
+### Corrected bugs:
+* Bugfix, create the devices node if missing in the configuration tree. Also debug information.
+* default_operation for edit config should be merge not none.
+* Bugfix: Don't treat services-commit notificaitons as errors.
+* NETCONF sessions should start with a hello message.
+* Bug: device_rpc() didn't work.
+
 ## 1.6.0
 21 November 2025
 
