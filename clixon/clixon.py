@@ -23,6 +23,7 @@ from clixon.netconf import (
     rpc_unlock,
     rpc_transactions_get,
     rpc_devices_get,
+    rpc_device_rpc_result,
     rpc_discard_changes,
 )
 from clixon.parser import parse_string
@@ -443,9 +444,11 @@ class Clixon:
                 raise ValueError("Device RPC failed")
 
             tid = transaction.notification.controller_transaction.tid.get_data()
-            data = self.show_transactions(tid=tid)
+            rpc = rpc_device_rpc_result(tid=tid, user=self.__user)
+            send(self.__socket, rpc, pp)
+            data = read(self.__socket, pp)
 
-            return parse_string(data).rpc_reply.data.transactions.transaction.devices
+            return parse_string(data).rpc_reply.devices
 
         except AttributeError:
             raise ValueError("Device RPC failed")

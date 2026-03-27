@@ -692,6 +692,24 @@ def rpc_transactions_get(
     return root
 
 
+def rpc_device_rpc_result(tid: int, user: Optional[str] = None) -> Element:
+    """
+    Collect result from a device-rpc and remove data from backend when collected.
+    """
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
+    root = Element()
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
+    root.rpc.create("device-rpc-result", attributes=CONTROLLER_NS)
+    root.rpc.device_rpc_result.create("tid", data=str(tid))
+
+    return root
+
+
 def rpc_devices_get(user: Optional[str] = None) -> Element:
     """
     Get device names, connection states, timestamps, and log messages.
