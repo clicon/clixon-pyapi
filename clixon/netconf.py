@@ -616,6 +616,39 @@ def rpc_discard_changes(user: Optional[str] = None) -> Element:
     return root
 
 
+def rpc_close_session(user: Optional[str] = None) -> Element:
+    """
+    Create a RPC close-session element.
+
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+    #  Example:
+    #  <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+    #  cl:username="snc" xmlns:cl="http://clicon.org/lib" message-id="42"><close-session/></rpc>
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": None,
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
+    }
+
+    if not user:
+        attributes["cl:username"] = getpass.getuser()
+    else:
+        attributes["cl:username"] = user
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("close-session")
+
+    return root
+
+
 def rpc_connection_open(
     device: Optional[str] = "*", user: Optional[str] = None
 ) -> Element:

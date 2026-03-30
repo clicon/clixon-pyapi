@@ -10,6 +10,7 @@ from clixon.helpers import get_path, timeout
 from clixon.netconf import (
     rpc_apply_template,
     rpc_apply_service,
+    rpc_close_session,
     rpc_commit,
     rpc_config_get,
     rpc_config_set,
@@ -136,6 +137,7 @@ class Clixon:
         """
         if self.__read_only:
             logger.info("Read only mode enabled")
+            self.close_session()
             return
 
         try:
@@ -155,6 +157,11 @@ class Clixon:
         except Exception as e:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
+        finally:
+            try:
+                self.close_session()
+            except Exception as e:
+                logger.error(f"Failed to send close-session: {e}")
 
     def commit(self) -> None:
         """
@@ -178,6 +185,19 @@ class Clixon:
 
         if self.__push:
             self.push()
+
+    def close_session(self) -> None:
+        """
+        Send a close-session RPC to gracefully terminate the NETCONF session.
+
+        :return: None
+        :rtype: None
+
+        """
+
+        close = rpc_close_session(user=self.__user)
+        send(self.__socket, close, pp)
+        read(self.__socket, pp)
 
     def get_root(
         self,
