@@ -51,6 +51,7 @@ class Clixon:
         user: Optional[str] = None,
         standalone: Optional[bool] = False,
         timeout: Optional[int] = 30,
+        from_server: Optional[bool] = False,
     ) -> None:
         """
         Create a Clixon object.
@@ -113,6 +114,8 @@ class Clixon:
             self.__standalone = True
             self.__target = "candidate"
 
+        self.__from_server = from_server
+
     def __enter__(self) -> object:
         """
         Return the root object.
@@ -139,9 +142,6 @@ class Clixon:
         """
         if self.__read_only:
             logger.info("Read only mode enabled")
-            if self.__server_socket:
-                self.close_session()
-            return
 
         try:
             if self.__root is None:
@@ -161,7 +161,7 @@ class Clixon:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
         finally:
-            if self.__server_socket:
+            if not self.__from_server:
                 try:
                     self.close_session()
                 except Exception as e:
@@ -201,7 +201,21 @@ class Clixon:
 
         close = rpc_close_session(user=self.__user)
         send(self.__socket, close, pp)
+<<<<<<< HEAD
         read(self.__socket, pp)
+=======
+
+        # After sending close-session, the server should close the connection.
+        # We attempt to read to confirm this, expecting an error or no data.
+        try:
+            read(self.__socket, pp)
+        except Exception:
+            pass
+        else:
+            logger.warning(
+                "Expected an error when reading after close-session, but got data"
+            )
+>>>>>>> a5091ec (Only close the session if we're NOT running from the server.)
 
     def get_root(
         self,
@@ -586,7 +600,9 @@ class Clixon:
 
         return data
 
-    def show_devices_diff(self, device: Optional[str] = "*", dict_format: Optional[bool] = False) -> str:
+    def show_devices_diff(
+        self, device: Optional[str] = "*", dict_format: Optional[bool] = False
+    ) -> str:
         """
         Show the devices diff.
 
@@ -597,7 +613,9 @@ class Clixon:
 
         self.pull(device=device, transient=True)
 
-        rpc_show_devices_diff = rpc_datastore_diff(device=device, transient=True, user=self.__user)
+        rpc_show_devices_diff = rpc_datastore_diff(
+            device=device, transient=True, user=self.__user
+        )
 
         send(self.__socket, rpc_show_devices_diff, pp)
         data = read(self.__socket, pp, standalone=self.__standalone)

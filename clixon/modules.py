@@ -41,7 +41,7 @@ def run_hooks(
         logger.info("No hooks found.")
         return
 
-    with Clixon(socket=socket, user=user) as cd:
+    with Clixon(socket=socket, user=user, from_server=True) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
@@ -136,7 +136,7 @@ def run_modules(
         logger.info("No modules found.")
         return
 
-    with Clixon(socket=socket, user=user) as cd:
+    with Clixon(socket=socket, user=user, from_server=True) as cd:
         for module in modules:
             if service_name:
                 if module.SERVICE != service_name:
