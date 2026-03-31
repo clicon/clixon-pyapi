@@ -92,8 +92,10 @@ class Clixon:
 
         if not socket:
             self.__socket = create_socket(sockpath)
+            self.__server_socket = False
         else:
             self.__socket = socket
+            self.__server_socket = True
 
         self.__source = source
         self.__target = target
@@ -137,7 +139,8 @@ class Clixon:
         """
         if self.__read_only:
             logger.info("Read only mode enabled")
-            self.close_session()
+            if self.__server_socket:
+                self.close_session()
             return
 
         try:
@@ -158,10 +161,11 @@ class Clixon:
             logger.error(f"Got exception from Clixon.__exit__: {e}")
             raise Exception(f"{e}")
         finally:
-            try:
-                self.close_session()
-            except Exception as e:
-                logger.error(f"Failed to send close-session: {e}")
+            if self.__server_socket:
+                try:
+                    self.close_session()
+                except Exception as e:
+                    logger.error(f"Failed to send close-session: {e}")
 
     def commit(self) -> None:
         """
