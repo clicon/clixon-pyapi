@@ -201,9 +201,6 @@ class Clixon:
 
         close = rpc_close_session(user=self.__user)
         send(self.__socket, close, pp)
-<<<<<<< HEAD
-        read(self.__socket, pp)
-=======
 
         # After sending close-session, the server should close the connection.
         # We attempt to read to confirm this, expecting an error or no data.
@@ -215,7 +212,6 @@ class Clixon:
             logger.warning(
                 "Expected an error when reading after close-session, but got data"
             )
->>>>>>> a5091ec (Only close the session if we're NOT running from the server.)
 
     def get_root(
         self,
