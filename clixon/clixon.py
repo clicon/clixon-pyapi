@@ -206,14 +206,10 @@ class Clixon:
 
         # After sending close-session, the server should close the connection.
         # We attempt to read to confirm this, expecting an error or no data.
-        try:
-            read(self.__socket, pp)
-        except Exception:
-            pass
-        else:
-            logger.warning(
-                "Expected an error when reading after close-session, but got data"
-            )
+        data = read(self.__socket, pp)
+
+        if "<ok/>" not in data:
+            raise ValueError("Unexpected response after close-session")
 
     def get_root(
         self,
