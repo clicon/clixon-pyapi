@@ -129,10 +129,6 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "merge"
     root.rpc.edit_config.create("config")
 
-    if root.rpc.edit_config.config.get_elements("devices") == []:
-        root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
-        logger.debug("Created configuration node devices.")
-
     for node in config.get_elements():
         if node.get_name() == "devices":
             continue
@@ -140,14 +136,21 @@ def rpc_config_set(
         root.rpc.edit_config.config.add(node)
         logger.debug(f"Added node {node.get_name()} to configuration.")
 
-    for device in config.devices.device:
-        if device.find_modified():
-            logger.debug(
-                f"Modifications found on device {device.name.get_data()}, added to configuration."
-            )
-            root.rpc.edit_config.config.devices.add(device)
-        else:
-            logger.debug(f"No modifications found on device {device.name.get_data()}")
+    if config.get_elements("devices"):
+        if root.rpc.edit_config.config.get_elements("devices") == []:
+            root.rpc.edit_config.config.create("devices", attributes=CONTROLLER_NS)
+            logger.debug("Created configuration node devices.")
+
+        for device in config.devices.device:
+            if device.find_modified():
+                logger.debug(
+                    f"Modifications found on device {device.name.get_data()}, added to configuration."
+                )
+                root.rpc.edit_config.config.devices.add(device)
+            else:
+                logger.debug(
+                    f"No modifications found on device {device.name.get_data()}"
+                )
 
     return root
 

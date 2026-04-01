@@ -511,3 +511,34 @@ def test_rpc_config_get_with_multiple_namespaces():
     )
 
     assert root.dumps() == xmlstr
+
+
+def test_rpc_config_set_without_devices():
+    """
+    Test the rpc_config_set function without devices in config.
+    Verifies no crash when config has no devices node (e.g. xpath="/services").
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>merge</default-operation><config><services><service-name>test</service-name></services></config></edit-config></rpc>"""
+
+    config = Element("config", {})
+    config.create("services").create("service-name", data="test")
+    root = netconf.rpc_config_set(config)
+
+    assert root.dumps() == xmlstr
+
+
+def test_rpc_config_set_with_services_and_devices():
+    """
+    Test the rpc_config_set function with both services and devices.
+    Verifies services are included and devices block is handled correctly.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" xmlns:cl="http://clicon.org/lib"><edit-config><target><actions xmlns="http://clicon.org/controller"/></target><default-operation>merge</default-operation><config><services><service-name>test</service-name></services><devices xmlns="http://clicon.org/controller"/></config></edit-config></rpc>"""
+
+    config = Element("config", {})
+    config.create("services").create("service-name", data="test")
+    config.create("devices").create("device").create("name", data="foo")
+    root = netconf.rpc_config_set(config)
+
+    assert root.dumps() == xmlstr

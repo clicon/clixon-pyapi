@@ -141,31 +141,33 @@ class Clixon:
 
         """
         if self.__read_only:
-            logger.info("Read only mode enabled")
+            logger.info("Read only mode enabled, skipping config set")
+        else:
+            try:
+                if self.__root is None:
+                    self.__root = self.get_root()
 
-        try:
-            if self.__root is None:
-                self.__root = self.get_root()
+                for child in self.__root:
+                    config = rpc_config_set(
+                        child, user=self.__user, target=self.__target
+                    )
+                    send(self.__socket, config, pp)
+                    data = read(self.__socket, pp)
 
-            for child in self.__root:
-                config = rpc_config_set(child, user=self.__user, target=self.__target)
-                send(self.__socket, config, pp)
-                data = read(self.__socket, pp)
+                    self.__handle_errors(data)
 
-                self.__handle_errors(data)
+                if self.__commit:
+                    self.commit()
 
-            if self.__commit:
-                self.commit()
+            except Exception as e:
+                logger.error(f"Got exception from Clixon.__exit__: {e}")
+                raise Exception(f"{e}")
 
-        except Exception as e:
-            logger.error(f"Got exception from Clixon.__exit__: {e}")
-            raise Exception(f"{e}")
-        finally:
-            if not self.__from_server:
-                try:
-                    self.close_session()
-                except Exception as e:
-                    logger.error(f"Failed to send close-session: {e}")
+        if not self.__from_server:
+            try:
+                self.close_session()
+            except Exception as e:
+                logger.error(f"Failed to send close-session: {e}")
 
     def commit(self) -> None:
         """
@@ -510,6 +512,10 @@ class Clixon:
         :return: None
         :rtype: None
         """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
 
         if inline:
             rpc = rpc_apply_template(
