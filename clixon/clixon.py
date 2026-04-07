@@ -166,8 +166,8 @@ class Clixon:
         if not self.__from_server:
             try:
                 self.close_session()
-            except Exception as e:
-                logger.error(f"Failed to send close-session: {e}")
+            except Exception:
+                pass
 
     def commit(self) -> None:
         """
