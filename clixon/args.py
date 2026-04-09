@@ -134,13 +134,8 @@ def parse_args(cli_args: Optional = None) -> tuple:
         sockpath, conf_mpath, modulefilter, pidfile = __parse_config(args.configfile)
         args.sockpath = sockpath
 
-        if conf_mpath:
-            if not args.modulepaths:
-                args.modulepaths = []
-            for path in conf_mpath:
-                if os.path.normpath(path) in args.modulepaths:
-                    continue
-                args.modulepaths.extend(conf_mpath)
+        if conf_mpath and not args.modulepaths:
+            args.modulepaths = conf_mpath
 
         args.modulefilter = modulefilter
         args.pidfile = pidfile
