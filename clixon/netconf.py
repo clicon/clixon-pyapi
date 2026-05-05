@@ -25,7 +25,7 @@ class RPCTypes(Enum):
 
 
 CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
-CONTROLLER_NS_PREFIX = "clixon-controller"
+CONTROLLER_NS_PREFIX = "ctrl"
 CONTROLLER_NS_URI = "http://clicon.org/controller"
 # Top-level elements in clixon-controller namespace
 CONTROLLER_ELEMENTS = ["services", "devices"]
