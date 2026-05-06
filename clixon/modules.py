@@ -30,6 +30,9 @@ def run_hooks(
     run_hooks = False
 
     for module in modules:
+        if getattr(module, "SERVICE") != service_name:
+            continue
+
         if (
             hasattr(module, "setup_pre_commit")
             or hasattr(module, "setup_post_commit")
