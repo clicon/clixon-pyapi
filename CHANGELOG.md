@@ -1,5 +1,17 @@
 # Clixon Python API Changelog
 
+## 1.8.0
+29 May 2026
+
+### Features
+* Feature: SERVICE_XPATH can be set in services to specify which configuration get-config will fetch.
+
+### Corrected bugs
+* Fix read_only enforcement in __exit__ and guard devices access in rpc… by @denniswa in https://github.com/clicon/clixon-pyapi/pull/52
+* Skip unnecessary reads when running hooks.
+
+**Full Changelog**: https://github.com/clicon/clixon-pyapi/compare/1.7.0...1.8.0
+
 ## 1.7.0
 21 February 2026
 
