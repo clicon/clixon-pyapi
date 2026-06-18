@@ -497,45 +497,47 @@ class Clixon:
 
     def apply_template(
         self,
-        devname: str,
+        devname: Optional[str] = None,
         template: Optional[str] = "",
         variables: Optional[dict] = {},
         inline: Optional[bool] = False,
+        groupname: Optional[str] = None,
     ) -> None:
         """
         Apply a template.
 
-        :param devname: Device name
+        :param devname: Device name (mutually exclusive with groupname)
         :type devname: str
-        :param template: Template
+        :param template: Template name or inline template string
         :type template: str
-        :param variables: Variables
+        :param variables: Template variables
         :type variables: dict
-        :param inline: Inline template
+        :param inline: Use inline template
         :type inline: bool
-
-        :type variables: dict
+        :param groupname: Device-group name (mutually exclusive with devname)
+        :type groupname: str
         :return: None
         :rtype: None
         """
+
+        if devname is None and groupname is None:
+            raise ValueError("Either devname or groupname must be provided")
+        if devname is not None and groupname is not None:
+            raise ValueError("devname and groupname are mutually exclusive")
 
         if self.__read_only:
             logger.info("Read only mode enabled")
             return
 
-        if inline:
-            rpc = rpc_apply_template(
-                devname,
-                template,
-                variables,
-                template_type="CONFIG",
-                user=self.__user,
-                inline=True,
-            )
-        else:
-            rpc = rpc_apply_template(
-                devname, template, variables, template_type="CONFIG", user=self.__user
-            )
+        rpc = rpc_apply_template(
+            devname,
+            template,
+            variables,
+            template_type="CONFIG",
+            user=self.__user,
+            inline=inline,
+            groupname=groupname,
+        )
 
         if not self.__transaction_notify:
             self.__enable_transaction_notify()
