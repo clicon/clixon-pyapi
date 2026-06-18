@@ -426,12 +426,13 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
 
 
 def rpc_apply_template(
-    devname: str,
+    devname: Optional[str],
     template: str,
     variables: dict,
     template_type: Optional[str] = "RPC",
     user: Optional[str] = None,
     inline: Optional[bool] = False,
+    groupname: Optional[str] = None,
 ) -> Element:
     if not user:
         BASE_ATTRIBUTES["username"] = getpass.getuser()
@@ -442,7 +443,10 @@ def rpc_apply_template(
     root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("device-template-apply", attributes=CONTROLLER_NS)
     root.rpc.device_template_apply.create("type", data=template_type)
-    root.rpc.device_template_apply.create("device", data=devname)
+    if groupname:
+        root.rpc.device_template_apply.create("device-group", data=groupname)
+    else:
+        root.rpc.device_template_apply.create("device", data=devname)
 
     if inline:
         inline_element = parse_string(template).config
