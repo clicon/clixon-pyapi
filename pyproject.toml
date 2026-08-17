@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clixon-pyapi"
+description = "Clixon Python API"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Kristofer Hallin", email = "clixon-pyapi@8n1.se" },
+    { name = "Olof Hagsand", email = "clixon-pyapi@8n1.se" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["pyyaml", "xmltodict"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/clicon/clixon-pyapi"
+Documentation = "https://clixon-controller-docs.readthedocs.io/en/latest/"
+Changelog = "https://github.com/clicon/clixon-pyapi/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = ["clixon"]
+# The two programs are installed under the names they are called by, which
+# entry points in [project.scripts] would not do, they would drop the .py.
+script-files = ["clixon_server.py", "clixon_rest.py"]
+
+[tool.setuptools.dynamic]
+version = { attr = "clixon.version.__version__" }
