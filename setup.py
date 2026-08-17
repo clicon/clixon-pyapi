@@ -30,5 +30,5 @@ setuptools.setup(
     install_requires=["pyyaml", "xmltodict"],
     license="Apache-2.0",
     python_requires=">=3.11",
-    scripts=["clixon_server.py"],
+    scripts=["clixon_server.py", "clixon_rest.py"],
 )

@@ -3,12 +3,18 @@ import logging
 import os
 import sys
 
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from typing import Optional
 
 import clixon.parser as parser
 
 from clixon.log import get_log_factory
 from clixon.version import __version__
+
+# Arguments which make argparse print something and exit. They are dropped
+# when the arguments of another program are parsed, see get_arg.
+__exiting_args = ["-h", "--help", "-V", "--version"]
 
 
 def __update_from_configfile(opt: Optional[str] = None):
@@ -131,6 +137,12 @@ def parse_args(cli_args: Optional = None) -> tuple:
         sys.exit(0)
 
     if args.configfile:
+        # Checked before parsing, the parser reports a missing file as an
+        # invalid URL.
+        if not os.path.exists(args.configfile):
+            print(f"Configuration file {args.configfile} does not exist")
+            sys.exit(0)
+
         sockpath, conf_mpath, modulefilter, pidfile = __parse_config(args.configfile)
         args.sockpath = sockpath
 
@@ -233,5 +245,16 @@ def get_arg(opt: str):
     if opt in global_args.keys():
         return global_args.get(opt)
     elif sys.argv[1:]:
-        parse_args(sys.argv[1:])
+        # The arguments belong to whichever program imported us, and they are
+        # not necessarily ours. Parse them quietly: an argument we do not know
+        # is not an error here, it only means we have nothing to return, and
+        # printing the help or the version of another program is never right.
+        argv = [a for a in sys.argv[1:] if a not in __exiting_args]
+
+        try:
+            with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
+                parse_args(argv)
+        except SystemExit:
+            return None
+
         return global_args.get(opt)

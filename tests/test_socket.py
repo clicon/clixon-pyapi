@@ -1,5 +1,7 @@
 from unittest.mock import patch, MagicMock
+from clixon.exceptions import TimeoutException
 from clixon.sock import create_socket, read, send
+import pytest
 import socket
 
 
@@ -52,3 +54,41 @@ def test_send(mock_socket, mock_select):
     send(sock, "\n#20\n<test><data/></test>\n##\n")
     mock_socket_instance.send.assert_called()
     mock_select.assert_called()
+
+
+@patch('select.select')
+@patch('socket.socket')
+def test_read_timeout(mock_socket, mock_select):
+    """
+    Test that read gives up when nothing is readable in time.
+    """
+
+    mock_socket_instance = MagicMock()
+    mock_socket.return_value = mock_socket_instance
+    mock_select.return_value = ([], [], [])
+    sock = mock_socket()
+
+    with pytest.raises(TimeoutException):
+        read(sock, timeout=0.01)
+
+    _, _, _, timeout = mock_select.call_args[0]
+
+    assert timeout <= 0.01
+
+
+@patch('select.select')
+@patch('socket.socket')
+def test_read_without_timeout(mock_socket, mock_select):
+    """
+    Test that read waits forever when it is given no timeout.
+    """
+
+    mock_socket_instance = MagicMock()
+    mock_socket.return_value = mock_socket_instance
+    mock_socket_instance.recv.return_value = b'\n#20\n<test><data/></test>\n##\n'
+    mock_select.return_value = ([mock_socket_instance], [], [])
+    sock = mock_socket()
+
+    read(sock)
+
+    assert len(mock_select.call_args[0]) == 3

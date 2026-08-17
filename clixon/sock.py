@@ -2,8 +2,11 @@ import re
 import select
 import socket
 
+from time import monotonic
+
 from clixon.args import get_logger
 from clixon.element import Element
+from clixon.exceptions import TimeoutException
 from clixon.parser import dump_string
 from typing import Optional
 
@@ -40,7 +43,10 @@ def create_socket(sockpath: str) -> socket.socket:
 
 
 def read(
-    sock: socket.socket, pp: Optional[bool] = False, standalone: Optional[bool] = False
+    sock: socket.socket,
+    pp: Optional[bool] = False,
+    standalone: Optional[bool] = False,
+    timeout: Optional[float] = None,
 ) -> str:
     """
     Read from the socket and return the data.
@@ -51,6 +57,8 @@ def read(
     :type pp: bool
     :param standalone: If True, raise an exception if the data is an error
     :type standalone: bool
+    :param timeout: Seconds to wait for the data, forever if None
+    :type timeout: float
     :return: Data read from the socket
     :rtype: str
     """
@@ -59,9 +67,21 @@ def read(
     chunk_len = 0
 
     re_chunk_size = r"\n#(\d+)\n"
+    deadline = None if timeout is None else monotonic() + timeout
 
     while True:
-        readable, _, _ = select.select([sock], [], [])
+        if deadline is None:
+            readable, _, _ = select.select([sock], [], [])
+        else:
+            left = deadline - monotonic()
+
+            if left <= 0:
+                raise TimeoutException(f"Read timed out after {timeout} seconds")
+
+            readable, _, _ = select.select([sock], [], [], left)
+
+            if not readable:
+                raise TimeoutException(f"Read timed out after {timeout} seconds")
 
         if not readable:
             continue

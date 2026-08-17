@@ -25,6 +25,7 @@ class RPCTypes(Enum):
 
 
 CONTROLLER_NS = {"xmlns": "http://clicon.org/controller"}
+MONITORING_NS_URI = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 CONTROLLER_NS_PREFIX = "ctrl"
 CONTROLLER_NS_URI = "http://clicon.org/controller"
 # Top-level elements in clixon-controller namespace
@@ -746,6 +747,99 @@ def rpc_device_rpc_result(tid: int, user: Optional[str] = None) -> Element:
     root.create("rpc", attributes=BASE_ATTRIBUTES)
     root.rpc.create("device-rpc-result", attributes=CONTROLLER_NS)
     root.rpc.device_rpc_result.create("tid", data=str(tid))
+
+    return root
+
+
+def rpc_schemas_get(user: Optional[str] = None) -> Element:
+    """
+    Create a RPC element fetching the list of YANG schemas the backend serves,
+    RFC 6022 netconf-state/schemas.
+
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    if not user:
+        user = getpass.getuser()
+
+    rpc_attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": user,
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
+    }
+
+    filter_attributes = {
+        "nc:type": "xpath",
+        "nc:select": "/ncm:netconf-state/ncm:schemas",
+        "xmlns:ncm": MONITORING_NS_URI,
+    }
+
+    root = Element()
+    root.create("rpc", attributes=rpc_attributes)
+    root.rpc.create(
+        "get",
+        attributes={"cl:content": "nonconfig", "xmlns:cl": "http://clicon.org/lib"},
+    )
+    root.rpc.get.create("nc:filter", attributes=filter_attributes)
+
+    return root
+
+
+def rpc_schema_get(
+    identifier: str,
+    version: Optional[str] = None,
+    format: Optional[str] = "yang",
+    user: Optional[str] = None,
+) -> Element:
+    """
+    Create a RFC 6022 get-schema element, used to fetch a YANG module
+    from the backend.
+
+    :param identifier: YANG module name
+    :type identifier: str
+    :param version: YANG module revision
+    :type version: str
+    :param format: Schema format, yang or yin
+    :type format: str
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    # Example:
+    # <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="debian" xmlns:cl="http://clicon.org/lib" message-id="42">
+    #     <get-schema xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring">
+    #         <identifier>myservice</identifier>
+    #         <version>2026-01-01</version>
+    #         <format>yang</format>
+    #     </get-schema>
+    # </rpc>
+
+    attributes = {
+        "xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+        "cl:username": user if user else getpass.getuser(),
+        "xmlns:cl": "http://clicon.org/lib",
+        "message-id": "42",
+    }
+
+    root = Element()
+    root.create("rpc", attributes=attributes)
+    root.rpc.create("get-schema", attributes={"xmlns": MONITORING_NS_URI})
+    root.rpc.get_schema.create("identifier", data=identifier)
+
+    if version:
+        root.rpc.get_schema.create("version", data=version)
+
+    root.rpc.get_schema.create("format", data=format)
 
     return root
 

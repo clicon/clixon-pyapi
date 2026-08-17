@@ -4,6 +4,7 @@ import pytest
 
 from clixon import netconf
 from clixon.element import Element
+from clixon.exceptions import RPCError
 
 user = getpass.getuser()
 
@@ -42,7 +43,7 @@ def test_rpc_config_get():
     Test the rpc_config_get function.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:ctrl="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get()
 
@@ -54,7 +55,7 @@ def test_rpc_config_get_user():
     Test the rpc_config_get function with user.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="nisse" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/" xmlns:ctrl="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get(user="nisse")
 
@@ -458,12 +459,39 @@ def test_rpc_devices_get():
     assert netconf.rpc_devices_get().dumps() == xmlstr0
 
 
+def test_rpc_schemas_get():
+    """
+    Test the rpc_schemas_get function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get cl:content="nonconfig" xmlns:cl="http://clicon.org/lib"><nc:filter nc:type="xpath" nc:select="/ncm:netconf-state/ncm:schemas" xmlns:ncm="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"/></get></rpc>"""
+
+    assert netconf.rpc_schemas_get().dumps() == xmlstr0
+
+
+def test_rpc_get_schema():
+    """
+    Test the rpc_schema_get function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get-schema xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"><identifier>myservice</identifier><format>yang</format></get-schema></rpc>"""
+    xmlstr1 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><get-schema xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"><identifier>myservice</identifier><version>2026-01-01</version><format>yang</format></get-schema></rpc>"""
+    xmlstr2 = """<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="test123" xmlns:cl="http://clicon.org/lib" message-id="42"><get-schema xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"><identifier>myservice</identifier><format>yin</format></get-schema></rpc>"""
+
+    assert netconf.rpc_schema_get("myservice").dumps() == xmlstr0
+    assert netconf.rpc_schema_get("myservice", version="2026-01-01").dumps() == xmlstr1
+    assert (
+        netconf.rpc_schema_get("myservice", format="yin", user="test123").dumps()
+        == xmlstr2
+    )
+
+
 def test_rpc_config_get_with_xpath():
     """
     Test the rpc_config_get function with custom xpath.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/ctrl:services" xmlns:ctrl="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get(xpath="/services")
 
@@ -475,7 +503,7 @@ def test_rpc_config_get_with_xpath_and_namespaces():
     Test the rpc_config_get function with custom xpath and namespaces.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services/l2c:l2c" xmlns:clixon-controller="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/ctrl:services/l2c:l2c" xmlns:ctrl="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c"/></get-config></rpc>"""
 
     namespaces = {"l2c": "http://example.com/l2c"}
     root = netconf.rpc_config_get(xpath="/services/l2c:l2c", namespaces=namespaces)
@@ -488,7 +516,7 @@ def test_rpc_config_get_with_xpath_different_source():
     Test the rpc_config_get function with xpath and different source.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><candidate/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:devices" xmlns:clixon-controller="http://clicon.org/controller"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><candidate/></source><nc:filter nc:type="xpath" nc:select="/ctrl:devices" xmlns:ctrl="http://clicon.org/controller"/></get-config></rpc>"""
 
     root = netconf.rpc_config_get(source="candidate", xpath="/devices")
 
@@ -500,7 +528,7 @@ def test_rpc_config_get_with_multiple_namespaces():
     Test the rpc_config_get function with multiple custom namespaces.
     """
 
-    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/clixon-controller:services/l2c:l2c[l2c:service-name=\'test\']" xmlns:clixon-controller="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c" xmlns:custom="http://example.com/custom"/></get-config></rpc>"""
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" username="{user}" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42"><get-config><source><actions xmlns="http://clicon.org/controller"/></source><nc:filter nc:type="xpath" nc:select="/ctrl:services/l2c:l2c[l2c:service-name=\'test\']" xmlns:ctrl="http://clicon.org/controller" xmlns:l2c="http://example.com/l2c" xmlns:custom="http://example.com/custom"/></get-config></rpc>"""
 
     namespaces = {
         "l2c": "http://example.com/l2c",
@@ -542,3 +570,177 @@ def test_rpc_config_set_with_services_and_devices():
     root = netconf.rpc_config_set(config)
 
     assert root.dumps() == xmlstr
+
+
+def test_rpc_error_get_error_path():
+    """
+    Test that an error with a path is raised.
+    """
+
+    xmlstr = (
+        "<rpc-reply><rpc-error><error-app-tag>bad</error-app-tag>"
+        "<error-path>/devices/device</error-path></rpc-error></rpc-reply>"
+    )
+
+    with pytest.raises(RPCError, match="bad: /devices/device"):
+        netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_error_get_non_unique():
+    """
+    Test that a non-unique error is raised.
+    """
+
+    xmlstr = (
+        "<rpc-reply><rpc-error><error-app-tag>data-not-unique</error-app-tag>"
+        "<error-info><non-unique>/devices/device/name</non-unique>"
+        "</error-info></rpc-error></rpc-reply>"
+    )
+
+    with pytest.raises(RPCError, match="data-not-unique"):
+        netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_error_get_rpc_error():
+    """
+    Test that a plain rpc-error is raised.
+    """
+
+    xmlstr = (
+        "<rpc-reply><rpc-error><error-tag>operation-failed</error-tag>"
+        "</rpc-error></rpc-reply>"
+    )
+
+    with pytest.raises(RPCError, match="Unknown error"):
+        netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_error_get_incomplete_errors():
+    """
+    Test that errors which can not be read are still errors.
+    """
+
+    for xmlstr in [
+        "<rpc-reply><rpc-error><error-message/></rpc-error></rpc-reply>",
+        "<rpc-reply><foo>error-path</foo></rpc-reply>",
+        "<rpc-reply><foo>non-unique</foo></rpc-reply>",
+    ]:
+        with pytest.raises(RPCError):
+            netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_error_get_failed_result():
+    """
+    Test that a failed result without a reason is not an error of its own.
+    """
+
+    assert netconf.rpc_error_get("<rpc-reply><result>FAILED</result></rpc-reply>") is (
+        None
+    )
+
+
+def test_rpc_error_get_notification_reason():
+    """
+    Test that the reason of a failed notification is raised.
+    """
+
+    xmlstr = (
+        '<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">'
+        '<controller-transaction xmlns="http://clicon.org/controller">'
+        "<result>FAILED</result><reason>device is closed</reason>"
+        "</controller-transaction></notification>"
+    )
+
+    with pytest.raises(RPCError, match="device is closed"):
+        netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_error_get_notification_success():
+    """
+    Test that a successful notification is not an error.
+    """
+
+    xmlstr = (
+        '<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">'
+        '<controller-transaction xmlns="http://clicon.org/controller">'
+        "<result>SUCCESS</result></controller-transaction></notification>"
+    )
+
+    assert netconf.rpc_error_get(xmlstr) is None
+
+
+def test_rpc_config_set_modified_device():
+    """
+    Test that a device which is modified is added to the configuration.
+    """
+
+    config = Element("config", {})
+    device = config.create("devices").create("device")
+    device.create("name", data="foo")
+    device.create("description", data="changed").set_modified(True)
+
+    xmlstr = netconf.rpc_config_set(config).dumps()
+
+    assert "<description>changed</description>" in xmlstr
+
+
+def test_rpc_apply_template_inline():
+    """
+    Test that an inline template is used as it is.
+    """
+
+    template = "<config><system><hostname>foo</hostname></system></config>"
+    xmlstr = netconf.rpc_apply_template("r1", template, {}, inline=True).dumps()
+
+    assert (
+        "<inline><config><system><hostname>foo</hostname></system>"
+        "</config></inline>" in xmlstr
+    )
+
+
+def test_rpc_users():
+    """
+    Test that the user of the caller is used by all the RPCs.
+    """
+
+    for rpc in [
+        netconf.rpc_lock("candidate", user="nisse"),
+        netconf.rpc_unlock("candidate", user="nisse"),
+        netconf.rpc_connection_open("r1", user="nisse"),
+        netconf.rpc_device_rpc_result(1, user="nisse"),
+        netconf.rpc_datastore_diff(user="nisse"),
+        netconf.rpc_apply_service("s", "i", user="nisse"),
+        netconf.rpc_close_session(user="nisse"),
+        netconf.rpc_discard_changes(user="nisse"),
+        netconf.rpc_devices_get(user="nisse"),
+        netconf.rpc_schemas_get(user="nisse"),
+        netconf.rpc_schema_get("m", user="nisse"),
+    ]:
+        assert 'username="nisse"' in rpc.dumps()
+
+
+def test_rpc_default_users():
+    """
+    Test that the running user is used when no user is given.
+    """
+
+    for rpc in [
+        netconf.rpc_lock(),
+        netconf.rpc_unlock(),
+        netconf.rpc_connection_open(),
+        netconf.rpc_device_rpc_result(1),
+        netconf.rpc_datastore_diff(),
+        netconf.rpc_apply_service("s", "i"),
+        netconf.rpc_close_session(),
+        netconf.rpc_discard_changes(),
+        netconf.rpc_devices_get(),
+        netconf.rpc_schemas_get(),
+        netconf.rpc_schema_get("m"),
+        netconf.rpc_hello(),
+        netconf.rpc_commit(),
+        netconf.rpc_push(),
+        netconf.rpc_pull(),
+        netconf.rpc_subscription_create(),
+        netconf.rpc_apply_template("r1", "t", {}),
+    ]:
+        assert user in rpc.dumps()

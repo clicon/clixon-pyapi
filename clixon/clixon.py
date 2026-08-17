@@ -2,11 +2,13 @@ import getpass
 import os
 import re
 import socket
+from time import monotonic
 from typing import Optional
+from xml.sax.saxutils import unescape
 
 from clixon.args import get_arg, get_logger
 from clixon.exceptions import TransactionError
-from clixon.helpers import get_path, timeout
+from clixon.helpers import get_path
 from clixon.netconf import (
     rpc_apply_template,
     rpc_apply_service,
@@ -24,6 +26,8 @@ from clixon.netconf import (
     rpc_unlock,
     rpc_transactions_get,
     rpc_devices_get,
+    rpc_schema_get,
+    rpc_schemas_get,
     rpc_device_rpc_result,
     rpc_discard_changes,
 )
@@ -263,9 +267,18 @@ class Clixon:
 
         """
 
-        @timeout(self.__timeout)
+        # The deadline is watched by the socket rather than by an alarm
+        # signal, signals only work in the main thread and the Clixon object
+        # is also used from threaded servers.
+        deadline = monotonic() + self.__timeout
+
         def __wait_or_timeout() -> str:
-            data = read(self.__socket, pp, standalone=self.__standalone)
+            data = read(
+                self.__socket,
+                pp,
+                standalone=self.__standalone,
+                timeout=deadline - monotonic(),
+            )
 
             self.__handle_errors(data)
 
@@ -289,7 +302,12 @@ class Clixon:
                         "Read too many messages without notification success"
                     )
 
-                data = read(self.__socket, pp, standalone=self.__standalone)
+                data = read(
+                    self.__socket,
+                    pp,
+                    standalone=self.__standalone,
+                    timeout=deadline - monotonic(),
+                )
 
         data = __wait_or_timeout()
 
@@ -731,11 +749,20 @@ class Clixon:
 
         try:
             self.__wait_for_notification()
+
+            # The reply of the connection change follows the notification, but
+            # only if there is anything to connect to, so it is waited for with
+            # a timeout rather than forever.
+            data = read(
+                self.__socket,
+                pp,
+                standalone=self.__standalone,
+                timeout=self.__timeout,
+            )
         except Exception as e:
             logger.error(f"Failed to open connection to {devname}: {e}")
             return None
 
-        data = read(self.__socket, pp, standalone=self.__standalone)
         self.__handle_errors(data)
         data = self.__strip_rpc_reply(data)
 
@@ -759,6 +786,99 @@ class Clixon:
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
+
+    def get_service_yang(
+        self,
+        service: str,
+        revision: Optional[str] = None,
+        format: Optional[str] = "yang",
+    ) -> str:
+        """
+        Fetch the YANG definition of a service module from the backend.
+
+        The service YANG modules are the modules augmenting /ctrl:services,
+        they are fetched using the NETCONF get-schema RPC (RFC 6022).
+
+        Example:
+            yang = clixon.get_service_yang("myservice")
+
+        :param service: Name of the service YANG module
+        :type service: str
+        :param revision: Revision of the YANG module, latest if not given
+        :type revision: str
+        :param format: Schema format, yang or yin
+        :type format: str
+        :return: YANG definition of the service module
+        :rtype: str
+
+        """
+
+        logger.debug(f"Fetching YANG for service {service}")
+
+        rpc = rpc_schema_get(service, version=revision, format=format, user=self.__user)
+
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        # The error handling matches on the text of the reply, and a YANG
+        # module may very well contain words such as error-message, so the
+        # reply is only checked when it is an actual error.
+        if "<rpc-error" in data:
+            self.__handle_errors(data)
+
+        # The YANG definition is returned as text inside the data element. The
+        # XML parser mangles both the escaping and the indentation, hence the
+        # raw string is used here.
+        match = re.search(r"<data[^>]*>(.*)</data>", data, re.DOTALL)
+
+        if not match:
+            raise ValueError(f"No YANG returned for service {service}")
+
+        yang = match.group(1)
+
+        # The backend wraps the YANG in CDATA if
+        # CLICON_NETCONF_MONITORING_GETSCHEMA_CDATA is enabled.
+        cdata = re.match(r"\s*<!\[CDATA\[(.*)\]\]>\s*$", yang, re.DOTALL)
+
+        if cdata:
+            return cdata.group(1)
+
+        return unescape(yang, {"&quot;": '"', "&apos;": "'"})
+
+    def get_schemas(self) -> list:
+        """
+        Return the YANG schemas the backend serves, RFC 6022
+        netconf-state/schemas.
+
+        Example:
+            schemas = clixon.get_schemas()
+            [{"identifier": "ssh-users", "version": "2023-05-22",
+              "format": "yang", "namespace": "http://clicon.org/ssh-users",
+              "location": "NETCONF"}, ...]
+
+        :return: List of dicts describing the schemas
+        :rtype: list
+
+        """
+
+        rpc = rpc_schemas_get(user=self.__user)
+
+        send(self.__socket, rpc, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        schemas = []
+
+        for schema in parse_string(data).get_elements("schema", recursive=True):
+            entry = {}
+
+            for child in schema.get_elements():
+                entry[child.origname()] = child.get_data()
+
+            schemas.append(entry)
+
+        return schemas
 
     def show_transactions(self, tid: Optional[int] = None) -> str:
         rpc = rpc_transactions_get(tid=tid, user=self.__user)
