@@ -161,9 +161,32 @@ Note that the controller also has a C rest-api plugin of its own on port 8087
 
 ## Packaging
 
-A new program has to be added in three places: `scripts` in `setup.py`,
-`install.sh` and `debian/install`. CI is `.github/workflows/ci.yml`, which runs
-`pytest` on Python 3.11 with the dependencies from `requirements.txt`.
+The metadata lives in `pyproject.toml` (PEP 621, setuptools backend), there is
+no `setup.py`. The version is read from `clixon/version.py`, so that is the
+only place to bump it. `CHANGELOG.md` is written per release.
 
-`clixon/version.py` holds the version of the package, `CHANGELOG.md` is written
-per release.
+```
+$ python3 -m build          # wheel and sdist in dist/
+$ ./install.sh              # scripts to /usr/local/bin, package with pip
+$ ./scripts/build_deb.sh    # Debian package, needs a git checkout
+```
+
+The two programs are installed under their own names, `clixon_server.py` and
+`clixon_rest.py`, through `script-files` in `pyproject.toml`. Entry points in
+`[project.scripts]` would drop the `.py`, which the controller and the
+packaging expect, so leave them as they are.
+
+**A new program has to be added in four places**: `script-files` in
+`pyproject.toml`, `install.sh`, `debian/install` and the list of files
+`scripts/build_deb.sh` copies into `build/`. Forgetting the last one breaks the
+Debian build only, which is easy to miss.
+
+The Debian package is built by `dh` with pybuild, which picks the PEP 517 path
+through `pybuild-plugin-pyproject`; that package, `python3-setuptools` and
+`python3-wheel` are in `Build-Depends` for it. Note that the built package
+declares no dependencies of its own, `${python:Depends}` expands to nothing
+here, and that it installs the programs both in `/usr/bin` (from the wheel) and
+in `/usr/local/bin` (from `debian/install`). Both are pre-existing behaviour.
+
+CI is `.github/workflows/ci.yml`, which runs `pytest` on Python 3.11 with the
+dependencies from `requirements.txt`.

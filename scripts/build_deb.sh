@@ -41,7 +41,8 @@ fi
 cp README.md build/
 cp -r clixon build/
 cp clixon_server.py build/
-cp setup.py build/
+cp clixon_rest.py build/
+cp pyproject.toml build/
 
 # Build the Debian package
 (cd build && dpkg-buildpackage -us -uc)
