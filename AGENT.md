@@ -183,10 +183,23 @@ Debian build only, which is easy to miss.
 
 The Debian package is built by `dh` with pybuild, which picks the PEP 517 path
 through `pybuild-plugin-pyproject`; that package, `python3-setuptools` and
-`python3-wheel` are in `Build-Depends` for it. Note that the built package
-declares no dependencies of its own, `${python:Depends}` expands to nothing
-here, and that it installs the programs both in `/usr/bin` (from the wheel) and
-in `/usr/local/bin` (from `debian/install`). Both are pre-existing behaviour.
+`python3-wheel` are in `Build-Depends` for it.
+
+The binary package is `python3-clixon-pyapi`. **Do not rename it back to
+`python-clixon-pyapi`**: `dh_python3` skips every package whose name starts
+with `python-`, that being the Python 2 prefix (`PKG_NAME_TPLS` in
+`/usr/share/dh-python/dhpython/__init__.py`, applied at `debhelper.py:148`
+before any other check, so `-p` cannot override it). A skipped package gets no
+`${python3:Depends}`, no byte-compilation and its modules are left in the
+version specific `/usr/lib/python3.11/dist-packages`. It keeps
+`Provides`/`Replaces`/`Conflicts` on the old name so an upgrade removes it.
+
+Check the result with `lintian python3-clixon-pyapi_*.deb`. Three errors are
+expected and deliberate: the programs are also installed in `/usr/local/bin`,
+which Policy 9.1.2 forbids, because the controller's YANG defaults
+`CONTROLLER_ACTION_COMMAND` to `/usr/local/bin/clixon_server.py`. The empty
+`override_dh_usrlocal` in `debian/rules` is what allows it. They are installed
+in `/usr/bin` as well, from the wheel.
 
 CI is `.github/workflows/ci.yml`, which runs `pytest` on Python 3.11 with the
 dependencies from `requirements.txt`.

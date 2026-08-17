@@ -27,10 +27,21 @@ fi
 # Copy the Debian files to the build directory
 cp -r debian build/
 
-# Update the change log
-echo -n "clixon-pyapi (${VERSION}) " > build/debian/changelog
+# Update the change log. The body of the commit message is indented and its
+# empty lines dropped, a change entry with a line of its own in the first
+# column is not a valid changelog.
+{
+    echo "clixon-pyapi (${VERSION}) stable; urgency=medium"
+    echo
 
-git --no-pager log --no-walk --encoding=utf-8 --expand-tabs=4 --pretty=format:"${VERSION} stable; urgency=medium%n%n * %w(,,2)%B%w()%n -- %an <%ae>  %aD%n" >> build/debian/changelog
+    git --no-pager log --no-walk --encoding=utf-8 --expand-tabs=4 \
+        --pretty=format:"%B" |
+        sed -e 's/[[:space:]]*$//' -e '/./!d' -e 's/^/    /' -e '1s/^    /  * /'
+
+    echo
+    git --no-pager log --no-walk --encoding=utf-8 \
+        --pretty=format:" -- %an <%ae>  %aD%n"
+} > build/debian/changelog
 
 if [ $? -ne 0 ]; then
     echo "Failed to update the change log."
