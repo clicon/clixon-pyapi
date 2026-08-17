@@ -114,6 +114,9 @@ class StubClixon:
     def commit(self):
         self.__record("commit")
 
+    def commit_services(self, push=None, device="*"):
+        self.__record("commit_services", push, device)
+
     def push(self):
         self.__record("push")
 
@@ -420,6 +423,86 @@ def test_method_not_allowed(server):
     assert "not allowed" in body["error"]["message"]
 
 
+def test_create_runs_the_services(server):
+    """
+    Test that a write commits with the services, which is the only way the
+    controller runs them.
+    """
+
+    port, _ = server
+    status, body = request(
+        port,
+        "PUT",
+        "/api/v1/services/test-service/test",
+        {"enabled": True},
+    )
+
+    assert status == 200
+    assert body == {"committed": True, "pushed": True}
+    assert called("commit_services")[0][1] == (True, "*")
+    assert called("commit") == []
+
+
+def test_write_without_push_commits_locally(server):
+    """
+    Test that a write without a push is a local commit.
+    """
+
+    port, _ = server
+    status, body = request(
+        port,
+        "PATCH",
+        "/api/v1/services/test-service/test?push=false",
+        {"enabled": True},
+    )
+
+    assert status == 200
+    assert body == {"committed": True, "pushed": False}
+    assert called("commit")
+    assert called("commit_services") == []
+
+
+def test_commit_endpoint_runs_the_services(server):
+    """
+    Test that the commit resource runs the services as well.
+    """
+
+    port, _ = server
+    status, body = request(port, "POST", "/api/v1/commit")
+
+    assert status == 200
+    assert body == {"committed": True, "pushed": True}
+    assert called("commit_services")[0][1] == (True, "*")
+
+
+def test_push_without_changes(server):
+    """
+    Test that a push with nothing to push is not an error.
+    """
+
+    StubClixon.errors["push"] = RPCError("No changes to push")
+
+    port, _ = server
+    status, body = request(port, "POST", "/api/v1/push")
+
+    assert status == 200
+    assert body["pushed"] is False
+    assert "No changes to push" in body["detail"]
+
+
+def test_push_error(server):
+    """
+    Test that a push which fails for another reason is an error.
+    """
+
+    StubClixon.errors["push"] = RPCError("Device r1 is closed")
+
+    port, _ = server
+    status, _ = request(port, "POST", "/api/v1/push")
+
+    assert status == 400
+
+
 def test_create(server):
     """
     Test that an instance is created and committed.
@@ -442,7 +525,7 @@ def test_create(server):
     assert 'nc:operation="create"' in xml
     assert "<service-name>new</service-name>" in xml
     assert "<enabled>true</enabled>" in xml
-    assert called("commit")
+    assert called("commit_services")
 
 
 def test_create_without_commit(server):
@@ -460,7 +543,7 @@ def test_create_without_commit(server):
 
     assert status == 201
     assert body["committed"] is False
-    assert called("commit") == []
+    assert called("commit_services") == []
 
 
 def test_create_with_lock(server):
@@ -723,7 +806,7 @@ def test_commit(server):
 
     assert status == 200
     assert body == {"committed": True, "pushed": True}
-    assert called("commit")
+    assert called("commit_services")
 
 
 def test_push(server):

@@ -504,6 +504,58 @@ def rpc_apply_service(
     return root
 
 
+def rpc_controller_commit(
+    device: Optional[str] = "*",
+    source: Optional[str] = "candidate",
+    actions: Optional[str] = "CHANGE",
+    push: Optional[str] = "COMMIT",
+    service_instance: Optional[str] = None,
+    user: Optional[str] = None,
+) -> Element:
+    """
+    Create a RPC controller-commit element.
+
+    This is the commit of the controller, which runs the services, commits and
+    pushes to the devices in one transaction. A plain NETCONF commit, see
+    rpc_commit, is a local commit which does not run the services.
+
+    :param device: Device name, or * for all of them
+    :type device: str
+    :param source: Datastore to commit from, candidate or running
+    :type source: str
+    :param actions: Run the services, NONE, CHANGE or FORCE
+    :type actions: str
+    :param push: Push to the devices, NONE, VALIDATE or COMMIT
+    :type push: str
+    :param service_instance: Service instance to run, only used with FORCE
+    :type service_instance: str
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
+    root = Element()
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
+    root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
+    root.rpc.controller_commit.create("device", data=device)
+    root.rpc.controller_commit.create("push", data=push)
+    root.rpc.controller_commit.create("actions", data=actions)
+
+    if service_instance:
+        root.rpc.controller_commit.create("service-instance", data=service_instance)
+
+    root.rpc.controller_commit.create("source", data=f"ds:{source}")
+
+    return root
+
+
 def rpc_datastore_diff(
     device: Optional[str] = "*",
     compare: Optional[bool] = False,

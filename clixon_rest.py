@@ -1043,7 +1043,11 @@ PARAMETERS = {
         "schema": {"type": "boolean", "default": True},
     },
     "push": {
-        "description": "Push the committed configuration to the devices.",
+        "description": "Run the services which changed, commit and push the "
+        "result to the devices, which is the commit of the controller CLI. "
+        "If false the candidate datastore is committed locally and the "
+        "services are not run, the controller only runs them in a transaction "
+        "which pushes.",
         "schema": {"type": "boolean", "default": True},
     },
     "lock": {
@@ -2022,7 +2026,11 @@ class RestHandler(BaseHTTPRequestHandler):
 
     def __commit(self, clx: object, query: dict) -> dict:
         """
-        Commit and push the candidate datastore, as asked for by the query.
+        Commit the candidate datastore, as asked for by the query.
+
+        Committing with a push runs the services, which is the only way the
+        controller runs them. Committing without a push is a local commit, the
+        services are left alone, see the description of the push parameter.
         """
 
         result = {"committed": False, "pushed": False}
@@ -2030,9 +2038,16 @@ class RestHandler(BaseHTTPRequestHandler):
         if not self.__flag(query, "commit", True):
             return result
 
+        if self.__flag(query, "push", True):
+            clx.commit_services(push=True)
+
+            result["committed"] = True
+            result["pushed"] = True
+
+            return result
+
         clx.commit()
         result["committed"] = True
-        result["pushed"] = self.__flag(query, "push", True)
 
         return result
 
@@ -2219,7 +2234,17 @@ class RestHandler(BaseHTTPRequestHandler):
         self.__writable()
 
         with self.__connect(read_only=False) as clx:
-            clx.push()
+            try:
+                clx.push()
+            except RPCError as e:
+                # The devices are already up to date, which is not an error
+                # worth a failed request.
+                if "No changes to push" not in str(e):
+                    raise
+
+                self.__send_json(HTTPStatus.OK, {"pushed": False, "detail": str(e)})
+
+                return
 
         self.__send_json(HTTPStatus.OK, {"pushed": True})
 
@@ -2230,13 +2255,11 @@ class RestHandler(BaseHTTPRequestHandler):
 
         self.__writable()
 
-        push = self.__flag(query, "push", True)
-
-        with self.__connect(read_only=False, push=push) as clx:
+        with self.__connect(read_only=False) as clx:
             with self.__lock(clx, query):
-                clx.commit()
+                result = self.__commit(clx, {**query, "commit": ["true"]})
 
-        self.__send_json(HTTPStatus.OK, {"committed": True, "pushed": push})
+        self.__send_json(HTTPStatus.OK, result)
 
     def __rollback(self) -> None:
         """

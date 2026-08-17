@@ -17,6 +17,7 @@ from clixon.netconf import (
     rpc_config_get,
     rpc_config_set,
     rpc_connection_open,
+    rpc_controller_commit,
     rpc_datastore_diff,
     rpc_error_get,
     rpc_lock,
@@ -195,6 +196,54 @@ class Clixon:
 
         if self.__push:
             self.push()
+
+    def commit_services(
+        self, push: Optional[bool] = None, device: Optional[str] = "*"
+    ) -> None:
+        """
+        Commit the candidate datastore the way the controller does it: run the
+        services which have changed, commit and push the result to the
+        devices, all in one transaction.
+
+        Clixon.commit is a plain NETCONF commit, which the controller commits
+        locally without running any service, and a push after such a commit
+        has nothing to send, the devices never got any configuration.
+
+        Note that the services are only run in a transaction which may push:
+        with push disabled the controller reports what the services would
+        change without committing anything, which is the commit diff of the
+        controller CLI.
+
+        :param push: Push to the devices, the push of the object if not given
+        :type push: bool
+        :param device: Device name, or * for all of them
+        :type device: str
+        :return: None
+        :rtype: None
+
+        """
+
+        if self.__read_only:
+            logger.info("Read only mode enabled")
+            return
+
+        if push is None:
+            push = self.__push
+
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
+
+        rpc = rpc_controller_commit(
+            device=device,
+            source="candidate",
+            actions="CHANGE",
+            push="COMMIT" if push else "NONE",
+            user=self.__user,
+        )
+
+        send(self.__socket, rpc, pp)
+
+        self.__wait_for_notification()
 
     def close_session(self) -> None:
         """
@@ -486,7 +535,11 @@ class Clixon:
             raise ValueError("devname and groupname are mutually exclusive")
 
         rpc = rpc_apply_template(
-            devname, template, variables, user=self.__user, inline=inline,
+            devname,
+            template,
+            variables,
+            user=self.__user,
+            inline=inline,
             groupname=groupname,
         )
 

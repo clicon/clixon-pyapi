@@ -109,6 +109,15 @@ raises `TimeoutException` instead; that is what `Clixon.__wait_for_notification`
 uses. If you add a method which waits for the backend, bound it the same way —
 an unbounded `read` hangs the worker for ever.
 
+**A plain commit does not run the services.** The controller runs them only
+inside a `controller-commit` RPC with `actions` set, see
+`controller_configure.cli`: the CLI `commit` is
+`controller-commit(candidate, CHANGE, COMMIT)` while `commit local` is a plain
+NETCONF commit. `Clixon.commit` is the local one, `Clixon.commit_services` is
+the one which runs the services. Committing locally and then pushing does
+nothing at all and the backend answers `No changes to push`, since no device
+configuration was ever generated.
+
 **Datastores.** Writes go to `candidate` and become real on `commit`. `running`
 is the committed configuration, and `actions` is the controller's scratch
 datastore for service scripts: it holds leftovers from failed transactions and

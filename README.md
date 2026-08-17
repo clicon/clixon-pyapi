@@ -100,12 +100,16 @@ Start the server:
 $ clixon_rest.py -f /usr/local/etc/clixon/controller.xml -p 8088
 ```
 
-The write requests edit the candidate datastore and commit, which runs the
-service scripts. The query parameters `commit` and `push`, both true by
-default, control that: `?commit=false` leaves the change in the candidate
-datastore and `?push=false` does not push it to the devices. Read requests
-take a `source` parameter, one of running, candidate or actions. Run the
-server with `-r` to refuse all write requests.
+The write requests edit the candidate datastore and then commit the way the
+controller CLI does: run the services which changed, commit and push the
+result to the devices, all in one transaction. The query parameters `commit`
+and `push`, both true by default, control that. `?commit=false` leaves the
+change in the candidate datastore. `?push=false` commits locally without
+running the services, since the controller only runs them in a transaction
+which pushes; use `POST /api/v1/services/{name}/{key}/apply` to see what the
+services would do without committing. Read requests take a `source` parameter,
+one of running, candidate or actions. Run the server with `-r` to refuse all
+write requests.
 
 The requests which wait for the devices, such as a pull or a push, are bound
 by the timeout of the backend session, 30 seconds by default. Use `-t` for

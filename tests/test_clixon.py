@@ -681,3 +681,41 @@ def test_rpc_decorator():
             return root.get_root()
 
         assert func().services.ssh_users.service_name == "test"
+
+
+def test_commit_services():
+    """
+    Test that the services are run, committed and pushed in one transaction.
+    """
+
+    clx, send, _ = clixon([OK, NOTIFICATION], push=True)
+    clx.commit_services()
+
+    rpc = sent(send)
+
+    assert "controller-commit" in rpc
+    assert "<actions>CHANGE</actions>" in rpc
+    assert "<push>COMMIT</push>" in rpc
+    assert "<source>ds:candidate</source>" in rpc
+
+
+def test_commit_services_without_push():
+    """
+    Test that a commit without a push asks the controller for a diff.
+    """
+
+    clx, send, _ = clixon([OK, NOTIFICATION])
+    clx.commit_services(push=False)
+
+    assert "<push>NONE</push>" in sent(send)
+
+
+def test_commit_services_read_only():
+    """
+    Test that nothing is committed in read only mode.
+    """
+
+    clx, send, _ = clixon([], read_only=True)
+    clx.commit_services()
+
+    send.assert_not_called()

@@ -744,3 +744,24 @@ def test_rpc_default_users():
         netconf.rpc_apply_template("r1", "t", {}),
     ]:
         assert user in rpc.dumps()
+
+
+def test_rpc_controller_commit():
+    """
+    Test the rpc_controller_commit function.
+    """
+
+    xmlstr0 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><controller-commit xmlns="http://clicon.org/controller"><device>*</device><push>COMMIT</push><actions>CHANGE</actions><source>ds:candidate</source></controller-commit></rpc>"""
+    xmlstr1 = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="42" username="{user}"><controller-commit xmlns="http://clicon.org/controller"><device>r1</device><push>NONE</push><actions>FORCE</actions><service-instance>ssh-users[service-name='test']</service-instance><source>ds:running</source></controller-commit></rpc>"""
+
+    assert netconf.rpc_controller_commit().dumps() == xmlstr0
+    assert (
+        netconf.rpc_controller_commit(
+            device="r1",
+            source="running",
+            actions="FORCE",
+            push="NONE",
+            service_instance="ssh-users[service-name='test']",
+        ).dumps()
+        == xmlstr1
+    )
