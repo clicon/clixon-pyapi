@@ -257,7 +257,7 @@ def load_modules(modulespath: str, modulefilter: str) -> List:
                 continue
         except Exception as e:
             logger.error(f"Failed to load module {modulefile}: {e}")
-            continue
+            raise
         else:
             loaded_modules.append(module)
 
