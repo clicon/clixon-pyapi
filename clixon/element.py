@@ -1,10 +1,48 @@
 import json
 import re
-import xmltodict
-import yaml
 
 from typing import Any, Generator, Optional
 from xml.dom import minidom
+
+
+def _xml_to_dict(node: minidom.Element) -> Any:
+    """
+    Convert a minidom element to a dict, using the same layout as xmltodict:
+    attributes are prefixed with "@", text next to children/attributes is
+    stored as "#text" and repeated children are collected into a list.
+    """
+
+    result = {}
+
+    for name, value in node.attributes.items():
+        result[f"@{name}"] = value
+
+    text = "".join(
+        c.data
+        for c in node.childNodes
+        if c.nodeType in (c.TEXT_NODE, c.CDATA_SECTION_NODE)
+    ).strip()
+
+    for child in node.childNodes:
+        if child.nodeType != child.ELEMENT_NODE:
+            continue
+
+        value = _xml_to_dict(child)
+
+        if child.tagName not in result:
+            result[child.tagName] = value
+        elif isinstance(result[child.tagName], list):
+            result[child.tagName].append(value)
+        else:
+            result[child.tagName] = [result[child.tagName], value]
+
+    if not result:
+        return text or None
+
+    if text:
+        result["#text"] = text
+
+    return result
 
 
 class Element:
@@ -451,29 +489,10 @@ class Element:
         for child in self.get_elements():
             xmlstr = f"<{child.origname()}>" + child.dumps() + f"</{child.origname()}>"
 
-            data_dict = xmltodict.parse(xmlstr)
-            json_data.append(data_dict)
+            doc = minidom.parseString(xmlstr).documentElement
+            json_data.append({doc.tagName: _xml_to_dict(doc)})
 
         return json.dumps(json_data)
-
-    def dumpy(self) -> str:
-        """
-
-        Return the YAML string of the element and its children.
-
-        :return: The YAML string of the element and its children.
-        :rtype: str
-
-        """
-        yaml_data = []
-
-        for child in self.get_elements():
-            xmlstr = f"<{child.origname()}>" + child.dumps() + f"</{child.origname()}>"
-
-            data_dict = xmltodict.parse(xmlstr)
-            yaml_data.append(data_dict)
-
-        return yaml.dump(yaml_data)
 
     def parent(self) -> object:
         """

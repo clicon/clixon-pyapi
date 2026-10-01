@@ -5,9 +5,7 @@ Maintainer: kristofer@sunet.se
 Build-Depends:
  debhelper-compat (= 12),
  dh-python,
- python3-all,
- python3-yaml,
- python3-xmltodict
+ python3-all
 Standards-Version: 4.5.0
 
 Package: python-clixon-pyapi

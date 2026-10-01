@@ -10,24 +10,27 @@ Clixon Python API is a network services API for [Clixon controller](https://gith
 See [User guide](https://clixon-controller-docs.readthedocs.io/en/latest/) and [Clixon controller FAQ](https://github.com/clicon/clixon-controller/blob/main/FAQ.md).
 
 ## Installation
-To install first install the dependencies either using Pip or, if you are using Ubuntu or Debian, use the requirements-apt.sh script.
+The Clixon Python API has no dependencies outside the Python standard library (Python 3.11 or later).
+
+Install the Clixon Python API:
+
+```
+./install.sh
+```
+
+## Running the tests
 
 Pip:
 
 ```
-$ pip3 install -r requirements.txt
+$ pip3 install -r requirements-test.txt
+$ pytest
 ```
 
-Ubuntu or Debian:
+Ubuntu or Debian (installs the build and test tools):
 
 ```
 $ ./requirements-apt.sh
-```
-
-Then install the Clixon Python API:
-
-```
-./install.sh
 ```
 
 ## License
