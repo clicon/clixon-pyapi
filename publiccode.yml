@@ -1,4 +1,4 @@
-publiccodeYmlVersion: 0.4.0
+publiccodeYmlVersion: '0'
 name: clixon-pyapi
 applicationSuite: Clixon
 url: https://github.com/clicon/clixon-pyapi
@@ -26,6 +26,9 @@ legal:
   license: Apache-2.0
 maintenance:
   type: community
+  contacts:
+    # TODO: add at least one contact (name plus email or affiliation)
+    - name: TODO
 localisation:
   localisationReady: false
   availableLanguages:
