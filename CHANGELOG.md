@@ -1,5 +1,21 @@
 # Clixon Python API Changelog
 
+## 1.9.0
+6 October 2026
+
+### Features
+* Device RPC method now accepts a device-group as input.
+* Apply template method now accepts a device-group as input.
+* PyAPI no longer depends on any packages other than Python core packages.
+
+### Corrected bugs
+* Fix find_modules loading modules from the current working directory due to a missing path prefix in the recursive directory loop.
+* Raise an exception if a module can't be loaded.
+* Fixed workflows.
+* Fixed tests.
+
+**Full Changelog**: https://github.com/clicon/clixon-pyapi/compare/1.8.0...1.9.0
+
 ## 1.8.0
 29 May 2026
 
