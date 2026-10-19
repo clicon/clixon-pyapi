@@ -109,6 +109,20 @@ def test_rpc_subscription_create_user():
     assert root.dumps() == xmlstr
 
 
+def test_rpc_subscription_create_select():
+    """
+    Test the rpc_subscription_create function with an xpath select filter.
+    """
+
+    xmlstr = f"""<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" cl:username="{user}" xmlns:cl="http://clicon.org/lib" message-id="42"><create-subscription xmlns="urn:ietf:params:xml:ns:netmod:notification"><stream>controller-transaction</stream><filter type="xpath" select="controller-transaction"/></create-subscription></rpc>"""
+
+    root = netconf.rpc_subscription_create(
+        "controller-transaction", select="controller-transaction"
+    )
+
+    assert root.dumps() == xmlstr
+
+
 def test_rpc_header_get():
     """
     Test the rpc_header_get function.

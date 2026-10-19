@@ -339,7 +339,8 @@ class Clixon:
         """
 
         enable_transaction_notify = rpc_subscription_create(
-            "controller-transaction", user=self.__user
+            "controller-transaction", user=self.__user,
+            select="controller-transaction"
         )
 
         send(self.__socket, enable_transaction_notify, pp)

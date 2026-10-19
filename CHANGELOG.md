@@ -1,5 +1,15 @@
 # Clixon Python API Changelog
 
+## Unreleased
+
+### Features
+* Transaction notification subscriptions now use an xpath filter
+  `select="controller-transaction"` so that progress notifications on the
+  unified `controller-transaction` stream are filtered out.
+  * This requires a clixon-controller where transaction progress and completion
+    share the `controller-transaction` stream.
+  * `rpc_subscription_create()` takes a new optional `select` argument.
+
 ## 1.9.0
 6 October 2026
 
