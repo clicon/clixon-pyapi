@@ -304,13 +304,19 @@ def rpc_header_get(
 
 
 def rpc_subscription_create(
-    stream: Optional[str] = "services-commit", user: Optional[str] = None
+    stream: Optional[str] = "services-commit",
+    user: Optional[str] = None,
+    select: Optional[str] = "",
 ) -> Element:
     """
     Create a RPC subscription element.
 
     :param stream: Stream name
     :type stream: str
+    :param user: Username
+    :type user: str
+    :param select: XPath filter select, "" matches all notifications
+    :type select: str
     :return: RPC element
     :rtype: Element
 
@@ -335,7 +341,7 @@ def rpc_subscription_create(
     root.rpc.create("create-subscription", attributes=attributes)
     root.rpc.create_subscription.create("stream")
     root.rpc.create_subscription.stream.cdata = stream
-    root.rpc.create_subscription.create("filter", {"type": "xpath", "select": ""})
+    root.rpc.create_subscription.create("filter", {"type": "xpath", "select": select})
 
     return root
 

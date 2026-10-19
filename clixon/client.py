@@ -261,7 +261,9 @@ def enable_transaction_notify(sock: socket, pp: bool) -> None:
 
     """
 
-    rpc = rpc_subscription_create("controller-transaction")
+    rpc = rpc_subscription_create(
+        "controller-transaction", select="controller-transaction"
+    )
     send(sock, rpc, pp)
     data = read(sock, pp)
 
