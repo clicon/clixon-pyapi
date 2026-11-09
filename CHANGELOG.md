@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Features
+* Faster handling of large messages.
+  * `rpc_error_get()` no longer parses replies that are well formed at a glance
+    and contain no error markers. Previously every reply, including a full
+    `get-config`, was parsed once just to look for errors.
+  * `sock.read()` and `sock.send()` no longer copy the message on every chunk,
+    and debug output is only built when debug logging is enabled.
 * New `--profile [FILE]` option for `clixon_server.py` runs the server under
   cProfile and writes the stats to FILE (default `/tmp/clixon_server.prof`) on
   exit, including on SIGTERM.

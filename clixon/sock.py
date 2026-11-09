@@ -1,3 +1,4 @@
+import logging
 import re
 import select
 import socket
@@ -55,10 +56,10 @@ def read(
     :rtype: str
     """
 
-    data = b""
+    data = bytearray()
     chunk_len = 0
 
-    re_chunk_size = r"\n#(\d+)\n"
+    re_chunk_size = re.compile(rb"\n#(\d+)\n")
 
     while True:
         readable, _, _ = select.select([sock], [], [])
@@ -67,12 +68,12 @@ def read(
             continue
 
         if not chunk_len:
-            chunk_len = re.search(re_chunk_size, data.decode())
+            chunk_len = re_chunk_size.search(data)
 
             if chunk_len:
                 chunk_len = int(chunk_len.group(1))
                 logger.debug(f"Found chunk length: {chunk_len}")
-                data = b""
+                data = bytearray()
             else:
                 tmpdata = sock.recv(1)
 
@@ -87,14 +88,16 @@ def read(
                 break
 
     if data[-3:] == b"\n##":
-        data = data[:-3]
+        del data[-3:]
 
-    if isinstance(data, bytes):
-        data = data.decode()
+    data = data.decode()
 
-    logger.debug("Read:")
-    logger.debug(f"  len={chunk_len}")
-    logger.debug("  data=" + dump_string(data, pp=pp))
+    # Only build the debug output when it will be logged, formatting a large
+    # message is expensive.
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Read:")
+        logger.debug(f"  len={chunk_len}")
+        logger.debug("  data=" + dump_string(data, pp=pp))
 
     return data
 
@@ -128,7 +131,7 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
     frame_header = frame_start + str(datalen).encode() + b"\n"
     framelen = len(frame_header) + datalen + len(frame_end)
 
-    frame = frame_header + data + frame_end
+    frame = memoryview(frame_header + data + frame_end)
 
     sent = 0
     sent_total = 0
@@ -146,9 +149,10 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
         sent = int(sock.send(frame[sent_total:]))
         sent_total += sent
 
-    logger.debug("Send:")
-    logger.debug(f"  len={framelen}")
-    logger.debug("  data=" + dump_string(data, pp=pp))
-    logger.debug(f"  sent={sent_total}")
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Send:")
+        logger.debug(f"  len={framelen}")
+        logger.debug("  data=" + dump_string(data, pp=pp))
+        logger.debug(f"  sent={sent_total}")
 
     return sent_total

@@ -1,4 +1,5 @@
 import getpass
+import re
 import sys
 
 from enum import Enum
@@ -346,6 +347,17 @@ def rpc_subscription_create(
     return root
 
 
+# Substrings that make rpc_error_get() look closer at a reply.
+ERROR_MARKERS = (
+    "reason",
+    "error-message",
+    "error-path",
+    "non-unique",
+    "rpc-error",
+    "<result>FAILED</result>",
+)
+
+
 def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     """
     Parse the XML string and raise an exception if an error is found.
@@ -358,6 +370,19 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     :rtype: None
 
     """
+
+    # Parsing a large reply is expensive. Everything below is decided by the
+    # markers in ERROR_MARKERS, so a reply that is well formed at a glance and
+    # has none of them is accepted without being parsed.
+    stripped = xmlstr.rstrip("\x00 \r\n\t")
+    root_tag = re.match(r"<([\w:.-]+)", stripped)
+
+    if (
+        root_tag
+        and (stripped.endswith(f"</{root_tag.group(1)}>") or stripped.endswith("/>"))
+        and not any(marker in xmlstr for marker in ERROR_MARKERS)
+    ):
+        return None
 
     try:
         root = parse_string(xmlstr)

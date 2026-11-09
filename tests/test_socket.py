@@ -52,3 +52,30 @@ def test_send(mock_socket, mock_select):
     send(sock, "\n#20\n<test><data/></test>\n##\n")
     mock_socket_instance.send.assert_called()
     mock_select.assert_called()
+
+
+def test_send_read_roundtrip_large_message():
+    """
+    Test that a message much larger than the socket buffer survives send and
+    read, including partial sends.
+    """
+
+    import socket
+    import threading
+
+    from clixon.sock import read, send
+
+    a, b = socket.socketpair()
+    payload = "<rpc>" + "<x>é</x>" * 600000 + "</rpc>"
+    received = []
+
+    reader = threading.Thread(target=lambda: received.append(read(b)))
+    reader.start()
+
+    send(a, payload)
+    reader.join(timeout=30)
+
+    a.close()
+    b.close()
+
+    assert received == [payload]

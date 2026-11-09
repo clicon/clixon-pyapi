@@ -556,3 +556,34 @@ def test_rpc_config_set_with_services_and_devices():
     root = netconf.rpc_config_set(config)
 
     assert root.dumps() == xmlstr
+
+
+def test_rpc_error_get_skips_parsing_clean_reply(monkeypatch):
+    """
+    A well formed reply without error markers is not parsed.
+    """
+
+    def fail(*args, **kwargs):
+        raise AssertionError("parse_string should not be called")
+
+    monkeypatch.setattr(netconf, "parse_string", fail)
+
+    netconf.rpc_error_get("<rpc-reply><data><a>1</a></data></rpc-reply>\x00")
+
+
+def test_rpc_error_get_truncated_reply_is_an_error():
+    with pytest.raises(netconf.RPCError):
+        netconf.rpc_error_get("<rpc-reply><data><a>1</a>")
+
+
+@pytest.mark.parametrize(
+    "xmlstr",
+    [
+        "<rpc-reply><rpc-error><error-message>boom</error-message></rpc-error></rpc-reply>",
+        "<rpc-reply><rpc-error><error-tag>x</error-tag><error-message>y</error-message></rpc-error></rpc-reply>",
+        "<notification xmlns='x'><controller-transaction><result>FAILED</result><reason>bad</reason></controller-transaction></notification>",
+    ],
+)
+def test_rpc_error_get_still_raises(xmlstr):
+    with pytest.raises(netconf.RPCError):
+        netconf.rpc_error_get(xmlstr)
