@@ -275,11 +275,18 @@ class Clixon:
 
                 self.__handle_errors(data)
 
-                if "notification" in data and "SUCCESS" in data:
+                # Ignore controller-transaction-progress notifications, only
+                # the final controller-transaction notification is authoritative.
+                is_final = (
+                    "notification" in data
+                    and "<controller-transaction-progress" not in data
+                )
+
+                if is_final and "SUCCESS" in data:
                     self.__handle_errors(data)
 
                     return data
-                elif "notification" in data and "FAILED" in data:
+                elif is_final and "FAILED" in data:
                     raise TransactionError("Transaction failed")
 
                 idx += 1
