@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Features
+* New `--profile [FILE]` option for `clixon_server.py` runs the server under
+  cProfile and writes the stats to FILE (default `/tmp/clixon_server.prof`) on
+  exit, including on SIGTERM.
 * Transaction notification subscriptions now use an xpath filter
   `select="controller-transaction"` so that progress notifications on the
   unified `controller-transaction` stream are filtered out.

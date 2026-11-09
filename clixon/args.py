@@ -92,6 +92,7 @@ def parse_args(cli_args: Optional = None) -> tuple:
     default_sockpath = "/usr/local/var/run/controller/controller.sock"
     default_pidfile = "/usr/local/var/run/controller/clixon_server.pid"
     default_log = "s"
+    default_profile = "/tmp/clixon_server.prof"
     conf_mpath = None
 
     parser = argparse.ArgumentParser(description="clixon PyAPI")
@@ -121,6 +122,15 @@ def parse_args(cli_args: Optional = None) -> tuple:
         choices=["s", "o"],
         default=default_log,
         help="Log on (s)yslog, std(o)ut",
+    )
+    parser.add_argument(
+        "--profile",
+        nargs="?",
+        const=default_profile,
+        default=None,
+        metavar="FILE",
+        help=f"Profile with cProfile and write stats to FILE on exit "
+        f"(default: {default_profile})",
     )
     parser.add_argument("-V", "--version", action="store_true", help="Print version")
     parser.add_argument("remaining", nargs=argparse.REMAINDER)
