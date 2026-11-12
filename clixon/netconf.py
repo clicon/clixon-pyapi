@@ -411,6 +411,14 @@ def rpc_error_get(xmlstr: str, standalone: Optional[bool] = False) -> None:
     elif "error-message" in xmlstr:
         try:
             message = str(root.rpc_reply.rpc_error.error_message.cdata)
+            try:
+                bad_element = str(
+                    root.rpc_reply.rpc_error.error_info.bad_element.cdata
+                )
+                message = f"{message} (bad-element: {bad_element})"
+            except AttributeError:
+                pass
+
             if standalone:
                 logger.error(message)
                 sys.exit(1)

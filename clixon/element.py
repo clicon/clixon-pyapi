@@ -413,38 +413,65 @@ class Element:
 
         Return the XML string of the element and its children.
 
+        :param modified: Mark modified direct children with a comment.
+        :type modified: bool
         :return: The XML string of the element and its children.
         :rtype: str
 
         """
 
-        xmlstr = ""
-        attr_string = ""
+        parts = []
+        self._dumps_children(parts, modified)
 
-        for child in self.get_elements():
-            name = child.origname()
-            cdata = child.cdata
+        return "".join(parts)
 
-            attr_string = ""
-            attr_string = child.get_attributes_str()
+    def _dumps_children(self, parts: list, modified: bool) -> None:
+        """
+        Append the XML of the children of the element to parts.
 
-            if child.get_elements() != [] or child.cdata != "":
-                xmlstr += f"<{name}{attr_string}>"
+        All the output is collected in one list that is joined once by
+        dumps(), which avoids copying the growing string at every level.
+        The modified comment is only added for the direct children, as in
+        earlier versions.
+
+        :param parts: List to append the XML fragments to.
+        :type parts: list
+        :param modified: Mark modified children with a comment.
+        :type modified: bool
+        :return: None
+        :rtype: None
+
+        """
+
+        append = parts.append
+
+        for child in self._children:
+            name = child._name if child._origname == "" else child._origname
+
+            attributes = child.attributes
+            if attributes:
+                attr_string = "".join([f' {k}="{v}"' for k, v in attributes.items()])
             else:
-                xmlstr += f"<{name}{attr_string}/>"
+                attr_string = ""
 
-            if cdata != "":
-                xmlstr += cdata
+            cdata = child.cdata
+            children = child._children
 
-            xmlstr += child.dumps()
+            if children or cdata != "":
+                append(f"<{name}{attr_string}>")
 
-            if child.get_elements() != [] or child.cdata != "":
-                xmlstr += f"</{name}>"
+                if cdata != "":
+                    append(cdata)
 
-                if child._modified and modified:
-                    xmlstr += " <!-- modified -->"
+                if children:
+                    child._dumps_children(parts, False)
 
-        return xmlstr
+                append(f"</{name}>")
+
+                if modified and child._modified:
+                    append(" <!-- modified -->")
+            else:
+                append(f"<{name}{attr_string}/>")
 
     def dumps_pp(self, modified: Optional[bool] = False) -> str:
         """

@@ -1,3 +1,4 @@
+from clixon.element import Element
 from clixon.parser import parse_string
 
 xml = """
@@ -369,3 +370,42 @@ def test_element_replace():
     assert "This one should be replaced!" not in root.xml.dumps()
     assert "This one should still be there." in root.xml.dumps()
     assert "I am the new one!" in root.xml.dumps()
+
+
+def test_dumps_attributes_cdata_and_empty_elements():
+    root = Element("root")
+    a = root.create("a", attributes={"xmlns": "urn:x", "k": "v"})
+    a.create("b", data="text")
+    a.create("empty")
+    root.create("c", data="only-cdata")
+
+    assert root.dumps() == (
+        '<a xmlns="urn:x" k="v"><b>text</b><empty/></a><c>only-cdata</c>'
+    )
+
+
+def test_dumps_uses_original_name():
+    root = Element("root")
+    child = root.create("my-name")
+
+    assert child.get_name() == "my_name"
+    assert root.dumps() == "<my-name/>"
+
+
+def test_dumps_modified_comment_only_on_direct_children():
+    root = Element("root")
+    a = root.create("a")
+    a.create("b", data="x")
+    a._modified = True
+    a.b._modified = True
+
+    assert root.dumps(modified=True) == "<a><b>x</b></a> <!-- modified -->"
+    assert root.dumps() == "<a><b>x</b></a>"
+
+
+def test_dumps_does_not_share_state_between_calls():
+    root = Element("root")
+    root.create("a").create("b")
+
+    assert root.dumps() == root.dumps() == "<a><b/></a>"
+    assert root.a.dumps() == "<b/>"

@@ -5,7 +5,7 @@ import socket
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
-from clixon.exceptions import TransactionError
+from clixon.exceptions import RPCError, TransactionError
 from clixon.helpers import get_path, timeout
 from clixon.netconf import (
     rpc_apply_template,
@@ -161,7 +161,9 @@ class Clixon:
 
             except Exception as e:
                 logger.error(f"Got exception from Clixon.__exit__: {e}")
-                raise Exception(f"{e}")
+                if isinstance(e, RPCError):
+                    raise
+                raise Exception(f"{e}") from e
 
         if not self.__from_server:
             try:

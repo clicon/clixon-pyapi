@@ -7,6 +7,9 @@
   * `rpc_error_get()` no longer parses replies that are well formed at a glance
     and contain no error markers. Previously every reply, including a full
     `get-config`, was parsed once just to look for errors.
+  * `Element.dumps()` builds the output in one list that is joined once
+    instead of concatenating strings at every level, and no longer calls
+    several helper methods per element. The output is unchanged.
   * `sock.read()` and `sock.send()` no longer copy the message on every chunk,
     and debug output is only built when debug logging is enabled.
 * New `--profile [FILE]` option for `clixon_server.py` runs the server under
