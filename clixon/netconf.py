@@ -4,6 +4,7 @@ import sys
 from enum import Enum
 from typing import Optional
 from xml.sax._exceptions import SAXParseException
+from xml.sax.saxutils import escape
 
 from clixon.args import get_logger
 from clixon.element import Element
@@ -42,6 +43,7 @@ def rpc_config_get(
     source: Optional[str] = "actions",
     xpath: Optional[str] = "/",
     namespaces: Optional[dict] = None,
+    with_defaults: Optional[str] = "report-all",
 ):
     """
     Create a get-config RPC element with optional xpath filter.
@@ -50,6 +52,9 @@ def rpc_config_get(
     :param source: Source of config ('actions' by default)
     :param xpath: XPath string to filter config (default '/')
     :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
+    :param with_defaults: RFC 6243 with-defaults mode ('report-all', 'trim',
+        'explicit' or 'report-all-tagged'). Default 'report-all'. Set to None
+        to omit the with-defaults element.
     :return: RPC element for NETCONF get-config
     """
     attributes = {}
@@ -63,7 +68,9 @@ def rpc_config_get(
             xpath = xpath.replace(f"/{elem}", f"/{CONTROLLER_NS_PREFIX}:{elem}", 1)
             break
 
-    xpath_attributes = {"nc:type": "xpath", "nc:select": xpath}
+    # Element.dumps() does not escape attribute values
+    select = escape(xpath, {'"': "&quot;"})
+    xpath_attributes = {"nc:type": "xpath", "nc:select": select}
 
     # Default namespaces for xpath - always include clixon-controller
     default_namespaces = {
@@ -87,6 +94,15 @@ def rpc_config_get(
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(source, attributes=attributes)
     root.rpc.get_config.create("nc:filter", attributes=xpath_attributes)
+
+    if with_defaults:
+        root.rpc.get_config.create(
+            "with-defaults",
+            attributes={
+                "xmlns": "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
+            },
+            data=with_defaults,
+        )
 
     return root
 

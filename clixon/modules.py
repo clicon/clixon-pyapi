@@ -14,6 +14,128 @@ from clixon.exceptions import ModuleError
 logger = get_logger()
 
 
+def _xpath_literal(value: str) -> str:
+    """
+    Quote a string as an XPath literal.
+
+    :param value: String to quote
+    :type value: str
+    :return: Quoted XPath literal
+    :rtype: str
+
+    """
+
+    if "'" not in value:
+        return f"'{value}'"
+
+    return f'"{value}"'
+
+
+def service_instance_xpath(service_name: str, instance: str) -> str:
+    """
+    Return an XPath selecting a service instance under /services.
+
+    Uses local-name() so the service module's namespace does not need to be
+    known.
+
+    :param service_name: Service name, optionally prefixed (e.g. "ssh-users")
+    :type service_name: str
+    :param instance: Service instance name
+    :type instance: str
+    :return: XPath expression
+    :rtype: str
+
+    """
+
+    name = service_name.split(":")[-1]
+
+    return (
+        f"/ctrl:services/*[local-name()={_xpath_literal(name)}]"
+        f"[*[local-name()='service-name']={_xpath_literal(instance)}]"
+    )
+
+
+def get_service_xpaths(cd: Clixon, service_name: str, instance: str) -> List[str]:
+    """
+    Return the xpaths configured under service-xpaths for a service instance.
+
+    :param cd: Clixon object
+    :type cd: Clixon
+    :param service_name: Service name
+    :type service_name: str
+    :param instance: Service instance name
+    :type instance: str
+    :return: List of xpaths, empty if none are configured
+    :rtype: List[str]
+
+    """
+
+    xpath = (
+        service_instance_xpath(service_name, instance)
+        + "/*[local-name()='service-xpaths']/*[local-name()='xpath']"
+    )
+
+    # report-all so xpaths given as YANG defaults are returned too
+    root = cd.get_root(xpath=xpath, with_defaults="report-all")
+
+    if root is None:
+        return []
+
+    xpaths = []
+    for service_xpaths in root.findall("service-xpaths"):
+        for element in service_xpaths.get_elements(name="xpath"):
+            value = element.get_data()
+            if value and value.strip() and value.strip() not in xpaths:
+                xpaths.append(value.strip())
+
+    return xpaths
+
+
+def get_module_root(
+    cd: Clixon,
+    module: object,
+    service_name: Optional[str] = None,
+    instance: Optional[str] = None,
+) -> object:
+    """
+    Fetch the configuration a module should operate on.
+
+    If the service instance has service-xpaths/xpath configured, only those
+    xpaths plus the service instance itself are fetched. Otherwise the module's
+    SERVICE_XPATH is used if set, else the whole configuration.
+
+    :param cd: Clixon object
+    :type cd: Clixon
+    :param module: Service module
+    :type module: object
+    :param service_name: Service name
+    :type service_name: Optional[str]
+    :param instance: Service instance name
+    :type instance: Optional[str]
+    :return: Root object
+    :rtype: object
+
+    """
+
+    namespaces = getattr(module, "SERVICE_NAMESPACES", None)
+
+    if service_name and instance:
+        xpaths = get_service_xpaths(cd, service_name, instance)
+
+        if xpaths:
+            xpaths.append(service_instance_xpath(service_name, instance))
+            xpath = " | ".join(xpaths)
+
+            logger.debug(f"Using service-xpaths for {service_name}/{instance}: {xpath}")
+
+            return cd.get_root(xpath=xpath, namespaces=namespaces)
+
+    if getattr(module, "SERVICE_XPATH", None) and namespaces is not None:
+        return cd.get_root(xpath=module.SERVICE_XPATH, namespaces=namespaces)
+
+    return cd.get_root()
+
+
 def run_hooks(
     socket,
     modules: List,
@@ -54,24 +176,7 @@ def run_hooks(
             try:
                 logger.info(f"Running hooks for module {module}")
 
-                root = cd.get_root()
-
-                # Get the SERVICE_PATH
-                get_root_xpath = None
-                get_root_namespaces = None
-
-                if hasattr(module, "SERVICE_XPATH") and hasattr(
-                    module, "SERVICE_NAMESPACES"
-                ):
-                    get_root_xpath = module.SERVICE_XPATH
-                    get_root_namespaces = module.SERVICE_NAMESPACES
-
-                if get_root_xpath:
-                    root = cd.get_root(
-                        xpath=get_root_xpath, namespaces=get_root_namespaces
-                    )
-                else:
-                    root = cd.get_root()
+                root = get_module_root(cd, module, service_name, instance)
 
                 match result:
                     case "pre-commit":
@@ -150,22 +255,7 @@ def run_modules(
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
 
-                # Get the SERVICE_PATH
-                get_root_xpath = None
-                get_root_namespaces = None
-
-                if hasattr(module, "SERVICE_XPATH") and hasattr(
-                    module, "SERVICE_NAMESPACES"
-                ):
-                    get_root_xpath = module.SERVICE_XPATH
-                    get_root_namespaces = module.SERVICE_NAMESPACES
-
-                if get_root_xpath:
-                    root = cd.get_root(
-                        xpath=get_root_xpath, namespaces=get_root_namespaces
-                    )
-                else:
-                    root = cd.get_root()
+                root = get_module_root(cd, module, service_name, instance)
 
                 module.setup(root, logger, instance=instance, diff=service_diff)
             except Exception as e:

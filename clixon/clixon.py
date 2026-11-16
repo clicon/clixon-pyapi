@@ -216,6 +216,7 @@ class Clixon:
         path: Optional[str] = None,
         xpath: Optional[str] = "/",
         namespaces: Optional[dict] = None,
+        with_defaults: Optional[str] = "report-all",
     ) -> object:
         """
         Return the root object or a specific element, with optional server-side filtering.
@@ -233,6 +234,8 @@ class Clixon:
         :type xpath: Optional[str]
         :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
         :type namespaces: Optional[dict]
+        :param with_defaults: RFC 6243 with-defaults mode (default 'report-all'). None omits it.
+        :type with_defaults: Optional[str]
         :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
@@ -240,7 +243,11 @@ class Clixon:
         logger.debug("Updating root object")
 
         config = rpc_config_get(
-            user=self.__user, source=self.__source, xpath=xpath, namespaces=namespaces
+            user=self.__user,
+            source=self.__source,
+            xpath=xpath,
+            namespaces=namespaces,
+            with_defaults=with_defaults,
         )
 
         send(self.__socket, config, pp)
