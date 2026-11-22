@@ -542,6 +542,39 @@ def rpc_apply_service(
     return root
 
 
+def rpc_commit_diff(
+    device: Optional[str] = "*", user: Optional[str] = None
+) -> Element:
+    """
+    Create a RPC controller-commit element that runs the actions for the
+    candidate but neither commits nor pushes, the same RPC as the CLI
+    "commit diff". Follow it with rpc_datastore_diff() to read the result.
+
+    :param device: Device name pattern
+    :type device: str
+    :param user: User name
+    :type user: str
+    :return: RPC element
+    :rtype: Element
+
+    """
+
+    if not user:
+        BASE_ATTRIBUTES["username"] = getpass.getuser()
+    else:
+        BASE_ATTRIBUTES["username"] = user
+
+    root = Element()
+    root.create("rpc", attributes=BASE_ATTRIBUTES)
+    root.rpc.create("controller-commit", attributes=CONTROLLER_NS)
+    root.rpc.controller_commit.create("device", data=device)
+    root.rpc.controller_commit.create("push", data="NONE")
+    root.rpc.controller_commit.create("actions", data="CHANGE")
+    root.rpc.controller_commit.create("source", data="ds:candidate")
+
+    return root
+
+
 def rpc_datastore_diff(
     device: Optional[str] = "*",
     compare: Optional[bool] = False,

@@ -12,6 +12,7 @@ from clixon.netconf import (
     rpc_apply_service,
     rpc_close_session,
     rpc_commit,
+    rpc_commit_diff,
     rpc_config_get,
     rpc_config_set,
     rpc_connection_open,
@@ -591,6 +592,38 @@ class Clixon:
         data = self.__strip_rpc_reply(data)
 
         return data
+
+    def commit_diff(self, device: Optional[str] = "*") -> str:
+        """
+        Run the actions for the candidate without committing or pushing and
+        return the resulting per-device diff, as the CLI "commit diff" does.
+
+        The diff is the same text apply_service(diff=True) returns: for each
+        device a "<device>:" line followed by the XML diff of running against
+        the result of the actions. Nothing is committed.
+
+        :param device: Device name pattern
+        :type device: str
+        :return: Diff, empty if there are no changes
+        :rtype: str
+
+        """
+
+        if not self.__transaction_notify:
+            self.__enable_transaction_notify()
+
+        rpc_diff_commit = rpc_commit_diff(device, user=self.__user)
+        send(self.__socket, rpc_diff_commit, pp)
+
+        self.__wait_for_notification()
+
+        rpc_diff = rpc_datastore_diff(device=device, user=self.__user)
+        send(self.__socket, rpc_diff, pp)
+        data = read(self.__socket, pp, standalone=self.__standalone)
+
+        self.__handle_errors(data)
+
+        return self.__strip_rpc_reply(data)
 
     def show_compare(self, set_root: Optional[bool] = False) -> str:
         """
