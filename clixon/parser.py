@@ -27,7 +27,34 @@ class Handler(handler.ContentHandler):
         self.root.is_root = True
         self.elements = []
         self.last_cdata = ""
+        self._text = ""
         self._parent = None
+
+    def _flush_text(self) -> None:
+        """
+        Add the text collected since the last tag to the current element.
+
+        Expat hands over text one line at a time, so the line breaks are only
+        kept if the text is collected and decided on as a whole. Text that is
+        only whitespace is the indentation between elements and is dropped.
+        """
+
+        text, self._text = self._text, ""
+
+        if len(self.elements) == 0 or text.strip() == "":
+            return
+
+        if text.startswith("\n"):
+            text = text[1:]
+
+        if text.endswith("\n"):
+            text = text[:-1]
+
+        # Escape special characters
+        text = text.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
+
+        self.elements[-1].cdata += text
+        self.last_cdata = text
 
     def startElement(self, name: str, attributes: str) -> None:
         """
@@ -41,6 +68,8 @@ class Handler(handler.ContentHandler):
         :rtype: None
 
         """
+
+        self._flush_text()
 
         attrs = {}
         for k, v in attributes.items():
@@ -67,6 +96,8 @@ class Handler(handler.ContentHandler):
 
         """
 
+        self._flush_text()
+
         self.elements.pop()
         self.last_cdata = ""
 
@@ -81,20 +112,7 @@ class Handler(handler.ContentHandler):
 
         """
 
-        if cdata.startswith("\n"):
-            cdata = cdata[1:]
-
-        if cdata.endswith("\n"):
-            cdata = cdata[:-1]
-
-        if cdata.isspace() and self.last_cdata == "":
-            return
-
-        # Escape special characters
-        cdata = cdata.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
-
-        self.elements[-1].cdata += cdata
-        self.last_cdata = cdata
+        self._text += cdata
 
 
 def parse_file(filename: str) -> Element:
