@@ -222,3 +222,39 @@ def test_delete_create():
     root.foo.bar.delete()
 
     assert root.dumps() == """<foo/>"""
+
+
+def test_multiline_cdata():
+    """
+    Test that line breaks and indentation inside text are kept, and that the
+    indentation between elements is not.
+    """
+
+    xmlstr = (
+        "<rpc-reply>\n"
+        "    <output>\n"
+        "Hostname: r1\n"
+        "  Model: mx204\n"
+        "\n"
+        "Uptime: 1 day\n"
+        "</output>\n"
+        "    <other>  test  </other>\n"
+        "</rpc-reply>"
+    )
+
+    root = parse_string(xmlstr)
+    reply = root.get_elements()[0]
+
+    assert reply.cdata == ""
+    assert reply.output.cdata == "Hostname: r1\n  Model: mx204\n\nUptime: 1 day"
+    assert reply.other.cdata == "  test  "
+
+
+def test_multiline_cdata_escaped():
+    """
+    Test that special characters are escaped in text that spans several lines.
+    """
+
+    root = parse_string("<output>a &amp; b\n&lt;c&gt;\nd</output>")
+
+    assert root.get_elements()[0].cdata == "a &amp; b\n&lt;c&gt;\nd"
