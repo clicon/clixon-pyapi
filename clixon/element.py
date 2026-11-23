@@ -45,7 +45,39 @@ def _xml_to_dict(node: minidom.Element) -> Any:
     return result
 
 
+def mark_truncated(root: "Element", depth: int) -> None:
+    """
+    Mark the elements a depth-limited get-config may have cut off.
+
+    With a depth limit the backend returns the elements at the last level
+    without their children, so a list entry comes back without its keys and
+    a container comes back empty. Leaves at that level keep their values.
+    Empty elements at the last level are marked so that they are not written
+    back, where a list entry without keys would be rejected.
+
+    :param root: The <data> element of the reply. Its children are level 1.
+    :type root: Element
+    :param depth: The depth used in the get-config
+    :type depth: int
+    :return: None
+    :rtype: None
+
+    """
+
+    level = [root]
+
+    for _ in range(depth):
+        level = [child for element in level for child in element._children]
+
+    for element in level:
+        if not element._children and element.cdata == "":
+            element._truncated = True
+
+
 class Element:
+    # Set by mark_truncated() on elements that may be missing content
+    _truncated = False
+
     def __init__(
         self,
         name: Optional[str] = "root",
@@ -456,6 +488,10 @@ class Element:
 
             cdata = child.cdata
             children = child._children
+
+            # Cut off by a depth-limited get-config and not filled in since
+            if child._truncated and not children and cdata == "":
+                continue
 
             if children or cdata != "":
                 append(f"<{name}{attr_string}>")

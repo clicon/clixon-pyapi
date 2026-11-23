@@ -5,6 +5,7 @@ import socket
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
+from clixon.element import mark_truncated
 from clixon.exceptions import RPCError, TransactionError
 from clixon.helpers import get_path, timeout
 from clixon.netconf import (
@@ -218,6 +219,7 @@ class Clixon:
         path: Optional[str] = None,
         xpath: Optional[str] = "/",
         namespaces: Optional[dict] = None,
+        depth: Optional[int] = None,
     ) -> object:
         """
         Return the root object or a specific element, with optional server-side filtering.
@@ -235,6 +237,9 @@ class Clixon:
         :type xpath: Optional[str]
         :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
         :type namespaces: Optional[dict]
+        :param depth: Number of XML levels to fetch, counted from the top of the tree (optional).
+            Elements cut off at the last level are not written back.
+        :type depth: Optional[int]
         :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
@@ -242,7 +247,11 @@ class Clixon:
         logger.debug("Updating root object")
 
         config = rpc_config_get(
-            user=self.__user, source=self.__source, xpath=xpath, namespaces=namespaces
+            user=self.__user,
+            source=self.__source,
+            xpath=xpath,
+            namespaces=namespaces,
+            depth=depth,
         )
 
         send(self.__socket, config, pp)
@@ -250,6 +259,9 @@ class Clixon:
 
         self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
+
+        if depth is not None:
+            mark_truncated(self.__root, depth)
 
         if path:
             return get_path(self.__root, path)

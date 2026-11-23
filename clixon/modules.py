@@ -14,6 +14,80 @@ from clixon.exceptions import ModuleError
 logger = get_logger()
 
 
+def get_service_depth(module: object) -> Optional[int]:
+    """
+    Return the module's SERVICE_DEPTH, or None if it is not set.
+
+    :param module: Service module
+    :type module: object
+    :return: Depth, a positive integer, or None
+    :rtype: Optional[int]
+    :raises ValueError: If SERVICE_DEPTH is not a positive integer
+
+    """
+
+    depth = getattr(module, "SERVICE_DEPTH", None)
+
+    if depth is None:
+        return None
+
+    if isinstance(depth, bool) or not isinstance(depth, int) or depth < 1:
+        raise ValueError(
+            f"SERVICE_DEPTH in {module} must be a positive integer, got {depth!r}"
+        )
+
+    return depth
+
+
+def get_module_root(cd: Clixon, module: object) -> object:
+    """
+    Fetch the configuration a module should operate on.
+
+    If the module sets both SERVICE_XPATH and SERVICE_NAMESPACES, only that
+    xpath is fetched, otherwise the whole configuration.
+
+    If the module sets SERVICE_DEPTH, the configuration is fetched with that
+    depth, counted from the top of the tree (devices and services are level
+    1). /services is always fetched in full, whatever the depth.
+
+    :param cd: Clixon object
+    :type cd: Clixon
+    :param module: Service module
+    :type module: object
+    :return: Root object
+    :rtype: object
+
+    """
+
+    depth = get_service_depth(module)
+    xpath = None
+    namespaces = None
+
+    if hasattr(module, "SERVICE_XPATH") and hasattr(module, "SERVICE_NAMESPACES"):
+        xpath = module.SERVICE_XPATH
+        namespaces = module.SERVICE_NAMESPACES
+
+    if depth is None:
+        if xpath:
+            return cd.get_root(xpath=xpath, namespaces=namespaces)
+
+        return cd.get_root()
+
+    logger.debug(f"Using SERVICE_DEPTH {depth} for {module}")
+
+    # Fetched first: the tree from the last get_root() is the one written back
+    services = cd.get_root(xpath="/services")
+    root = cd.get_root(xpath=xpath or "/", namespaces=namespaces, depth=depth)
+
+    for element in root.get_elements("services"):
+        root.delete(element=element)
+
+    for element in services.get_elements("services"):
+        root.add(element)
+
+    return root
+
+
 def run_hooks(
     socket,
     modules: List,
@@ -54,24 +128,7 @@ def run_hooks(
             try:
                 logger.info(f"Running hooks for module {module}")
 
-                root = cd.get_root()
-
-                # Get the SERVICE_PATH
-                get_root_xpath = None
-                get_root_namespaces = None
-
-                if hasattr(module, "SERVICE_XPATH") and hasattr(
-                    module, "SERVICE_NAMESPACES"
-                ):
-                    get_root_xpath = module.SERVICE_XPATH
-                    get_root_namespaces = module.SERVICE_NAMESPACES
-
-                if get_root_xpath:
-                    root = cd.get_root(
-                        xpath=get_root_xpath, namespaces=get_root_namespaces
-                    )
-                else:
-                    root = cd.get_root()
+                root = get_module_root(cd, module)
 
                 match result:
                     case "pre-commit":
@@ -150,22 +207,7 @@ def run_modules(
                 logger.info(f"Running module {module}")
                 logger.debug(f"Module {module} is getting config")
 
-                # Get the SERVICE_PATH
-                get_root_xpath = None
-                get_root_namespaces = None
-
-                if hasattr(module, "SERVICE_XPATH") and hasattr(
-                    module, "SERVICE_NAMESPACES"
-                ):
-                    get_root_xpath = module.SERVICE_XPATH
-                    get_root_namespaces = module.SERVICE_NAMESPACES
-
-                if get_root_xpath:
-                    root = cd.get_root(
-                        xpath=get_root_xpath, namespaces=get_root_namespaces
-                    )
-                else:
-                    root = cd.get_root()
+                root = get_module_root(cd, module)
 
                 module.setup(root, logger, instance=instance, diff=service_diff)
             except Exception as e:
