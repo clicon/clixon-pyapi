@@ -568,3 +568,24 @@ def test_rpc_config_set_with_services_and_devices():
     root = netconf.rpc_config_set(config)
 
     assert root.dumps() == xmlstr
+
+
+def test_rpc_config_get_depth():
+    """
+    Test that depth is sent as the Clixon cl:depth attribute.
+    """
+
+    xmlstr = netconf.rpc_config_get(depth=4).dumps()
+
+    assert '<get-config cl:depth="4" xmlns:cl="http://clicon.org/lib">' in xmlstr
+
+
+def test_rpc_config_get_without_depth():
+    """
+    Test that no depth attribute is sent by default.
+    """
+
+    xmlstr = netconf.rpc_config_get().dumps()
+
+    assert "<get-config>" in xmlstr
+    assert "depth" not in xmlstr

@@ -91,6 +91,31 @@ def get_service_xpaths(cd: Clixon, service_name: str, instance: str) -> List[str
     return xpaths
 
 
+def get_service_depth(module: object) -> Optional[int]:
+    """
+    Return the module's SERVICE_DEPTH, or None if it is not set.
+
+    :param module: Service module
+    :type module: object
+    :return: Depth, a positive integer, or None
+    :rtype: Optional[int]
+    :raises ValueError: If SERVICE_DEPTH is not a positive integer
+
+    """
+
+    depth = getattr(module, "SERVICE_DEPTH", None)
+
+    if depth is None:
+        return None
+
+    if isinstance(depth, bool) or not isinstance(depth, int) or depth < 1:
+        raise ValueError(
+            f"SERVICE_DEPTH in {module} must be a positive integer, got {depth!r}"
+        )
+
+    return depth
+
+
 def get_module_root(
     cd: Clixon,
     module: object,
@@ -103,6 +128,10 @@ def get_module_root(
     If the service instance has service-xpaths/xpath configured, only those
     xpaths plus the service instance itself are fetched. Otherwise the module's
     SERVICE_XPATH is used if set, else the whole configuration.
+
+    If the module sets SERVICE_DEPTH, the configuration is fetched with that
+    depth, counted from the top of the tree (devices and services are level
+    1). /services is always fetched in full, whatever the depth.
 
     :param cd: Clixon object
     :type cd: Clixon
@@ -118,6 +147,8 @@ def get_module_root(
     """
 
     namespaces = getattr(module, "SERVICE_NAMESPACES", None)
+    depth = get_service_depth(module)
+    xpath = None
 
     if service_name and instance:
         xpaths = get_service_xpaths(cd, service_name, instance)
@@ -128,12 +159,28 @@ def get_module_root(
 
             logger.debug(f"Using service-xpaths for {service_name}/{instance}: {xpath}")
 
-            return cd.get_root(xpath=xpath, namespaces=namespaces)
+    if xpath is None and getattr(module, "SERVICE_XPATH", None) and namespaces is not None:
+        xpath = module.SERVICE_XPATH
 
-    if getattr(module, "SERVICE_XPATH", None) and namespaces is not None:
-        return cd.get_root(xpath=module.SERVICE_XPATH, namespaces=namespaces)
+    if depth is None:
+        if xpath is None:
+            return cd.get_root()
 
-    return cd.get_root()
+        return cd.get_root(xpath=xpath, namespaces=namespaces)
+
+    logger.debug(f"Using SERVICE_DEPTH {depth} for {module}")
+
+    # Fetched first: the tree from the last get_root() is the one written back
+    services = cd.get_root(xpath="/services")
+    root = cd.get_root(xpath=xpath or "/", namespaces=namespaces, depth=depth)
+
+    for element in root.get_elements("services"):
+        root.delete(element=element)
+
+    for element in services.get_elements("services"):
+        root.add(element)
+
+    return root
 
 
 def run_hooks(

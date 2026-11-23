@@ -44,6 +44,7 @@ def rpc_config_get(
     xpath: Optional[str] = "/",
     namespaces: Optional[dict] = None,
     with_defaults: Optional[str] = "report-all",
+    depth: Optional[int] = None,
 ):
     """
     Create a get-config RPC element with optional xpath filter.
@@ -55,6 +56,9 @@ def rpc_config_get(
     :param with_defaults: RFC 6243 with-defaults mode ('report-all', 'trim',
         'explicit' or 'report-all-tagged'). Default 'report-all'. Set to None
         to omit the with-defaults element.
+    :param depth: Number of XML levels to return, counted from the top of the
+        returned tree. None (default) returns everything. Uses the Clixon
+        extension attribute cl:depth.
     :return: RPC element for NETCONF get-config
     """
     attributes = {}
@@ -91,6 +95,13 @@ def rpc_config_get(
         attributes = CONTROLLER_NS
 
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
+
+    if depth is not None:
+        root.rpc.get_config.set_attributes(
+            {"cl:depth": str(depth), "xmlns:cl": "http://clicon.org/lib"},
+            modified=False,
+        )
+
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(source, attributes=attributes)
     root.rpc.get_config.create("nc:filter", attributes=xpath_attributes)

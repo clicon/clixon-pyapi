@@ -369,3 +369,47 @@ def test_element_replace():
     assert "This one should be replaced!" not in root.xml.dumps()
     assert "This one should still be there." in root.xml.dumps()
     assert "I am the new one!" in root.xml.dumps()
+
+
+# What the backend returns for get-config with depth 3: the device's leaves
+# keep their values, but config is cut off and the module list entry has no key
+DEPTH_3_REPLY = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><data><devices xmlns="http://clicon.org/controller"><device><name>r1</name><enabled>true</enabled><config></config><module></module></device></devices></data></rpc-reply>"""
+
+
+def test_mark_truncated():
+    """
+    Test that only empty elements at the last level are marked.
+    """
+
+    from clixon.element import mark_truncated
+
+    root = parse_string(DEPTH_3_REPLY).rpc_reply.data
+    mark_truncated(root, 3)
+
+    device = root.devices.device
+
+    assert device._truncated is False
+    assert device.name._truncated is False
+    assert device.config._truncated is True
+    assert device.module._truncated is True
+
+
+def test_dumps_skips_truncated():
+    """
+    Test that cut off elements are not serialized, so they are never written
+    back, unless something has been added to them.
+    """
+
+    from clixon.element import mark_truncated
+
+    root = parse_string(DEPTH_3_REPLY).rpc_reply.data
+    mark_truncated(root, 3)
+
+    assert root.dumps() == (
+        '<devices xmlns="http://clicon.org/controller"><device>'
+        "<name>r1</name><enabled>true</enabled></device></devices>"
+    )
+
+    root.devices.device.config.create("system").create("hostname", data="r1")
+
+    assert "<config><system><hostname>r1</hostname></system></config>" in root.dumps()

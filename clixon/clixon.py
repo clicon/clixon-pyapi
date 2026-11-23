@@ -5,6 +5,7 @@ import socket
 from typing import Optional
 
 from clixon.args import get_arg, get_logger
+from clixon.element import mark_truncated
 from clixon.exceptions import TransactionError
 from clixon.helpers import get_path, timeout
 from clixon.netconf import (
@@ -217,6 +218,7 @@ class Clixon:
         xpath: Optional[str] = "/",
         namespaces: Optional[dict] = None,
         with_defaults: Optional[str] = "report-all",
+        depth: Optional[int] = None,
     ) -> object:
         """
         Return the root object or a specific element, with optional server-side filtering.
@@ -236,6 +238,9 @@ class Clixon:
         :type namespaces: Optional[dict]
         :param with_defaults: RFC 6243 with-defaults mode (default 'report-all'). None omits it.
         :type with_defaults: Optional[str]
+        :param depth: Number of XML levels to fetch, counted from the top of the tree (optional).
+            Elements cut off at the last level are not written back.
+        :type depth: Optional[int]
         :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
@@ -248,6 +253,7 @@ class Clixon:
             xpath=xpath,
             namespaces=namespaces,
             with_defaults=with_defaults,
+            depth=depth,
         )
 
         send(self.__socket, config, pp)
@@ -255,6 +261,9 @@ class Clixon:
 
         self.__handle_errors(data)
         self.__root = parse_string(data).rpc_reply.data
+
+        if depth is not None:
+            mark_truncated(self.__root, depth)
 
         if path:
             return get_path(self.__root, path)
