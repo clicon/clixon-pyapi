@@ -132,6 +132,11 @@ def parse_args(cli_args: Optional = None) -> tuple:
         help=f"Profile with cProfile and write stats to FILE on exit "
         f"(default: {default_profile})",
     )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="Only send the modified parts of the configuration to the backend",
+    )
     parser.add_argument("-V", "--version", action="store_true", help="Print version")
     parser.add_argument("remaining", nargs=argparse.REMAINDER)
     args = parser.parse_args(cli_args)

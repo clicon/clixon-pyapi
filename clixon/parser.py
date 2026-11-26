@@ -48,10 +48,12 @@ class Handler(handler.ContentHandler):
 
         element = Element(name, attrs)
 
+        # Append directly instead of using add(), parsed elements are not
+        # modifications and must not be marked as modified.
         if len(self.elements) > 0:
-            self.elements[-1].add(element)
+            self.elements[-1]._children.append(element)
         else:
-            self.root.add(element)
+            self.root._children.append(element)
 
         element._parent = self.elements[-1] if len(self.elements) > 0 else None
         self.elements.append(element)
@@ -93,7 +95,7 @@ class Handler(handler.ContentHandler):
         # Escape special characters
         cdata = cdata.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
-        self.elements[-1].cdata += cdata
+        self.elements[-1]._cdata += cdata
         self.last_cdata = cdata
 
 
@@ -136,6 +138,8 @@ def parse_string(xmlstr: str):
     parser.setContentHandler(sax_handler)
     parser.parse(StringIO(xmlstr))
 
+    # Mark the top element as modified, so that a parsed tree passed to
+    # set_root() or added to a configuration is sent as a whole.
     sax_handler.root.get_elements()[0]._modified = True
 
     return sax_handler.root

@@ -52,6 +52,7 @@ class Clixon:
         standalone: Optional[bool] = False,
         timeout: Optional[int] = 30,
         from_server: Optional[bool] = False,
+        prune: Optional[bool] = None,
     ) -> None:
         """
         Create a Clixon object.
@@ -72,6 +73,9 @@ class Clixon:
         :type cron: bool
         :param user: User to run as
         :type user: str
+        :param prune: Only send the modified parts of the configuration.
+            Defaults to the --prune command line flag.
+        :type prune: bool
         :return: None
         :rtype: None
         """
@@ -116,6 +120,11 @@ class Clixon:
 
         self.__from_server = from_server
 
+        if prune is None:
+            prune = bool(get_arg("prune"))
+
+        self.__prune = prune
+
     def __enter__(self) -> object:
         """
         Return the root object.
@@ -144,17 +153,14 @@ class Clixon:
             logger.info("Read only mode enabled, skipping config set")
         else:
             try:
-                if self.__root is None:
+                if self.__root is None and self.__prune:
+                    # Nothing was fetched, so nothing can have been modified.
+                    logger.debug("No configuration fetched, skipping config set")
+                elif self.__root is None:
                     self.__root = self.get_root()
 
-                for child in self.__root:
-                    config = rpc_config_set(
-                        child, user=self.__user, target=self.__target
-                    )
-                    send(self.__socket, config, pp)
-                    data = read(self.__socket, pp)
-
-                    self.__handle_errors(data)
+                if self.__root is not None:
+                    self.__config_set(self.__root)
 
                 if self.__commit:
                     self.commit()
@@ -419,16 +425,37 @@ class Clixon:
             logger.info("Read only mode enabled")
             return
 
-        config = rpc_config_set(
-            root, user=self.__user, device=False, target=self.__target
-        )
-
-        send(self.__socket, config, pp)
-        data = read(self.__socket, pp)
-        self.__handle_errors(data)
+        self.__config_set(root)
 
         if self.__commit:
             self.commit()
+
+    def __config_set(self, root: object) -> None:
+        """
+        Send an edit-config with the configuration in root.
+
+        With prune enabled, only the modified parts are sent, and nothing is
+        sent if nothing was modified.
+
+        :param root: Root object
+        :type root: object
+        :return: None
+        :rtype: None
+
+        """
+
+        config = rpc_config_set(
+            root, user=self.__user, target=self.__target, prune=self.__prune
+        )
+
+        if self.__prune and not config.rpc.edit_config.config.get_elements():
+            logger.debug("No modifications found, skipping config set")
+            return
+
+        send(self.__socket, config, pp)
+        data = read(self.__socket, pp)
+
+        self.__handle_errors(data)
 
     def get_logger(self) -> object:
         """

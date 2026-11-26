@@ -87,3 +87,17 @@ def test_usage(mock_print, mock_exit):
 
     parse_args(["--help"])
     mock_exit.assert_called_with(0)
+
+
+def test_parse_args_prune():
+    """
+    Test that --prune is parsed and available with get_arg.
+    """
+
+    from clixon.args import get_arg
+
+    parse_args(["-m", "/tmp", "--prune"])
+    assert get_arg("prune") is True
+
+    parse_args(["-m", "/tmp"])
+    assert get_arg("prune") is False

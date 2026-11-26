@@ -98,9 +98,14 @@ def rpc_config_set(
     device: Optional[bool] = False,
     target: Optional[str] = "actions",
     target_attributes: Optional[dict] = {},
+    prune: Optional[bool] = False,
 ) -> Element:
     """
     Create a RPC config set element.
+
+    With prune, only the modified parts of the configuration are added, see
+    Element.prune(). Without it, all nodes except devices are added whole,
+    and each device with a modification is added whole.
 
     :param config: Configuration to set
     :type config: Element
@@ -112,6 +117,8 @@ def rpc_config_set(
     :type target: str
     :param target_attributes: Target attributes
     :type target_attributes: dict
+    :param prune: Only add the modified parts of the configuration
+    :type prune: bool
     :return: RPC element
     :rtype: Element
 
@@ -130,11 +137,33 @@ def rpc_config_set(
     root.rpc.edit_config.default_operation.cdata = "merge"
     root.rpc.edit_config.create("config")
 
+    if prune:
+        for node in config.get_elements():
+            pruned = node.prune()
+
+            if pruned is None:
+                logger.debug(f"No modifications found in {node.get_name()}")
+                continue
+
+            # Same as without prune, devices is always in the controller
+            # namespace. Use a new element to leave the original untouched.
+            if node.get_name() == "devices" and "xmlns" not in pruned.attributes:
+                devices = Element("devices", CONTROLLER_NS)
+                devices._children = pruned._children
+                pruned = devices
+
+            # Append without add(), which would re-parent elements that are
+            # shared with the caller's tree.
+            root.rpc.edit_config.config._children.append(pruned)
+            logger.debug(f"Added pruned node {node.get_name()} to configuration.")
+
+        return root
+
     for node in config.get_elements():
         if node.get_name() == "devices":
             continue
 
-        root.rpc.edit_config.config.add(node)
+        root.rpc.edit_config.config.add(node, modified=False)
         logger.debug(f"Added node {node.get_name()} to configuration.")
 
     if config.get_elements("devices"):
@@ -147,7 +176,7 @@ def rpc_config_set(
                 logger.debug(
                     f"Modifications found on device {device.name.get_data()}, added to configuration."
                 )
-                root.rpc.edit_config.config.devices.add(device)
+                root.rpc.edit_config.config.devices.add(device, modified=False)
             else:
                 logger.debug(
                     f"No modifications found on device {device.name.get_data()}"

@@ -78,10 +78,12 @@ class Element:
         self._children = []
         self._is_root = False
 
+        # Set the backing field directly, assigning through the cdata property
+        # would mark a freshly created element as modified.
         if data != "":
-            self.cdata = data
+            self._cdata = data
         else:
-            self.cdata = cdata
+            self._cdata = cdata
 
         self._origname = name
 
@@ -97,6 +99,33 @@ class Element:
             self._parent = parent
 
         self._modified = False
+
+    @property
+    def cdata(self) -> str:
+        """
+        The character data of the element.
+
+        :return: The character data.
+        :rtype: str
+
+        """
+
+        return self._cdata
+
+    @cdata.setter
+    def cdata(self, value: str) -> None:
+        """
+        Set the character data of the element and mark it as modified.
+
+        :param value: The character data.
+        :type value: str
+        :return: None
+        :rtype: None
+
+        """
+
+        self._cdata = value
+        self._modified = True
 
     def is_root(self, boolean: bool) -> None:
         """
@@ -147,20 +176,25 @@ class Element:
         :type data: str
         :param element: The element to create.
         :type element: object
-        :return: None
-        :rtype: None
+        :param modified: Mark the new element as modified.
+        :type modified: bool
+        :return: The new element.
+        :rtype: Element
 
         """
 
         if not element:
             element = Element(name, attributes, parent=self)
 
-            self._modified = modified
-
             if data != "":
-                element.cdata = data
+                element._cdata = data
             else:
-                element.cdata = cdata
+                element._cdata = cdata
+
+        # The new element is the change, not its parent. Marking the parent
+        # would make a pruned edit-config resend the parent's whole subtree.
+        if modified:
+            element._modified = True
 
         self._children.append(element)
 
@@ -193,18 +227,24 @@ class Element:
 
         return self._name
 
-    def add(self, element: object) -> None:
+    def add(self, element: object, modified: Optional[bool] = True) -> None:
         """
         Add an element to the children of the element.
 
         :param element: The element to add.
         :type element: object
+        :param modified: Mark the added element as modified. False leaves the
+            element's modification status untouched.
+        :type modified: bool
         :return: None
         :rtype: None
 
         """
 
         element._parent = self
+
+        if modified:
+            element._modified = True
 
         self._children.append(element)
 
@@ -454,7 +494,7 @@ class Element:
             else:
                 attr_string = ""
 
-            cdata = child.cdata
+            cdata = child._cdata
             children = child._children
 
             if children or cdata != "":
@@ -600,6 +640,64 @@ class Element:
         """
 
         return self.get_elements(get_modified_elements=True, recursive=True)
+
+    def prune(self) -> Optional[object]:
+        """
+        Return a copy of the element that only holds the modified parts.
+
+        Meant for building an edit-config with default-operation merge, where
+        leaving out unchanged data has no effect on the result:
+
+        - A modified element is returned whole, with all its children.
+        - An element with a modified descendant is returned as a new shell
+          with the same name and attributes. The shell holds all leaf
+          children, so list keys are always kept, and the pruned version of
+          each child element that has a modified descendant.
+        - An element with nothing modified in it returns None.
+
+        Elements in the result are shared with the original tree, not copied.
+        The original tree is not changed.
+
+        :return: The pruned element, or None if nothing was modified.
+        :rtype: Element
+
+        """
+
+        if self._modified:
+            return self
+
+        if not self._children:
+            return None
+
+        children = []
+        changed = False
+
+        for child in self._children:
+            if not child._children:
+                # Leaves are always kept, they may be list keys.
+                children.append(child)
+
+                if child._modified:
+                    changed = True
+
+                continue
+
+            pruned = child.prune()
+
+            if pruned is not None:
+                children.append(pruned)
+                changed = True
+
+        if not changed:
+            return None
+
+        shell = Element(self._origname, self.attributes)
+        shell._name = self._name
+        shell._cdata = self._cdata
+        shell._parent = self._parent
+        shell._children = children
+
+        return shell
 
     def findall(self, name: str) -> list:
         """

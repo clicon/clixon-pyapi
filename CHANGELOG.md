@@ -21,6 +21,30 @@
   * This requires a clixon-controller where transaction progress and completion
     share the `controller-transaction` stream.
   * `rpc_subscription_create()` takes a new optional `select` argument.
+* New `--prune` option, and `prune` argument to `Clixon()`, only sends the
+  modified parts of the configuration in `edit-config`. Without it a whole
+  device is sent when anything on it changed, and services are always sent.
+  * List keys and other leaves along the path to a change are kept, newly
+    created or added elements are sent whole.
+  * Nothing is sent when nothing was modified, and `Clixon.__exit__` no longer
+    fetches the configuration only to send it back.
+  * Off by default. Leaving out unchanged data has no effect with the `merge`
+    operation used, but this has not yet been verified for `ordered-by user`
+    lists on a live backend.
+  * New `Element.prune()` and `rpc_config_set(prune=...)`.
+
+### Changes
+* Modification tracking is more complete. These changes affect which devices
+  are sent in `edit-config` also without `--prune`:
+  * `Element.create()` marks the new element as modified instead of its parent.
+  * `Element.add()` marks the added element as modified. Pass `modified=False`
+    to leave it untouched.
+  * Assigning `Element.cdata` directly marks the element as modified.
+  * Elements created by the parser are not marked as modified, only the top
+    element of a parsed string is, as before.
+  * Previously a device created with `create()`, or changed only by `add()` of
+    an inner template element or a hand-built leaf, or by assigning `cdata`,
+    was not detected as modified and its changes were not sent.
 
 ## 1.9.0
 6 October 2026
