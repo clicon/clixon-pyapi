@@ -3,7 +3,7 @@ import re
 import select
 import socket
 
-from clixon.args import get_logger
+from clixon.args import get_arg, get_logger
 from clixon.element import Element
 from clixon.parser import dump_string
 from typing import Optional
@@ -97,7 +97,9 @@ def read(
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Read:")
         logger.debug(f"  len={chunk_len}")
-        logger.debug("  data=" + dump_string(data, pp=pp))
+
+        if get_arg("xml"):
+            logger.debug("  data=" + dump_string(data, pp=pp))
 
     return data
 
@@ -152,7 +154,10 @@ def send(sock: socket.socket, data: str, pp: Optional[bool] = False) -> None:
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Send:")
         logger.debug(f"  len={framelen}")
-        logger.debug("  data=" + dump_string(data, pp=pp))
+
+        if get_arg("xml"):
+            logger.debug("  data=" + dump_string(data, pp=pp))
+
         logger.debug(f"  sent={sent_total}")
 
     return sent_total

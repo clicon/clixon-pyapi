@@ -79,3 +79,51 @@ def test_send_read_roundtrip_large_message():
     b.close()
 
     assert received == [payload]
+
+
+def _roundtrip_with_logging(monkeypatch, caplog, xml):
+    """
+    Send and read a message with debug logging, with or without --xml.
+    """
+
+    import logging
+    import socket
+
+    import clixon.sock as sock_module
+
+    monkeypatch.setattr(sock_module, "get_arg", lambda opt: xml if opt == "xml" else None)
+    monkeypatch.setattr(sock_module.logger, "level", logging.DEBUG)
+    caplog.set_level(logging.DEBUG, logger=sock_module.logger.name)
+
+    a, b = socket.socketpair()
+
+    try:
+        send(a, "<hello-xml-marker/>")
+        assert read(b) == "<hello-xml-marker/>"
+    finally:
+        a.close()
+        b.close()
+
+    return caplog.text
+
+
+def test_debug_log_without_xml(monkeypatch, caplog):
+    """
+    Test that debug logs show lengths but not the XML without --xml.
+    """
+
+    text = _roundtrip_with_logging(monkeypatch, caplog, xml=False)
+
+    assert "len=" in text
+    assert "hello-xml-marker" not in text
+
+
+def test_debug_log_with_xml(monkeypatch, caplog):
+    """
+    Test that debug logs show the XML sent and read with --xml.
+    """
+
+    text = _roundtrip_with_logging(monkeypatch, caplog, xml=True)
+
+    assert "len=" in text
+    assert text.count("<hello-xml-marker/>") == 2

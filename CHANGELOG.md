@@ -60,6 +60,9 @@
   always sent, as before, and earlier trees only if they were modified.
   `get_root(write_back=False)` fetches a tree that is not written back.
 * An `edit-config` with no configuration in it is no longer sent.
+* New `-x`/`--xml` option prints the XML sent to and received from the
+  backend in debug logs, and implies `--debug`. With `--debug` alone only the
+  message lengths are logged, not the XML.
 
 ### Corrected bugs
 * When several modules ran in the same run, for the same service or for all

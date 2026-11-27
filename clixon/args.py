@@ -117,6 +117,13 @@ def parse_args(cli_args: Optional = None) -> tuple:
     )
     parser.add_argument("-P", "--pp", action="store_true", help="Prettyprint XML")
     parser.add_argument(
+        "-x",
+        "--xml",
+        action="store_true",
+        help="Print the XML sent to and received from the backend in debug "
+        "logs, implies --debug",
+    )
+    parser.add_argument(
         "-l",
         "--log",
         choices=["s", "o"],
@@ -170,6 +177,9 @@ def parse_args(cli_args: Optional = None) -> tuple:
     if args.configfile is not None and not os.path.exists(args.configfile):
         print(f"Configuration file {args.configfile} does not exist")
         sys.exit(0)
+
+    if args.xml:
+        args.debug = True
 
     global_args = vars(args)
 

@@ -101,3 +101,20 @@ def test_parse_args_prune():
 
     parse_args(["-m", "/tmp"])
     assert get_arg("prune") is False
+
+
+def test_parse_args_xml():
+    """
+    Test that -x and --xml are parsed and imply --debug.
+    """
+
+    from clixon.args import get_arg
+
+    for flag in ("-x", "--xml"):
+        (_, _, _, _, _, _, debug) = parse_args(["-m", "/tmp", flag])
+        assert get_arg("xml") is True
+        assert debug is True
+
+    (_, _, _, _, _, _, debug) = parse_args(["-m", "/tmp"])
+    assert get_arg("xml") is False
+    assert debug is False
