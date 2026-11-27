@@ -587,3 +587,25 @@ def test_rpc_error_get_truncated_reply_is_an_error():
 def test_rpc_error_get_still_raises(xmlstr):
     with pytest.raises(netconf.RPCError):
         netconf.rpc_error_get(xmlstr)
+
+
+def test_rpc_config_get_depth():
+    """
+    Test that depth is sent as the Clixon cl:depth attribute.
+    """
+
+    xmlstr = netconf.rpc_config_get(depth=4).dumps()
+
+    assert '<get-config cl:depth="4" xmlns:cl="http://clicon.org/lib">' in xmlstr
+
+
+def test_rpc_config_get_without_depth():
+    """
+    Test that no depth attribute or with-defaults is sent by default.
+    """
+
+    xmlstr = netconf.rpc_config_get().dumps()
+
+    assert "<get-config>" in xmlstr
+    assert "depth" not in xmlstr
+    assert "with-defaults" not in xmlstr

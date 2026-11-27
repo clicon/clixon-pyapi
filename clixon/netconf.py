@@ -43,6 +43,7 @@ def rpc_config_get(
     source: Optional[str] = "actions",
     xpath: Optional[str] = "/",
     namespaces: Optional[dict] = None,
+    depth: Optional[int] = None,
 ):
     """
     Create a get-config RPC element with optional xpath filter.
@@ -51,6 +52,9 @@ def rpc_config_get(
     :param source: Source of config ('actions' by default)
     :param xpath: XPath string to filter config (default '/')
     :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
+    :param depth: Number of XML levels to return, counted from the top of the
+        returned tree. None (default) returns everything. Uses the Clixon
+        extension attribute cl:depth.
     :return: RPC element for NETCONF get-config
     """
     attributes = {}
@@ -85,6 +89,13 @@ def rpc_config_get(
         attributes = CONTROLLER_NS
 
     root = rpc_header_get(RPCTypes.GET_CONFIG, user)
+
+    if depth is not None:
+        root.rpc.get_config.set_attributes(
+            {"cl:depth": str(depth), "xmlns:cl": "http://clicon.org/lib"},
+            modified=False,
+        )
+
     root.rpc.get_config.create("source")
     root.rpc.get_config.source.create(source, attributes=attributes)
     root.rpc.get_config.create("nc:filter", attributes=xpath_attributes)
