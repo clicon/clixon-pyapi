@@ -20,8 +20,13 @@ class FakeClixon:
         self.depth_reply = depth_reply
         self.calls = []
 
-    def get_root(self, xpath="/", namespaces=None, depth=None):
-        self.calls.append({"xpath": xpath, "namespaces": namespaces, "depth": depth})
+    def get_root(self, xpath="/", namespaces=None, depth=None, write_back=True):
+        call = {"xpath": xpath, "namespaces": namespaces, "depth": depth}
+
+        if not write_back:
+            call["write_back"] = False
+
+        self.calls.append(call)
 
         if depth is None:
             return parse_string(FULL_SERVICES_REPLY).rpc_reply.data
@@ -66,9 +71,10 @@ def test_get_module_root_with_service_depth():
     cd = FakeClixon()
     root = get_module_root(cd, SimpleNamespace(SERVICE="testA", SERVICE_DEPTH=3))
 
-    # /services first, the depth-limited tree last since that one is written back
+    # /services is only used to fill in the depth-limited tree, which is the
+    # one written back
     assert cd.calls == [
-        {"xpath": "/services", "namespaces": None, "depth": None},
+        {"xpath": "/services", "namespaces": None, "depth": None, "write_back": False},
         {"xpath": "/", "namespaces": None, "depth": 3},
     ]
 
@@ -76,6 +82,10 @@ def test_get_module_root_with_service_depth():
     assert root.services.testA.peer.md5.get_data() == "secret"
     assert root.devices.device.name.get_data() == "r1"
     assert root.devices.device.config._truncated is True
+
+    # The moved services are unchanged configuration
+    assert root.services.prune() is None
+    assert root.services._parent is root
 
 
 def test_get_module_root_service_depth_with_service_xpath():

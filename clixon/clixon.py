@@ -95,6 +95,9 @@ class Clixon:
         self.__pull = pull
         self.__push = push
         self.__root = None
+        # All trees fetched with get_root() that are written back on exit, as
+        # (view, root) where view identifies the get-config that fetched it.
+        self.__roots = []
 
         if not socket:
             self.__socket = create_socket(sockpath)
@@ -158,10 +161,18 @@ class Clixon:
                     # Nothing was fetched, so nothing can have been modified.
                     logger.debug("No configuration fetched, skipping config set")
                 elif self.__root is None:
-                    self.__root = self.get_root()
+                    self.get_root()
 
-                if self.__root is not None:
-                    self.__config_set(self.__root)
+                # Every fetched tree is written back, in the order they were
+                # fetched. Without prune the last one is always sent, as
+                # before, and earlier ones only if they were modified.
+                for _, root in self.__roots:
+                    if (
+                        self.__prune
+                        or root is self.__root
+                        or root.find_modified()
+                    ):
+                        self.__config_set(root)
 
                 if self.__commit:
                     self.commit()
@@ -226,9 +237,15 @@ class Clixon:
         xpath: Optional[str] = "/",
         namespaces: Optional[dict] = None,
         depth: Optional[int] = None,
+        write_back: Optional[bool] = True,
     ) -> object:
         """
         Return the root object or a specific element, with optional server-side filtering.
+
+        Every tree fetched with write_back is written back when the Clixon
+        object is used as a context manager and exits, not only the last one.
+        A tree that was fetched earlier with the same xpath, namespaces and
+        depth and has not been modified is replaced by the new one.
 
         Examples:
             root = clixon.get_root()  # Returns entire root
@@ -246,6 +263,9 @@ class Clixon:
         :param depth: Number of XML levels to fetch, counted from the top of the tree (optional).
             Elements cut off at the last level are not written back.
         :type depth: Optional[int]
+        :param write_back: Write the tree back on exit. With False the tree is
+            not written back and does not replace the current root.
+        :type write_back: Optional[bool]
         :return: Root object (if path is None) or element at path (if path is provided). Returns None if path is invalid.
         :rtype: object
 
@@ -264,15 +284,29 @@ class Clixon:
         data = read(self.__socket, pp)
 
         self.__handle_errors(data)
-        self.__root = parse_string(data).rpc_reply.data
+        root = parse_string(data).rpc_reply.data
 
         if depth is not None:
-            mark_truncated(self.__root, depth)
+            mark_truncated(root, depth)
+
+        if write_back:
+            view = (xpath, tuple(sorted((namespaces or {}).items())), depth)
+
+            # Drop an earlier unmodified tree of the same view, so that
+            # fetching the same configuration repeatedly does not keep every
+            # copy. Modified trees are kept, their changes are written on exit.
+            self.__roots = [
+                (v, r)
+                for v, r in self.__roots
+                if v != view or r.find_modified()
+            ]
+            self.__roots.append((view, root))
+            self.__root = root
 
         if path:
-            return get_path(self.__root, path)
+            return get_path(root, path)
 
-        return self.__root
+        return root
 
     def __wait_for_notification(self, return_data: Optional[bool] = False) -> None:
         """
@@ -460,8 +494,8 @@ class Clixon:
             root, user=self.__user, target=self.__target, prune=self.__prune
         )
 
-        if self.__prune and not config.rpc.edit_config.config.get_elements():
-            logger.debug("No modifications found, skipping config set")
+        if not config.rpc.edit_config.config.get_elements():
+            logger.debug("No configuration to set, skipping config set")
             return
 
         send(self.__socket, config, pp)

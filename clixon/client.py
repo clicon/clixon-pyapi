@@ -16,6 +16,7 @@ from typing import Optional
 
 from clixon.args import get_logger
 from clixon.event import RPCEventHandler
+from clixon.modules import ModuleSession
 from clixon.modules import run_hooks
 from clixon.modules import run_modules
 from clixon.netconf import RPCTypes
@@ -77,18 +78,23 @@ def controller_transaction_cb(*args, **kwargs) -> None:
     if tid not in transactions:
         return
 
-    for service in transactions[tid]:
-        match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
+    # One session for all services, the configuration is fetched once
+    with ModuleSession(sock) as session:
+        for service in transactions[tid]:
+            match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
-        if not match:
-            raise ValueError(
-                f"Invalid command, could not parse service: {service.cdata}"
+            if not match:
+                raise ValueError(
+                    f"Invalid command, could not parse service: {service.cdata}"
+                )
+
+            service_name = match.group(1)
+            instance = match.group(2)
+
+            run_hooks(
+                sock, modules, service_name, instance, False, result,
+                session=session,
             )
-
-        service_name = match.group(1)
-        instance = match.group(2)
-
-        run_hooks(sock, modules, service_name, instance, False, result)
 
 
 @events.register("*<services-commit*>*</services-commit>*")
@@ -144,33 +150,45 @@ def services_commit_cb(*args, **kwargs) -> None:
             transactions[tid] = services
 
         finished_services = []
-        for service in services:
-            match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
 
-            if not match:
-                raise ValueError(
-                    f"Invalid command, could not parse service: {service.cdata}"
+        # One session for all service instances in the transaction: the
+        # configuration is fetched once and all changes are written together
+        # when the session exits.
+        with ModuleSession(sock, username) as session:
+            for service in services:
+                match = re.match(r"(\S+)\[.+='(\S+)'\]", service.cdata)
+
+                if not match:
+                    raise ValueError(
+                        f"Invalid command, could not parse service: {service.cdata}"
+                    )
+
+                service_name = match.group(1)
+                instance = match.group(2)
+
+                run_hooks(
+                    sock,
+                    modules,
+                    service_name,
+                    instance,
+                    service_diff,
+                    "pre-commit",
+                    user=username,
+                    session=session,
                 )
 
-            service_name = match.group(1)
-            instance = match.group(2)
+                run_modules(
+                    sock,
+                    modules,
+                    service_name,
+                    instance,
+                    service_diff,
+                    user=username,
+                    session=session,
+                )
 
-            run_hooks(
-                sock,
-                modules,
-                service_name,
-                instance,
-                service_diff,
-                "pre-commit",
-                user=username,
-            )
-
-            run_modules(
-                sock, modules, service_name, instance, service_diff, user=username
-            )
-
-            if service_name not in finished_services:
-                finished_services.append(service_name)
+                if service_name not in finished_services:
+                    finished_services.append(service_name)
     except Exception as e:
         logger.error("Catched an module exception")
         logger.error(traceback.format_exc())

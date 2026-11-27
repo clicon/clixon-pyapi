@@ -75,17 +75,103 @@ def get_module_root(cd: Clixon, module: object) -> object:
 
     logger.debug(f"Using SERVICE_DEPTH {depth} for {module}")
 
-    # Fetched first: the tree from the last get_root() is the one written back
-    services = cd.get_root(xpath="/services")
+    # Only used to fill in /services below, not written back by itself
+    services = cd.get_root(xpath="/services", write_back=False)
     root = cd.get_root(xpath=xpath or "/", namespaces=namespaces, depth=depth)
 
     for element in root.get_elements("services"):
         root.delete(element=element)
 
+    # Moved, not copied, and not marked as modified: they are unchanged
+    # configuration, a pruned edit-config should not send them.
     for element in services.get_elements("services"):
-        root.add(element)
+        services.delete(element=element)
+        root.add(element, modified=False)
 
     return root
+
+
+def get_module_view(module: object) -> tuple:
+    """
+    Return what identifies the configuration get_module_root() fetches for
+    a module. Modules with the same view get the same tree.
+
+    :param module: Service module
+    :type module: object
+    :return: (xpath, namespaces, depth)
+    :rtype: tuple
+
+    """
+
+    xpath = None
+    namespaces = None
+
+    if hasattr(module, "SERVICE_XPATH") and hasattr(module, "SERVICE_NAMESPACES"):
+        xpath = module.SERVICE_XPATH
+        namespaces = tuple(sorted((module.SERVICE_NAMESPACES or {}).items()))
+
+    return (xpath, namespaces, get_service_depth(module))
+
+
+class ModuleSession:
+    """
+    A Clixon session shared by the modules and hooks run in one transaction.
+
+    The configuration is fetched once per view (SERVICE_XPATH,
+    SERVICE_NAMESPACES and SERVICE_DEPTH) and the same tree is given to every
+    module, hook and service instance with that view. All changes are written
+    back when the session exits.
+
+    Without a shared session every module fetched its own tree, and only the
+    tree fetched last was written back, so changes made by the other modules
+    in the same run were lost.
+    """
+
+    def __init__(self, socket, user: Optional[str] = None) -> None:
+        """
+        :param socket: Socket connected to the backend
+        :type socket: socket.socket
+        :param user: User to run as
+        :type user: str
+        """
+
+        self.clixon = Clixon(socket=socket, user=user, from_server=True)
+        self.__roots = {}
+
+    def __enter__(self) -> "ModuleSession":
+        self.clixon.__enter__()
+
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        # With nothing fetched no module ran, there is nothing to write.
+        # Clixon.__exit__ would otherwise fetch the whole configuration only
+        # to send it back.
+        if not self.__roots:
+            logger.debug("No configuration fetched in session, nothing to write")
+            return
+
+        self.clixon.__exit__(*args)
+
+    def get_root(self, module: object) -> object:
+        """
+        Return the configuration for a module, fetched once per view.
+
+        :param module: Service module
+        :type module: object
+        :return: Root object
+        :rtype: object
+
+        """
+
+        view = get_module_view(module)
+
+        if view not in self.__roots:
+            self.__roots[view] = get_module_root(self.clixon, module)
+        else:
+            logger.debug(f"Reusing configuration for {module}")
+
+        return self.__roots[view]
 
 
 def run_hooks(
@@ -96,7 +182,16 @@ def run_hooks(
     diff: bool,
     result: str,
     user: Optional[str] = None,
+    session: Optional[ModuleSession] = None,
 ) -> None:
+    """
+    Run the hooks of the modules for a service.
+
+    :param session: Session to run in. Without one a new session is created
+        for this call.
+    :type session: ModuleSession
+    """
+
     if modules == []:
         logger.info("No modules found.")
         return
@@ -118,53 +213,67 @@ def run_hooks(
         logger.info("No hooks found.")
         return
 
-    with Clixon(socket=socket, user=user, from_server=True) as cd:
-        for module in modules:
-            if service_name:
-                if module.SERVICE != service_name:
-                    logger.debug(f"Skipping module {module} for service {service_name}")
-                    continue
+    if session is None:
+        with ModuleSession(socket, user) as session:
+            _run_hooks(session, modules, service_name, instance, diff, result)
+    else:
+        _run_hooks(session, modules, service_name, instance, diff, result)
 
-            try:
-                logger.info(f"Running hooks for module {module}")
 
-                root = get_module_root(cd, module)
+def _run_hooks(
+    session: ModuleSession,
+    modules: List,
+    service_name: str,
+    instance: str,
+    diff: bool,
+    result: str,
+) -> None:
+    for module in modules:
+        if service_name:
+            if module.SERVICE != service_name:
+                logger.debug(f"Skipping module {module} for service {service_name}")
+                continue
 
-                match result:
-                    case "pre-commit":
-                        logger.debug(f"Running pre-commit hook for module {module}")
-                        if hasattr(module, "setup_pre_commit"):
-                            module.setup_pre_commit(
-                                root, logger, instance=instance, diff=diff
-                            )
-                    case "SUCCESS":
-                        logger.debug(f"Running post-commit hook for module {module}")
-                        if hasattr(module, "setup_post_commit"):
-                            module.setup_post_commit(
-                                root,
-                                logger,
-                                instance=instance,
-                                result=result,
-                                diff=diff,
-                            )
-                    case "FAILED":
-                        logger.debug(
-                            f"Running post-commit-failed hook for module {module}"
+        try:
+            logger.info(f"Running hooks for module {module}")
+
+            root = session.get_root(module)
+
+            match result:
+                case "pre-commit":
+                    logger.debug(f"Running pre-commit hook for module {module}")
+                    if hasattr(module, "setup_pre_commit"):
+                        module.setup_pre_commit(
+                            root, logger, instance=instance, diff=diff
                         )
-                        if hasattr(module, "setup_post_commit_failed"):
-                            module.setup_post_commit_failed(
-                                root,
-                                logger,
-                                instance=instance,
-                                result=result,
-                                diff=diff,
-                            )
+                case "SUCCESS":
+                    logger.debug(f"Running post-commit hook for module {module}")
+                    if hasattr(module, "setup_post_commit"):
+                        module.setup_post_commit(
+                            root,
+                            logger,
+                            instance=instance,
+                            result=result,
+                            diff=diff,
+                        )
+                case "FAILED":
+                    logger.debug(
+                        f"Running post-commit-failed hook for module {module}"
+                    )
+                    if hasattr(module, "setup_post_commit_failed"):
+                        module.setup_post_commit_failed(
+                            root,
+                            logger,
+                            instance=instance,
+                            result=result,
+                            diff=diff,
+                        )
 
-            except Exception as e:
-                logger.error(f"Module {module} failed with exception: {e}")
-                logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.error(f"Module {module} failed with exception: {e}")
+            logger.error(traceback.format_exc())
 
-                raise ModuleError(e)
+            raise ModuleError(e)
 
 
 def run_modules(
@@ -174,6 +283,7 @@ def run_modules(
     instance: str,
     service_diff: Optional[bool] = False,
     user: Optional[str] = None,
+    session: Optional[ModuleSession] = None,
 ) -> Optional[Exception]:
     """
     Run all modules in the list.
@@ -186,6 +296,9 @@ def run_modules(
     :type instance: str
     :param service_diff: Run modules only if service is different
     :type service_diff: bool
+    :param session: Session to run in. Without one a new session is created
+        for this call.
+    :type session: ModuleSession
     :return: None if all modules ran successfully, otherwise the exception
     :rtype: Optional[Exception]
 
@@ -196,25 +309,38 @@ def run_modules(
         logger.info("No modules found.")
         return
 
-    with Clixon(socket=socket, user=user, from_server=True) as cd:
-        for module in modules:
-            if service_name:
-                if module.SERVICE != service_name:
-                    logger.debug(f"Skipping module {module} for service {service_name}")
-                    continue
+    if session is None:
+        with ModuleSession(socket, user) as session:
+            _run_modules(session, modules, service_name, instance, service_diff)
+    else:
+        _run_modules(session, modules, service_name, instance, service_diff)
 
-            try:
-                logger.info(f"Running module {module}")
-                logger.debug(f"Module {module} is getting config")
 
-                root = get_module_root(cd, module)
+def _run_modules(
+    session: ModuleSession,
+    modules: List,
+    service_name: str,
+    instance: str,
+    service_diff: bool,
+) -> None:
+    for module in modules:
+        if service_name:
+            if module.SERVICE != service_name:
+                logger.debug(f"Skipping module {module} for service {service_name}")
+                continue
 
-                module.setup(root, logger, instance=instance, diff=service_diff)
-            except Exception as e:
-                logger.error(f"Module {module} failed with exception: {e}")
-                logger.error(traceback.format_exc())
+        try:
+            logger.info(f"Running module {module}")
+            logger.debug(f"Module {module} is getting config")
 
-                raise ModuleError(e)
+            root = session.get_root(module)
+
+            module.setup(root, logger, instance=instance, diff=service_diff)
+        except Exception as e:
+            logger.error(f"Module {module} failed with exception: {e}")
+            logger.error(traceback.format_exc())
+
+            raise ModuleError(e)
 
 
 def find_modules(modulespath: str) -> List[str]:

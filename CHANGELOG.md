@@ -45,6 +45,27 @@
   * Previously a device created with `create()`, or changed only by `add()` of
     an inner template element or a hand-built leaf, or by assigning `cdata`,
     was not detected as modified and its changes were not sent.
+* The configuration is fetched once per transaction instead of once per
+  module and service instance.
+  * New `ModuleSession` shares one Clixon session between all hooks and
+    modules in a transaction. Modules with the same `SERVICE_XPATH`,
+    `SERVICE_NAMESPACES` and `SERVICE_DEPTH` get the same tree, modules with
+    different ones get one tree each.
+  * `run_hooks()` and `run_modules()` take an optional `session`, without one
+    they create a session of their own as before.
+  * If no hook or module runs, the configuration is neither fetched nor sent.
+* `Clixon` writes back every tree fetched with `get_root()` on exit, not only
+  the last one. Fetching the same xpath, namespaces and depth again replaces
+  an earlier tree only if it is unmodified. Without `--prune` the last tree is
+  always sent, as before, and earlier trees only if they were modified.
+  `get_root(write_back=False)` fetches a tree that is not written back.
+* An `edit-config` with no configuration in it is no longer sent.
+
+### Corrected bugs
+* When several modules ran in the same run, for the same service or for all
+  services when a commit had no services, only the changes made by the module
+  that ran last were written. Each module fetched its own tree and only the
+  last fetched tree was written back.
 
 ## 1.9.0
 6 October 2026
