@@ -260,8 +260,9 @@ class Clixon:
         :type xpath: Optional[str]
         :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
         :type namespaces: Optional[dict]
-        :param depth: Number of XML levels to fetch, counted from the top of the tree (optional).
-            Elements cut off at the last level are not written back.
+        :param depth: Number of XML levels to fetch below the node the xpath
+            selects (optional). Elements that may have been cut off are not
+            written back, see mark_truncated().
         :type depth: Optional[int]
         :param write_back: Write the tree back on exit. With False the tree is
             not written back and does not replace the current root.
@@ -287,7 +288,7 @@ class Clixon:
         root = parse_string(data).rpc_reply.data
 
         if depth is not None:
-            mark_truncated(root, depth)
+            mark_truncated(root)
 
         if write_back:
             view = (xpath, tuple(sorted((namespaces or {}).items())), depth)

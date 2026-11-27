@@ -32,7 +32,7 @@ class FakeClixon:
             return parse_string(FULL_SERVICES_REPLY).rpc_reply.data
 
         root = parse_string(self.depth_reply).rpc_reply.data
-        mark_truncated(root, depth)
+        mark_truncated(root)
 
         return root
 

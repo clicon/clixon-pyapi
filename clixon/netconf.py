@@ -52,9 +52,11 @@ def rpc_config_get(
     :param source: Source of config ('actions' by default)
     :param xpath: XPath string to filter config (default '/')
     :param namespaces: Dict of namespace prefixes to URIs for xpath (optional)
-    :param depth: Number of XML levels to return, counted from the top of the
-        returned tree. None (default) returns everything. Uses the Clixon
-        extension attribute cl:depth.
+    :param depth: Number of XML levels to return below the node the xpath
+        selects, as RESTCONF depth (RFC 8040 Sec 4.8.2). When the xpath
+        selects several nodes the backend counts from the first of them.
+        None (default) returns everything. Uses the Clixon extension
+        attribute cl:depth.
     :return: RPC element for NETCONF get-config
     """
     attributes = {}

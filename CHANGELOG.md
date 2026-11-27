@@ -32,6 +32,17 @@
     operation used, but this has not yet been verified for `ordered-by user`
     lists on a live backend.
   * New `Element.prune()` and `rpc_config_set(prune=...)`.
+* New `SERVICE_DEPTH` in service modules limits how many levels of the
+  configuration are fetched, using the Clixon `cl:depth` attribute.
+  * The depth is counted from the node `SERVICE_XPATH` selects, as RESTCONF
+    depth. This needs a clixon backend with the fix for
+    [issue 718](https://github.com/clicon/clixon/issues/718). When the xpath
+    selects nodes at different levels, the backend counts from the first one.
+  * `/services` is always fetched in full.
+  * Elements without children or text in a depth-limited tree are not
+    written back unless they are changed, since a list entry cut off by the
+    depth has no keys and would be rejected.
+  * New `depth` argument to `Clixon.get_root()` and `rpc_config_get()`.
 
 ### Changes
 * Modification tracking is more complete. These changes affect which devices

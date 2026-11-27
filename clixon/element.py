@@ -45,32 +45,41 @@ def _xml_to_dict(node: minidom.Element) -> Any:
     return result
 
 
-def mark_truncated(root: "Element", depth: int) -> None:
+def mark_truncated(root: "Element") -> None:
     """
     Mark the elements a depth-limited get-config may have cut off.
 
     With a depth limit the backend returns the elements at the last level
     without their children, so a list entry comes back without its keys and
     a container comes back empty. Leaves at that level keep their values.
-    Empty elements at the last level are marked so that they are not written
-    back, where a list entry without keys would be rejected.
+    Marked elements are not written back, where a list entry without keys
+    would be rejected.
 
-    :param root: The <data> element of the reply. Its children are level 1.
+    The backend counts the depth from the node the xpath selects, and for an
+    xpath that selects several nodes from the first of them only, so the
+    level where the tree was cut is not known here. Instead every element
+    without children and text is marked, wherever it is in the tree. This
+    also marks existing empty leaves and empty containers, which is harmless:
+    they are already in the datastore, and edit-config uses merge.
+
+    An element that is changed after this is written back as usual, see
+    Element.dumps().
+
+    :param root: The <data> element of the reply.
     :type root: Element
-    :param depth: The depth used in the get-config
-    :type depth: int
     :return: None
     :rtype: None
 
     """
 
-    level = [root]
+    stack = list(root._children)
 
-    for _ in range(depth):
-        level = [child for element in level for child in element._children]
+    while stack:
+        element = stack.pop()
 
-    for element in level:
-        if not element._children and element.cdata == "":
+        if element._children:
+            stack.extend(element._children)
+        elif element._cdata == "":
             element._truncated = True
 
 
@@ -529,8 +538,15 @@ class Element:
             cdata = child._cdata
             children = child._children
 
-            # Cut off by a depth-limited get-config and not filled in since
-            if child._truncated and not children and cdata == "":
+            # Possibly cut off by a depth-limited get-config and not changed
+            # since. Children, text or a change such as new attributes make
+            # it a real element again.
+            if (
+                child._truncated
+                and not children
+                and cdata == ""
+                and not child._modified
+            ):
                 continue
 
             if children or cdata != "":

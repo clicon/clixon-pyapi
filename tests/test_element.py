@@ -418,20 +418,44 @@ DEPTH_3_REPLY = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><d
 
 def test_mark_truncated():
     """
-    Test that only empty elements at the last level are marked.
+    Test that empty elements are marked, and elements with text or children
+    are not.
     """
 
     from clixon.element import mark_truncated
 
     root = parse_string(DEPTH_3_REPLY).rpc_reply.data
-    mark_truncated(root, 3)
+    mark_truncated(root)
 
     device = root.devices.device
 
+    assert root.devices._truncated is False
     assert device._truncated is False
     assert device.name._truncated is False
     assert device.config._truncated is True
     assert device.module._truncated is True
+
+
+def test_mark_truncated_any_level():
+    """
+    Test that empty elements are marked at every level, since the backend
+    counts the depth from the node the xpath selects.
+    """
+
+    from clixon.element import mark_truncated
+
+    root = parse_string(
+        "<rpc-reply><data><a><b/><c><d/><e>1</e></c></a><f/></data></rpc-reply>"
+    ).rpc_reply.data
+    mark_truncated(root)
+
+    assert root.a.b._truncated is True
+    assert root.a.c.d._truncated is True
+    assert root.f._truncated is True
+    assert root.a._truncated is False
+    assert root.a.c._truncated is False
+    assert root.a.c.e._truncated is False
+    assert root.dumps() == "<a><c><e>1</e></c></a>"
 
 
 def test_dumps_skips_truncated():
@@ -443,7 +467,7 @@ def test_dumps_skips_truncated():
     from clixon.element import mark_truncated
 
     root = parse_string(DEPTH_3_REPLY).rpc_reply.data
-    mark_truncated(root, 3)
+    mark_truncated(root)
 
     assert root.dumps() == (
         '<devices xmlns="http://clicon.org/controller"><device>'
@@ -453,3 +477,38 @@ def test_dumps_skips_truncated():
     root.devices.device.config.create("system").create("hostname", data="r1")
 
     assert "<config><system><hostname>r1</hostname></system></config>" in root.dumps()
+
+
+def test_dumps_writes_changed_truncated():
+    """
+    Test that a marked element is written back once it has text or has been
+    changed, for example given new attributes.
+    """
+
+    from clixon.element import mark_truncated
+
+    root = parse_string(DEPTH_3_REPLY).rpc_reply.data
+    mark_truncated(root)
+
+    root.devices.device.config.set_data("x")
+    root.devices.device.module.update_attributes({"a": "1"})
+
+    assert "<config>x</config>" in root.dumps()
+    assert '<module a="1"/>' in root.dumps()
+
+
+def test_prune_skips_truncated():
+    """
+    Test that a pruned edit-config does not send marked elements kept as
+    leaves next to a change, so no list entry without keys is sent.
+    """
+
+    from clixon.element import mark_truncated
+
+    root = parse_string(DEPTH_3_REPLY).rpc_reply.data
+    mark_truncated(root)
+    root.devices.device.enabled.set_data("false")
+
+    assert root.devices.prune().dumps() == (
+        "<device><name>r1</name><enabled>false</enabled></device>"
+    )

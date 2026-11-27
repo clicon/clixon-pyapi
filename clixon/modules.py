@@ -47,8 +47,10 @@ def get_module_root(cd: Clixon, module: object) -> object:
     xpath is fetched, otherwise the whole configuration.
 
     If the module sets SERVICE_DEPTH, the configuration is fetched with that
-    depth, counted from the top of the tree (devices and services are level
-    1). /services is always fetched in full, whatever the depth.
+    depth, counted from the node SERVICE_XPATH selects, or from the top of
+    the tree without SERVICE_XPATH. With an xpath that selects nodes at
+    different levels, a union for example, the backend counts from the first
+    node it selects. /services is always fetched in full, whatever the depth.
 
     :param cd: Clixon object
     :type cd: Clixon
